@@ -20,16 +20,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useExamStore } from '@/stores/examStore'
+import { useWritingStore } from '@/stores/writingStore'
 import { useResizable } from '@/composables/useResizable'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
-import QuestionPanel from '@/components/exam/QuestionPanel.vue'
-import AnswerPanel from '@/components/exam/AnswerPanel.vue'
+import QuestionPanel from '@/components/writing/QuestionPanel.vue'
+import AnswerPanel from '@/components/writing/AnswerPanel.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
 
-const examStore = useExamStore()
-const { leftWidth, isDragging, startDrag } = useResizable(50)
+const examStore = useWritingStore()
+const { leftWidth, isDragging, startDrag } = useResizable()
 
 const currentAnswer = computed({
   get: (): string => examStore.currentAnswer,
@@ -39,6 +39,8 @@ const currentAnswer = computed({
 const handleSubmit = (): void => {
   console.log('Exam submitted:', examStore.answers)
   alert('Exam submitted successfully!')
+  // Imtihon topshirilgandan keyin ma'lumotlarni tozalash
+  // examStore.clearExam()
 }
 </script>
 
