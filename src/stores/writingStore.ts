@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import type { WritingState } from '@/types/writing'
 
-const STORAGE_KEY = 'ielts_exam_state'
+const STORAGE_KEY = 'ielts_writing_state'
 
-// LocalStorage'dan ma'lumotlarni o'qish
 const loadFromStorage = (): WritingState | null => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -16,7 +15,6 @@ const loadFromStorage = (): WritingState | null => {
   return null
 }
 
-// LocalStorage'ga ma'lumotlarni saqlash
 const saveToStorage = (state: WritingState): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
@@ -70,7 +68,7 @@ export const useWritingStore = defineStore('writing', {
       saveToStorage(this.$state)
     },
 
-    clearExam(): void {
+    clearWriting(): void {
       this.currentPage = 1
       this.answers.part1 = ''
       this.answers.part2 = ''

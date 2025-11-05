@@ -3,16 +3,17 @@
     <ExamHeader />
 
     <div class="main-content">
-      <QuestionPanel :page="examStore.currentPage" :width="leftWidth" />
+      <WritingQuestionPanel :page="writingStore.currentPage" :width="leftWidth" />
 
       <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
 
-      <AnswerPanel v-model="currentAnswer" />
+      <WritingAnswerPanel v-model="currentAnswer" />
     </div>
 
     <ExamFooter
-      :current-page="examStore.currentPage"
-      @change-page="examStore.setPage"
+      :current-page="writingStore.currentPage"
+      :total-pages="2"
+      @change-page="writingStore.setPage"
       @submit="handleSubmit"
     />
   </div>
@@ -24,23 +25,21 @@ import { useWritingStore } from '@/stores/writingStore'
 import { useResizable } from '@/composables/useResizable'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
-import QuestionPanel from '@/components/writing/QuestionPanel.vue'
-import AnswerPanel from '@/components/writing/AnswerPanel.vue'
+import WritingQuestionPanel from '@/components/writing/WritingQuestionPanel.vue'
+import WritingAnswerPanel from '@/components/writing/WritingAnswerPanel.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
 
-const examStore = useWritingStore()
+const writingStore = useWritingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 
 const currentAnswer = computed({
-  get: (): string => examStore.currentAnswer,
-  set: (value: string): void => examStore.updateAnswer(value),
+  get: (): string => writingStore.currentAnswer,
+  set: (value: string): void => writingStore.updateAnswer(value),
 })
 
 const handleSubmit = (): void => {
-  console.log('Exam submitted:', examStore.answers)
-  alert('Exam submitted successfully!')
-  // Imtihon topshirilgandan keyin ma'lumotlarni tozalash
-  // examStore.clearExam()
+  console.log('Writing exam submitted:', writingStore.answers)
+  alert('Writing exam submitted successfully!')
 }
 </script>
 

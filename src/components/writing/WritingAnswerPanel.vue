@@ -56,6 +56,7 @@ const handleInput = (event: Event): void => {
   border: 1px solid #d1d5db;
   border-radius: 4px;
   margin-bottom: 8px;
+  overflow: hidden;
 }
 
 .answer-textarea {
@@ -73,5 +74,6 @@ const handleInput = (event: Event): void => {
   text-align: right;
   font-size: 14px;
   color: #6b7280;
+  flex-shrink: 0;
 }
 </style>

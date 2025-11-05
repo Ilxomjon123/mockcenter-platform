@@ -1,19 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import WritingView from '@/views/WritingView.vue'
+import type { RouteRecordRaw } from 'vue-router'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    redirect: '/reading',
+  },
+  {
+    path: '/reading',
+    name: 'reading',
+    component: () => import('@/views/ReadingExamView.vue'),
+  },
+  {
+    path: '/writing',
+    name: 'writing',
+    component: () => import('@/views/WritingExamView.vue'),
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      redirect: '/writing',
-    },
-    {
-      path: '/writing',
-      name: 'writing',
-      component: WritingView,
-    },
-  ],
+  routes,
 })
 
 export default router

@@ -2,25 +2,24 @@
   <footer class="exam-footer">
     <div class="footer-tabs">
       <button
-        @click="emit('changePage', 1)"
+        v-for="page in totalPages"
+        :key="page"
+        @click="emit('changePage', page)"
         class="footer-tab"
-        :class="{ active: currentPage === 1 }"
+        :class="{ active: currentPage === page }"
       >
-        Part 1
-      </button>
-      <button
-        @click="emit('changePage', 2)"
-        class="footer-tab"
-        :class="{ active: currentPage === 2 }"
-      >
-        Part 2
+        Part {{ page }}
       </button>
     </div>
 
-    <div class="footer-info">0 of 1</div>
+    <div class="footer-info">0 of {{ totalPages }}</div>
 
     <div class="nav-buttons">
-      <button v-if="currentPage === 2" @click="emit('changePage', 1)" class="nav-btn back">
+      <button
+        v-if="currentPage > 1"
+        @click="emit('changePage', currentPage - 1)"
+        class="nav-btn back"
+      >
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -31,7 +30,11 @@
         </svg>
       </button>
 
-      <button v-if="currentPage === 1" @click="emit('changePage', 2)" class="nav-btn">
+      <button
+        v-if="currentPage < totalPages"
+        @click="emit('changePage', currentPage + 1)"
+        class="nav-btn"
+      >
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
@@ -54,6 +57,7 @@
 <script setup lang="ts">
 interface Props {
   currentPage: number
+  totalPages?: number
 }
 
 interface Emits {
@@ -61,11 +65,15 @@ interface Emits {
   (e: 'submit'): void
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  totalPages: 2,
+})
+
 const emit = defineEmits<Emits>()
 </script>
 
 <style scoped>
+/* Same styles as before */
 .exam-footer {
   background: white;
   border-top: 1px solid #e5e5e5;
