@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { ReadingState } from '@/types/reading'
+import type { ReadingState, Passage, Question } from '@/types/reading'
+import type { ExamTestRaw, PartRaw, QuestionRaw } from '@/types/test'
 
 const STORAGE_KEY = 'ielts_reading_state'
 
@@ -299,6 +300,27 @@ Complex structures used in written different forms books have strictly shown tha
   },
 
   actions: {
+    setTest(test: ExamTestRaw): void {
+      const reading = test.reading
+      const parts = [...reading.parts].sort((a, b) => a.order - b.order)
+      const mapQuestion = (q: QuestionRaw): Question => {
+        let type: Question['type'] = 'fill-blank'
+        if (q.type === 'multiple_choice') type = 'multiple-choice'
+        if (q.type === 'matching') type = 'matching'
+        const text = q.name || q.title || ''
+        const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
+        return { id: q.id, type, text, options }
+      }
+      const passages: Passage[] = parts.map((p: PartRaw) => ({
+        id: p.order,
+        title: p.title,
+        content: p.content || '',
+        questions: [...p.questions].sort((a, b) => a.order - b.order).map(mapQuestion),
+      }))
+      this.currentPart = passages[0]?.id || 1
+      ;(this as any).passages = passages
+      ;(this as any).answers = {}
+    },
     setPart(part: number): void {
       this.currentPart = part
       saveToStorage(this.$state)

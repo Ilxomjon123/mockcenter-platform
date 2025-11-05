@@ -6,38 +6,9 @@
     </div>
 
     <div class="question-content">
-      <div v-if="page === 1">
-        <div class="instructions">
-          <p class="instruction-bold">
-            The chart below shows the number of adults participating in different major sports in
-            one area, in 1997 and 2017.
-          </p>
-          <p class="instruction-bold">
-            Summarise the information by selecting and reporting the main features, and make
-            comparisons where relevant.
-          </p>
-        </div>
-      </div>
-
-      <div v-else>
-        <div class="instructions">
-          <p class="instruction-text">Write about the following topic:</p>
-
-          <p class="instruction-bold">
-            The world of work is changing rapidly and employees cannot depend on having the same job
-            or the same working conditions for life.
-          </p>
-
-          <p class="instruction-bold">
-            Discuss the possible causes for this rapid change, and suggest ways of preparing people
-            for the world of work in the future.
-          </p>
-
-          <p class="instruction-text" style="margin-top: 16px">
-            Give reasons for your answer and include any relevant examples from your own knowledge
-            or experience.
-          </p>
-        </div>
+      <div class="instructions">
+        <p class="instruction-text">{{ promptTitle }}</p>
+        <p class="instruction-bold">{{ promptContent }}</p>
       </div>
     </div>
   </div>
@@ -45,6 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useWritingStore } from '@/stores/writingStore'
 
 interface Props {
   page: number
@@ -58,6 +30,15 @@ const subtitle = computed(() => {
     ? 'You should spend about 20 minutes on this task. Write at least 150 words.'
     : 'You should spend about 40 minutes on this task. Write at least 250 words.'
 })
+
+const writingStore = useWritingStore()
+const prompt = computed(() => {
+  const prompts = (writingStore as any).prompts as { title: string; content: string }[] | undefined
+  const idx = Math.max(0, Math.min((props.page || 1) - 1, (prompts?.length || 1) - 1))
+  return prompts?.[idx]
+})
+const promptTitle = computed(() => prompt.value?.title || 'Write about the following topic:')
+const promptContent = computed(() => prompt.value?.content || '')
 </script>
 
 <style scoped>

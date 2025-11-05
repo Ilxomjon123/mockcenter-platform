@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { WritingState } from '@/types/writing'
+import type { ExamTestRaw, PartRaw } from '@/types/test'
 
 const STORAGE_KEY = 'ielts_writing_state'
 
@@ -54,6 +55,17 @@ export const useWritingStore = defineStore('writing', {
   },
 
   actions: {
+    setTest(test: ExamTestRaw): void {
+      const parts = [...test.writing.parts].sort((a, b) => a.order - b.order)
+      // Store prompts in local storage-friendly way by reusing answers fields and currentPage only
+      // Extend store with any to avoid changing public types too much
+      ;(this as any).prompts = parts.map((p: PartRaw) => ({
+        title: p.title,
+        content: p.content || '',
+      }))
+      this.currentPage = 1
+      saveToStorage(this.$state)
+    },
     setPage(page: number): void {
       this.currentPage = page
       saveToStorage(this.$state)
