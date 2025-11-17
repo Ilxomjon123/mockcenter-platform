@@ -24,7 +24,7 @@
     <ExamFooter
       :current-page="readingStore.currentPart"
       :total-pages="3"
-      @change-page="readingStore.setPart"
+      @change-page="handlePageChange"
       @submit="handleSubmit"
     />
   </div>
@@ -38,28 +38,42 @@ import ExamFooter from '@/components/exam/ExamFooter.vue'
 import ReadingPassagePanel from '@/components/reading/ReadingPassagePanel.vue'
 import ReadingQuestionPanel from '@/components/reading/ReadingQuestionPanel.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
+import type { Passage, Question } from '@/types/reading'
 
 const readingStore = useReadingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 
 const getQuestionsRange = (): string => {
-  const passage = readingStore.currentPassage
-  if (!passage || passage.questions.length === 0) return ''
+  const passage: Passage | undefined = readingStore.currentPassage
+  if (!passage?.questions?.length) return ''
 
-  const firstQ = passage.questions[0].id
-  const lastQ = passage.questions[passage.questions.length - 1].id
+  const questions: Question[] = passage.questions
+  const firstQ = questions[0]?.id
+  const lastQ = questions[questions.length - 1]?.id
+
+  // Check if both values exist
+  if (!firstQ || !lastQ) return ''
 
   return firstQ === lastQ ? `${firstQ}` : `${firstQ}-${lastQ}`
 }
 
 const getInstruction = (): string => {
   const part = readingStore.currentPart
-  if (part === 1) {
-    return 'Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.'
-  } else if (part === 2) {
-    return 'The text has four sections. Choose the correct heading for each section and move it into the gap.'
-  } else {
-    return 'Complete the summary. Write ONE WORD ONLY from the text for each answer.'
+  switch (part) {
+    case 1:
+      return 'Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.'
+    case 2:
+      return 'The text has four sections. Choose the correct heading for each section and move it into the gap.'
+    case 3:
+      return 'Complete the summary. Write ONE WORD ONLY from the text for each answer.'
+    default:
+      return 'Read the passage and answer the questions below.'
+  }
+}
+
+const handlePageChange = (page: number): void => {
+  if (page >= 1 && page <= 3) {
+    readingStore.setPart(page)
   }
 }
 
