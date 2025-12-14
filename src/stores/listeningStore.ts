@@ -32,8 +32,10 @@ const saveToStorage = (state: ListeningState): void => {
 export const useListeningStore = defineStore('listening', {
   state: (): ListeningState => {
     const saved = loadFromStorage()
+
     return (
       saved || {
+        text: '<h2>Phone call about second-hand furniture</h2><h2><br>Items:</h2><p>Dining table:          - [gap] shape<br><br>                             -  medium size<br><br>                             - [gap] old<br><br>                             -  price: £25.00<br><br><br>Dining chairs:         - set of [gap] chairs<br><br>                              - seats covered in [gap] material<br><br>                              - in [gap] condition<br><br>                              - price: £20.00<br><br><br>Desk:                     - length: 1 metre 20<br><br>                              - 3 drawers. Top drawer has a [gap].<br>                              <br>                              - price: £ [gap]</p><h2><br><br><br>Address:</h2><ul><li><p>[gap] Old Lane, Stonethorpe</p></li></ul><p><br><br></p><h2>Directions:</h2><ul><li><p>Take the Hawcroft road out of Stonethorpe. Go past the secondary school, then turn [gap] at the crossroads. House is down this road, opposite the  [gap].</p></li></ul>',
         currentSection: 1,
         currentQuestion: 1,
         sections: [

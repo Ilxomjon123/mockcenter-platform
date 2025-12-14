@@ -16,6 +16,9 @@
     <!-- Hidden audio element, auto-playing when source is available -->
     <audio ref="audioRef" :src="audioSrc" autoplay style="display: none"></audio>
 
+    <div class="question-content">
+      <div class="question-text" v-html="replaceGapsWithInputs(text)"></div>
+    </div>
     <div class="question-content" v-if="question">
       <p class="question-text">{{ question.text }}</p>
 
@@ -67,6 +70,7 @@ interface Props {
   instruction: string
   answers: Record<number, string | number>
   section: number
+  text: string
 }
 
 interface Emits {
@@ -106,6 +110,14 @@ watch(
     }
   },
 )
+
+const replaceGapsWithInputs = (htmlText: string): string => {
+  let gapCounter = 0
+  return htmlText.replace(/\[gap\]/g, () => {
+    gapCounter++
+    return `<input type="text" placeholder="${gapCounter}" class="gap-input" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">`
+  })
+}
 </script>
 
 <style scoped>

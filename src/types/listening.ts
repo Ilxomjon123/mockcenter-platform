@@ -14,6 +14,7 @@ export interface ListeningSection {
 }
 
 export interface ListeningState {
+  text: string
   currentSection: number
   currentQuestion: number
   sections: ListeningSection[]

@@ -10,12 +10,13 @@
         style="display: none"
       ></audio>
 
-      <ReadingQuestionPanel
+      <ListeningQuestionPanel
         :questions="listeningStore.currentSectionData?.questions || []"
         :questions-range="getQuestionsRange()"
         :instruction="getInstruction()"
         :answers="listeningStore.answers"
         @update-answer="listeningStore.updateAnswer"
+        :text="listeningStore.text"
       />
     </div>
 
@@ -31,8 +32,8 @@
 <script setup lang="ts">
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
-import { onMounted, ref, watch } from 'vue'
-import ReadingQuestionPanel from '@/components/reading/ReadingQuestionPanel.vue'
+import { ref, watch } from 'vue'
+import ListeningQuestionPanel from '@/components/listening/ListeningQuestionPanel.vue'
 import { useListeningStore } from '@/stores/listeningStore'
 
 const listeningStore = useListeningStore()
