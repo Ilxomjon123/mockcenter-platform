@@ -21,47 +21,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
-const router = useRouter();
 const email = ref('');
 const password = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
+const authStore = useAuthStore();
+const router = useRouter();
+
 const handleSubmit = async () => {
-  errorMessage.value = '';
-  isLoading.value = true;
-
-  try {
-    const response = await fetch('http://localhost:8000/api/exam/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email.value,
-        key: password.value,
-      }),
-    });
-
-    console.log(response);
-    
-    const data = await response.json();
-
-    console.log(data);
-    
-
-    if (response.ok && data.data.access_token) {
-      localStorage.setItem('token', data.data.token);
-      router.push('/listening');
-    } else {
-      errorMessage.value = data.message || 'Login yoki parol noto\'g\'ri';
-    }
-  } catch (error) {
-    errorMessage.value = 'Serverga ulanishda xatolik';
-  } finally {
-    isLoading.value = false;
-  }
+  await authStore.login(email.value, password.value);
 };
 </script>
 
