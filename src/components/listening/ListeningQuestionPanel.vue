@@ -3,7 +3,7 @@
     <div class="questions-header">
       <div class="header-left">
         <h3 class="questions-title">Question {{ question?.id }}</h3>
-        <p class="questions-instruction">{{ instruction }}</p>
+        <div class="questions-instruction" v-html="instruction"></div>
       </div>
     </div>
 

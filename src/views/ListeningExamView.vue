@@ -23,7 +23,7 @@
 
     <ExamFooter
       :current-page="listeningStore.currentSection"
-      :total-pages="4"
+      :total-pages="getTotalSections()"
       @change-page="listeningStore.setSection"
       @submit="handleSubmit"
     />
@@ -60,6 +60,15 @@ const getQuestionsRange = (): string => {
 
 const getInstruction = (): string => {
   return listeningStore.currentSectionData?.instructions || ''
+}
+
+const getTotalSections = (): number => {
+  // If test data is loaded, return the number of parts/sections
+  if (listeningStore.test?.parts) {
+    return listeningStore.test.parts.length
+  }
+  // Otherwise return the number of default sections
+  return listeningStore.sections.length
 }
 
 const handleSubmit = (): void => {

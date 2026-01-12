@@ -23,7 +23,7 @@
 
     <ExamFooter
       :current-page="readingStore.currentPart"
-      :total-pages="3"
+      :total-pages="getTotalParts()"
       @change-page="handlePageChange"
       @submit="handleSubmit"
     />
@@ -71,8 +71,13 @@ const getInstruction = (): string => {
   }
 }
 
+const getTotalParts = (): number => {
+  return readingStore.passages.length
+}
+
 const handlePageChange = (page: number): void => {
-  if (page >= 1 && page <= 3) {
+  const totalParts = getTotalParts()
+  if (page >= 1 && page <= totalParts) {
     readingStore.setPart(page)
   }
 }

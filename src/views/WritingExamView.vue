@@ -13,7 +13,7 @@
     <ExamFooter
       :current-page="writingStore.currentPage"
       :total-pages="2"
-      @change-page="writingStore.setPage"
+      @change-page="handlePageChange"
       @submit="handleSubmit"
     />
   </div>
@@ -36,6 +36,12 @@ const currentAnswer = computed({
   get: (): string => writingStore.currentAnswer,
   set: (value: string): void => writingStore.updateAnswer(value),
 })
+
+const handlePageChange = (page: number): void => {
+  if (page >= 1 && page <= 2) {
+    writingStore.setPage(page)
+  }
+}
 
 const handleSubmit = (): void => {
   alert('Writing exam submitted successfully!')
