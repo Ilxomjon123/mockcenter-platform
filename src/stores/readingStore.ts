@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
-import type { ReadingState, Passage, Question } from '@/types/reading'
+import type { ReadingState, Passage, Question, ReadingTestRaw } from '@/types/reading'
 import type { ExamTestRaw, PartRaw, QuestionRaw } from '@/types/test'
-import mockReadingData from '@/data/mockReadingData.json'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_reading_state'
@@ -13,8 +12,9 @@ export const useReadingStore = defineStore('reading', {
     return (
       saved || {
         currentPart: 1,
-        passages: mockReadingData as Passage[],
+        passages: [],
         answers: {},
+        test: undefined,
       }
     )
   },
@@ -27,7 +27,8 @@ export const useReadingStore = defineStore('reading', {
 
   actions: {
     setTest(test: ExamTestRaw): void {
-      const reading = test.reading
+      const reading = test.reading as ReadingTestRaw
+      this.test = reading
       const parts = [...reading.parts].sort((a, b) => a.order - b.order)
       const mapQuestion = (q: QuestionRaw): Question => {
         let type: Question['type'] = 'fill-blank'
@@ -71,6 +72,7 @@ export const useReadingStore = defineStore('reading', {
         passages,
         answers: {},
       })
+      storage.save(this.$state)
     },
     setPart(part: number): void {
       this.currentPart = part

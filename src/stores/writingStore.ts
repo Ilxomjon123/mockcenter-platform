@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { WritingState } from '@/types/writing'
+import type { WritingState, WritingTestRaw } from '@/types/writing'
 import type { ExamTestRaw, PartRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
@@ -16,6 +16,7 @@ export const useWritingStore = defineStore('writing', {
           part1: '',
           part2: '',
         },
+        test: undefined,
       }
     )
   },
@@ -38,16 +39,17 @@ export const useWritingStore = defineStore('writing', {
 
   actions: {
     setTest(test: ExamTestRaw): void {
-      const parts = [...test.writing.parts].sort((a, b) => a.order - b.order)
+      const writing = test.writing as WritingTestRaw
+      this.test = writing
+      const parts = [...writing.parts].sort((a, b) => a.order - b.order)
       const prompts = parts.map((p: PartRaw) => ({
         title: p.title,
         content: p.content || '',
       }))
-      // Store prompts using $patch to extend state dynamically
       this.$patch({
         currentPage: 1,
         prompts,
-      } as WritingState & { prompts: Array<{ title: string; content: string }> })
+      })
       storage.save(this.$state)
     },
     setPage(page: number): void {
