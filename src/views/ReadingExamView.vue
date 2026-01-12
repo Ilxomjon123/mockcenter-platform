@@ -24,6 +24,7 @@
     <ExamFooter
       :current-page="readingStore.currentPart"
       :total-pages="getTotalParts()"
+      :part-orders="getPartOrders()"
       @change-page="handlePageChange"
       @submit="handleSubmit"
     />
@@ -75,11 +76,14 @@ const getTotalParts = (): number => {
   return readingStore.passages.length
 }
 
+const getPartOrders = (): number[] => {
+  // Return passage IDs which are based on part orders
+  return readingStore.passages.map((p) => p.id)
+}
+
 const handlePageChange = (page: number): void => {
-  const totalParts = getTotalParts()
-  if (page >= 1 && page <= totalParts) {
-    readingStore.setPart(page)
-  }
+  // page here is the order value from API
+  readingStore.setPart(page)
 }
 
 const handleSubmit = (): void => {

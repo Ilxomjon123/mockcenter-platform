@@ -13,6 +13,7 @@
     <ExamFooter
       :current-page="writingStore.currentPage"
       :total-pages="2"
+      :part-orders="[1, 2]"
       @change-page="handlePageChange"
       @submit="handleSubmit"
     />

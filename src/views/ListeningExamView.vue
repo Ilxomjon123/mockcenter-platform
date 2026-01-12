@@ -24,6 +24,7 @@
     <ExamFooter
       :current-page="listeningStore.currentSection"
       :total-pages="getTotalSections()"
+      :part-orders="getPartOrders()"
       @change-page="listeningStore.setSection"
       @submit="handleSubmit"
     />
@@ -69,6 +70,17 @@ const getTotalSections = (): number => {
   }
   // Otherwise return the number of default sections
   return listeningStore.sections.length
+}
+
+const getPartOrders = (): number[] => {
+  // If test data is loaded, return the part orders
+  if (listeningStore.test?.parts) {
+    return [...listeningStore.test.parts]
+      .sort((a, b) => a.order - b.order)
+      .map((p) => p.order)
+  }
+  // Otherwise return sequential section IDs
+  return listeningStore.sections.map((s) => s.id)
 }
 
 const handleSubmit = (): void => {
