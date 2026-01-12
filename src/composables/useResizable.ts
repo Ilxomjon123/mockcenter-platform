@@ -1,30 +1,16 @@
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useLocalStoragePrimitive } from './useLocalStorage'
 
 const STORAGE_KEY = 'ielts_panel_width'
+const storage = useLocalStoragePrimitive(STORAGE_KEY, 50)
 
-// LocalStorage'dan kenglikni o'qish
 const loadWidth = (): number => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const width = parseFloat(saved)
-      if (width >= 20 && width <= 80) {
-        return width
-      }
-    }
-  } catch (error) {
-    console.error('Error loading width:', error)
-  }
-  return 50 // Default
+  const width = storage.load() as number
+  return width >= 20 && width <= 80 ? width : 50
 }
 
-// LocalStorage'ga kenglikni saqlash
 const saveWidth = (width: number): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, width.toString())
-  } catch (error) {
-    console.error('Error saving width:', error)
-  }
+  storage.save(width)
 }
 
 export function useResizable() {

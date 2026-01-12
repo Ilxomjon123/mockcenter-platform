@@ -78,7 +78,6 @@ const handlePageChange = (page: number): void => {
 }
 
 const handleSubmit = (): void => {
-  console.log('Reading exam submitted:', readingStore.answers)
   alert('Reading exam submitted successfully!')
 }
 </script>

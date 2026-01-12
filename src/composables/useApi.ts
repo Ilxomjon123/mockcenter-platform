@@ -42,16 +42,27 @@ export const useApi = () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  // Helper to extract error message from unknown error
+  const getErrorMessage = (err: unknown): string => {
+    if (axios.isAxiosError(err)) {
+      return err.response?.data?.message || err.message || 'Xatolik yuz berdi'
+    }
+    if (err instanceof Error) {
+      return err.message
+    }
+    return 'Xatolik yuz berdi'
+  }
+
   // GET so'rovi
-  const get = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T | null> => {
+  const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<T | null> => {
     isLoading.value = true
     error.value = null
 
     try {
       const response: AxiosResponse<T> = await axiosInstance.get(url, config)
       return response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return null
     } finally {
       isLoading.value = false
@@ -59,9 +70,9 @@ export const useApi = () => {
   }
 
   // POST so'rovi
-  const post = async <T = any>(
+  const post = async <T, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig,
   ): Promise<T | null> => {
     isLoading.value = true
@@ -70,8 +81,8 @@ export const useApi = () => {
     try {
       const response: AxiosResponse<T> = await axiosInstance.post(url, data, config)
       return response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return null
     } finally {
       isLoading.value = false
@@ -79,9 +90,9 @@ export const useApi = () => {
   }
 
   // PUT so'rovi
-  const put = async <T = any>(
+  const put = async <T, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig,
   ): Promise<T | null> => {
     isLoading.value = true
@@ -90,8 +101,8 @@ export const useApi = () => {
     try {
       const response: AxiosResponse<T> = await axiosInstance.put(url, data, config)
       return response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return null
     } finally {
       isLoading.value = false
@@ -99,9 +110,9 @@ export const useApi = () => {
   }
 
   // PATCH so'rovi
-  const patch = async <T = any>(
+  const patch = async <T, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig,
   ): Promise<T | null> => {
     isLoading.value = true
@@ -110,8 +121,8 @@ export const useApi = () => {
     try {
       const response: AxiosResponse<T> = await axiosInstance.patch(url, data, config)
       return response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return null
     } finally {
       isLoading.value = false
@@ -119,15 +130,15 @@ export const useApi = () => {
   }
 
   // DELETE so'rovi
-  const del = async <T = any>(url: string, config?: AxiosRequestConfig): Promise<T | null> => {
+  const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<T | null> => {
     isLoading.value = true
     error.value = null
 
     try {
       const response: AxiosResponse<T> = await axiosInstance.delete(url, config)
       return response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Xatolik yuz berdi'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err)
       return null
     } finally {
       isLoading.value = false

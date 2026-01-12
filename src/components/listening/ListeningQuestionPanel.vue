@@ -64,6 +64,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { ListeningQuestion } from '@/types/listening'
+import { createSafeGapHtml } from '@/utils/sanitize'
 
 interface Props {
   question?: ListeningQuestion
@@ -112,11 +113,8 @@ watch(
 )
 
 const replaceGapsWithInputs = (htmlText: string): string => {
-  let gapCounter = 0
-  return htmlText.replace(/\[gap\]/g, () => {
-    gapCounter++
-    return `<input type="text" placeholder="${gapCounter}" class="gap-input" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;">`
-  })
+  // Use sanitized HTML to prevent XSS attacks
+  return createSafeGapHtml(htmlText, 'gap-input')
 }
 </script>
 

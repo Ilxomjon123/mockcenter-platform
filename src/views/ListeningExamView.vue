@@ -62,7 +62,6 @@ const getInstruction = (): string => {
 }
 
 const handleSubmit = (): void => {
-  console.log('Listening exam submitted:', listeningStore.answers)
   alert('Listening exam submitted successfully!')
 }
 </script>

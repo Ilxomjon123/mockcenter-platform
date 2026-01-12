@@ -6,32 +6,41 @@ import type {
   ListeningPartRaw,
   ListeningQuestionRaw,
 } from '@/types/listening'
+import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_listening_state'
+const storage = useLocalStorage<ListeningState>(STORAGE_KEY)
 
-const loadFromStorage = (): ListeningState | null => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      return JSON.parse(saved)
-    }
-  } catch (error) {
-    console.error('Error loading listening state:', error)
+// Mapping helpers from backend raw to UI-friendly structures
+function mapQuestion(q: ListeningQuestionRaw): ListeningQuestion {
+  let type: ListeningQuestion['type'] = 'fill-blank'
+  if (q.type === 'multiple_choice') type = 'multiple-choice'
+
+  const text = q.name || q.title || ''
+  const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
+  return {
+    id: q.id,
+    type,
+    text,
+    options,
   }
-  return null
 }
 
-const saveToStorage = (state: ListeningState): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch (error) {
-    console.error('Error saving listening state:', error)
+function mapPartToSection(part: ListeningPartRaw) {
+  return {
+    id: part.id,
+    title: part.title,
+    instructions: part.content || '',
+    audioUrl: part.file || '',
+    questions: (part.questions as ListeningQuestionRaw[])
+      .sort((aItem: ListeningQuestionRaw, bItem: ListeningQuestionRaw) => aItem.order - bItem.order)
+      .map((qItem: ListeningQuestionRaw) => mapQuestion(qItem)),
   }
 }
 
 export const useListeningStore = defineStore('listening', {
   state: (): ListeningState => {
-    const saved = loadFromStorage()
+    const saved = storage.load()
 
     return (
       saved || {
@@ -112,7 +121,7 @@ export const useListeningStore = defineStore('listening', {
         const part = [...state.test.parts]
           .sort((a, b) => a.order - b.order)
           .find((p) => p.order === state.currentSection)
-        if (part) return (useListeningStore() as any)._mapPartToSection(part)
+        if (part) return mapPartToSection(part)
       }
       return state.sections.find((s) => s.id === state.currentSection)
     },
@@ -147,61 +156,31 @@ export const useListeningStore = defineStore('listening', {
           .map((qItem: ListeningQuestionRaw) => qItem.id)
         this.currentQuestion = ids[0] as number
       }
-      saveToStorage(this.$state)
+      storage.save(this.$state)
     },
 
-    // Mapping helpers from backend raw to UI-friendly structures
-    _mapPartToSection(part: ListeningPartRaw) {
-      return {
-        id: part.id,
-        title: part.title,
-        instructions: part.content || '',
-        audioUrl: part.file || '',
-        questions: (part.questions as ListeningQuestionRaw[])
-          .sort(
-            (aItem: ListeningQuestionRaw, bItem: ListeningQuestionRaw) => aItem.order - bItem.order,
-          )
-          .map((qItem: ListeningQuestionRaw) => this._mapQuestion(qItem)),
-      }
-    },
-
-    _mapQuestion(q: ListeningQuestionRaw): ListeningQuestion {
-      // Basic mapping to supported UI types; others fall back to fill-blank for now
-      let type: ListeningQuestion['type'] = 'fill-blank'
-      if (q.type === 'multiple_choice') type = 'multiple-choice'
-      // 'sentence_completion' maps to fill-blank
-
-      const text = q.name || q.title || ''
-      const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
-      return {
-        id: q.id,
-        type,
-        text,
-        options,
-      }
-    },
 
     setSection(section: number): void {
       this.currentSection = section
       const ids = this.questionIdsInSection
       if (ids.length > 0) this.currentQuestion = ids[0] as number
-      saveToStorage(this.$state)
+      storage.save(this.$state)
     },
 
     setQuestion(questionId: number): void {
       this.currentQuestion = questionId
-      saveToStorage(this.$state)
+      storage.save(this.$state)
     },
 
     updateAnswer(questionId: number, answer: string | number): void {
       this.answers[questionId] = answer
-      saveToStorage(this.$state)
+      storage.save(this.$state)
     },
 
     clearListening(): void {
       this.currentSection = 1
       this.answers = {}
-      localStorage.removeItem(STORAGE_KEY)
+      storage.remove()
     },
   },
 })

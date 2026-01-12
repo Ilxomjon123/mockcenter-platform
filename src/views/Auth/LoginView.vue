@@ -38,14 +38,56 @@
 
         <div class="form-group">
           <label for="password">Parol</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="••••••••"
-            required
-            :disabled="authStore.isLoading"
-          />
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              required
+              :disabled="authStore.isLoading"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              @click="showPassword = !showPassword"
+              :disabled="authStore.isLoading"
+              :aria-label="showPassword ? 'Parolni yashirish' : 'Parolni ko\'rish'"
+            >
+              <svg
+                v-if="!showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <button
@@ -71,6 +113,7 @@ import { useAuthStore } from '@/stores/authStore'
 const email = ref('')
 const password = ref('')
 const successMessage = ref('')
+const showPassword = ref(false)
 
 const authStore = useAuthStore()
 
@@ -131,6 +174,16 @@ label {
   font-size: 14px;
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 48px;
+}
+
 input {
   width: 100%;
   padding: 12px 16px;
@@ -151,6 +204,37 @@ input:disabled {
   background-color: #f3f4f6;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  border-radius: 4px;
+}
+
+.toggle-password:hover:not(:disabled) {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.toggle-password:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.toggle-password svg {
+  display: block;
 }
 
 button[type='submit'] {

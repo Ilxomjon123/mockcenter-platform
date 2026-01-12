@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
+import axios from 'axios'
 
 interface LoginResponse {
   data: {
@@ -44,8 +45,13 @@ export const useAuthStore = defineStore('auth', () => {
         errorMessage.value = response?.message || "Login yoki parol noto'g'ri"
         return { success: false, message: errorMessage.value }
       }
-    } catch (error: any) {
-      const message = error?.response?.data?.message || 'Serverga ulanishda xatolik'
+    } catch (error: unknown) {
+      let message = 'Serverga ulanishda xatolik'
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message || error.message
+      } else if (error instanceof Error) {
+        message = error.message
+      }
       errorMessage.value = message
       return { success: false, message }
     } finally {

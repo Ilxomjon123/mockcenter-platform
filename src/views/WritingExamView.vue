@@ -38,7 +38,6 @@ const currentAnswer = computed({
 })
 
 const handleSubmit = (): void => {
-  console.log('Writing exam submitted:', writingStore.answers)
   alert('Writing exam submitted successfully!')
 }
 </script>
