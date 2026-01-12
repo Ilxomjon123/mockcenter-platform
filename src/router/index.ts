@@ -65,15 +65,10 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Agar authenticated bo'lib, exam sahifalariga kirayotgan bo'lsa, test ma'lumotlarini tekshirish
+  // Agar authenticated bo'lib, exam sahifalariga kirayotgan bo'lsa, test ma'lumotlarini har safar yangilab olish
   if (requiresAuth && isAuthenticated && !authStore.isLoadingTest) {
-    const { useListeningStore } = await import('@/stores/listeningStore')
-    const listeningStore = useListeningStore()
-
-    // Agar test ma'lumotlari yuklanmagan bo'lsa, yuklash
-    if (!listeningStore.test) {
-      await authStore.fetchTestData()
-    }
+    // Har safar page refresh qilinganda test ma'lumotlarini API dan yangilab olish
+    await authStore.fetchTestData()
   }
 
   next()

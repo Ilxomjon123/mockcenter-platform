@@ -67,10 +67,11 @@ export const useReadingStore = defineStore('reading', {
           questions: validQuestions,
         }
       })
+      // Agar currentPart passages da mavjud bo'lmasa, birinchisiga o'rnatish
+      const currentPartExists = passages.some((p) => p.id === this.currentPart)
       this.$patch({
-        currentPart: passages[0]?.id || 1,
+        currentPart: currentPartExists ? this.currentPart : passages[0]?.id || 1,
         passages,
-        answers: {},
       })
       storage.save(this.$state)
     },

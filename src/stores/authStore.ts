@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import axios from 'axios'
 import type { ExamTestRaw } from '@/types/test'
-import type { ListeningTestRaw } from '@/types/listening'
 
 interface LoginResponse {
   data: {
@@ -46,8 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
         // Save data to respective stores
         if (testData.listening) {
           const listeningStore = useListeningStore()
-          // Type assertion since we know it's listening type
-          listeningStore.setTest(testData.listening as ListeningTestRaw)
+          listeningStore.setTest(testData)
         }
 
         if (testData.reading) {
@@ -118,9 +116,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    // Clear all store data
+    const { useListeningStore } = await import('@/stores/listeningStore')
+    const { useReadingStore } = await import('@/stores/readingStore')
+    const { useWritingStore } = await import('@/stores/writingStore')
+
+    const listeningStore = useListeningStore()
+    const readingStore = useReadingStore()
+    const writingStore = useWritingStore()
+
+    listeningStore.clearListening()
+    readingStore.clearReading()
+    writingStore.clearWriting()
+
+    // Clear token
     token.value = ''
     localStorage.removeItem('token')
+
     router.push('/login')
   }
 

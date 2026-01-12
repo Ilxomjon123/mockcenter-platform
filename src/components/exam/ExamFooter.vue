@@ -2,13 +2,13 @@
   <footer class="exam-footer">
     <div class="footer-tabs">
       <button
-        v-for="(partOrder, index) in partOrders"
+        v-for="partOrder in partOrders"
         :key="partOrder"
         @click="emit('changePage', partOrder)"
         class="footer-tab"
         :class="{ active: currentPage === partOrder }"
       >
-        Part {{ index + 1 }}
+        Part {{ partOrder }}
       </button>
     </div>
 

@@ -1,140 +1,116 @@
 import { defineStore } from 'pinia'
-import type {
-  ListeningState,
-  ListeningQuestion,
-  ListeningTestRaw,
-  ListeningPartRaw,
-  ListeningQuestionRaw,
-} from '@/types/listening'
+import type { ListeningState } from '@/types/listening'
+import type { ExamTestRaw, PartRaw, QuestionRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_listening_state'
-const storage = useLocalStorage<ListeningState>(STORAGE_KEY)
 
-// Mapping helpers from backend raw to UI-friendly structures
-function mapQuestion(q: ListeningQuestionRaw): ListeningQuestion {
-  let type: ListeningQuestion['type'] = 'fill-blank'
-
-  // Map backend types to frontend types
-  if (q.type === 'multiple_choice' || q.type === 'test') {
-    type = 'multiple-choice'
-  } else if (q.type === 'true_false_not_given') {
-    type = 'true-false-not-given'
-  } else if (
-    q.type === 'gap_filling' ||
-    q.type === 'sentence_completion' ||
-    q.type === 'summary_completion'
-  ) {
-    type = 'fill-blank'
-  }
-
-  const text = q.name || q.title || ''
-  const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
-  return {
-    id: q.id,
-    type,
-    text,
-    options,
-  }
+interface StoredListeningState {
+  currentPart: number
+  currentQuestion: number
+  currentAudioIndex: number
+  answers: Record<number, string | number>
 }
 
-function mapPartToSection(part: ListeningPartRaw) {
-  // Filter out 'parent' type questions as they are just grouping containers
-  const validQuestions = (part.questions as ListeningQuestionRaw[]).filter(
-    (q) => q.type !== 'parent',
-  )
-
-  return {
-    id: part.order, // Use order as section id for consistency
-    title: part.title,
-    instructions: part.content || '',
-    audioUrl: part.file || '',
-    questions: validQuestions
-      .sort((aItem: ListeningQuestionRaw, bItem: ListeningQuestionRaw) => aItem.order - bItem.order)
-      .map((qItem: ListeningQuestionRaw) => mapQuestion(qItem)),
-  }
-}
+const storage = useLocalStorage<StoredListeningState>(STORAGE_KEY)
 
 export const useListeningStore = defineStore('listening', {
   state: (): ListeningState => {
     const saved = storage.load()
 
-    return (
-      saved || {
-        text: '',
-        currentSection: 1,
-        currentQuestion: 1,
-        sections: [],
-        answers: {},
-        test: undefined,
-      }
-    )
+    return {
+      currentPart: saved?.currentPart ?? 1,
+      currentQuestion: saved?.currentQuestion ?? 1,
+      currentAudioIndex: saved?.currentAudioIndex ?? 0,
+      answers: saved?.answers ?? {},
+      test: undefined,
+    }
   },
 
   getters: {
-    currentSectionData: (state) => {
-      if (state.test && state.test.parts?.length) {
-        const part = [...state.test.parts]
-          .sort((a, b) => a.order - b.order)
-          .find((p) => p.order === state.currentSection)
-        if (part) return mapPartToSection(part)
-      }
-      return state.sections.find((s) => s.id === state.currentSection)
+    currentPartData(): PartRaw | undefined {
+      if (!this.test?.parts?.length) return undefined
+      return [...this.test.parts]
+        .sort((a, b) => a.order - b.order)
+        .find((p) => p.order === this.currentPart)
     },
-    currentQuestionItem(): ListeningQuestion | undefined {
-      const section = this.currentSectionData as unknown as
-        | { questions: ListeningQuestion[] }
-        | undefined
-      if (!section) return undefined
-      return (section.questions as ListeningQuestion[]).find(
-        (q: ListeningQuestion) => q.id === this.currentQuestion,
-      )
+
+    currentQuestions(): QuestionRaw[] {
+      const part = this.currentPartData
+      if (!part?.questions) return []
+      return [...part.questions]
+        .filter((q) => q.type !== 'parent')
+        .sort((a, b) => a.order - b.order)
     },
-    questionIdsInSection(): number[] {
-      const section = this.currentSectionData as unknown as
-        | { questions: ListeningQuestion[] }
-        | undefined
-      return section
-        ? (section.questions as ListeningQuestion[]).map((q: ListeningQuestion) => q.id)
-        : []
+
+    questionIdsInPart(): number[] {
+      return this.currentQuestions.map((q) => q.id)
+    },
+
+    partOrders(): number[] {
+      if (!this.test?.parts) return []
+      return [...this.test.parts].sort((a, b) => a.order - b.order).map((p) => p.order)
     },
   },
 
   actions: {
-    setTest(test: ListeningTestRaw): void {
-      this.test = test
-      // initialize to first part order
-      const firstPart = test.parts.sort((a, b) => a.order - b.order)[0]
-      if (firstPart) {
-        this.currentSection = firstPart.order
-        const ids = (firstPart.questions as ListeningQuestionRaw[])
-          .sort((a: ListeningQuestionRaw, b: ListeningQuestionRaw) => a.order - b.order)
-          .map((qItem: ListeningQuestionRaw) => qItem.id)
-        this.currentQuestion = ids[0] as number
-      }
-      storage.save(this.$state)
+    saveToStorage(): void {
+      storage.save({
+        currentPart: this.currentPart,
+        currentQuestion: this.currentQuestion,
+        currentAudioIndex: this.currentAudioIndex,
+        answers: this.answers,
+      })
     },
 
+    setAudioIndex(index: number): void {
+      this.currentAudioIndex = index
+      this.saveToStorage()
+    },
 
-    setSection(section: number): void {
-      this.currentSection = section
-      const ids = this.questionIdsInSection
-      if (ids.length > 0) this.currentQuestion = ids[0] as number
-      storage.save(this.$state)
+    setTest(test: ExamTestRaw): void {
+      this.test = test.listening
+
+      // Agar currentPart test da mavjud bo'lmasa, birinchi partga o'rnatish
+      const parts = [...this.test.parts].sort((a, b) => a.order - b.order)
+      const currentPartExists = parts.some((p) => p.order === this.currentPart)
+
+      if (!currentPartExists && parts.length > 0) {
+        const firstPart = parts[0]!
+        this.currentPart = firstPart.order
+        const questions = [...firstPart.questions]
+          .filter((q) => q.type !== 'parent')
+          .sort((a, b) => a.order - b.order)
+        if (questions.length > 0) {
+          this.currentQuestion = questions[0]!.id
+        }
+        this.saveToStorage()
+      }
+    },
+
+    setPart(part: number): void {
+      this.currentPart = part
+      const ids = this.questionIdsInPart
+      if (ids.length > 0) {
+        this.currentQuestion = ids[0]!
+      }
+      this.saveToStorage()
     },
 
     setQuestion(questionId: number): void {
       this.currentQuestion = questionId
-      storage.save(this.$state)
+      this.saveToStorage()
     },
 
     updateAnswer(questionId: number, answer: string | number): void {
       this.answers[questionId] = answer
-      storage.save(this.$state)
+      this.saveToStorage()
     },
 
     clearListening(): void {
-      this.currentSection = 1
+      this.currentPart = 1
+      this.currentQuestion = 1
+      this.currentAudioIndex = 0
       this.answers = {}
       storage.remove()
     },
