@@ -5,12 +5,6 @@
         <h3 class="questions-title">Question {{ question?.id }}</h3>
         <p class="questions-instruction">{{ instruction }}</p>
       </div>
-      <div class="header-right">
-        <label class="file-label">
-          <input type="file" accept="audio/*" @change="onFileChange" />
-          Load audio
-        </label>
-      </div>
     </div>
 
     <!-- Hidden audio element, auto-playing when source is available -->
@@ -88,18 +82,6 @@ const updateAnswer = (questionId: number, answer: string | number) => {
 // Hidden audio autoplay handling
 const audioRef = ref<HTMLAudioElement | null>(null)
 const audioSrc = ref<string>('')
-
-const onFileChange = (e: Event) => {
-  const input = e.target as HTMLInputElement
-  const file = input.files && input.files[0]
-  if (!file) return
-  const url = URL.createObjectURL(file)
-  audioSrc.value = url
-  // try play (autoplay attribute set as well)
-  setTimeout(() => {
-    audioRef.value?.play().catch(() => {})
-  }, 0)
-}
 
 watch(
   () => props.section,

@@ -31,18 +31,41 @@ export const useReadingStore = defineStore('reading', {
       const parts = [...reading.parts].sort((a, b) => a.order - b.order)
       const mapQuestion = (q: QuestionRaw): Question => {
         let type: Question['type'] = 'fill-blank'
-        if (q.type === 'multiple_choice') type = 'multiple-choice'
-        if (q.type === 'matching') type = 'matching'
+
+        // Map backend types to frontend types
+        if (q.type === 'multiple_choice' || q.type === 'test') {
+          type = 'multiple-choice'
+        } else if (q.type === 'matching') {
+          type = 'matching'
+        } else if (q.type === 'true_false_not_given') {
+          type = 'true-false-not-given'
+        } else if (
+          q.type === 'gap_filling' ||
+          q.type === 'sentence_completion' ||
+          q.type === 'summary_completion' ||
+          q.type === 'short_answer_questions'
+        ) {
+          type = 'fill-blank'
+        }
+
         const text = q.name || q.title || ''
         const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
         return { id: q.id, type, text, options }
       }
-      const passages: Passage[] = parts.map((p: PartRaw) => ({
-        id: p.order,
-        title: p.title,
-        content: p.content || '',
-        questions: [...p.questions].sort((a, b) => a.order - b.order).map(mapQuestion),
-      }))
+      const passages: Passage[] = parts.map((p: PartRaw) => {
+        // Filter out 'parent' type questions as they are just grouping containers
+        const validQuestions = [...p.questions]
+          .filter((q) => q.type !== 'parent')
+          .sort((a, b) => a.order - b.order)
+          .map(mapQuestion)
+
+        return {
+          id: p.order,
+          title: p.title,
+          content: p.content || '',
+          questions: validQuestions,
+        }
+      })
       this.$patch({
         currentPart: passages[0]?.id || 1,
         passages,

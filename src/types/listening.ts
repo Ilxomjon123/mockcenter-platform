@@ -36,18 +36,18 @@ export type BackendQuestionType =
 
 export interface ListeningQuestionRaw {
   id: number
-  part_id: number
-  type: BackendQuestionType
+  part_id?: number
+  type: BackendQuestionType | string
   order: number
   title: string | null
   name: string | null
   options_title: string | null
   options: unknown | null
   content: unknown | null
-  answers: unknown | null
-  parent_id: number | null
-  created_at: string
-  updated_at: string
+  answers?: unknown | null
+  parent_id?: number | null
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ListeningPartRaw {
@@ -58,9 +58,9 @@ export interface ListeningPartRaw {
   content: string | null
   comment: string | null
   file: string | null
-  created_at: string
-  updated_at: string
-  pivot: { section_id: number; part_id: number }
+  created_at?: string
+  updated_at?: string
+  pivot?: { section_id: number; part_id: number }
   questions: ListeningQuestionRaw[]
 }
 
@@ -68,7 +68,7 @@ export interface ListeningTestRaw {
   id: number
   type: 'listening'
   title: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
   parts: ListeningPartRaw[]
 }

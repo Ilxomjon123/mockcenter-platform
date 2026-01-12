@@ -15,6 +15,7 @@
         :questions-range="getQuestionsRange()"
         :instruction="getInstruction()"
         :answers="listeningStore.answers"
+        :section="listeningStore.currentSection"
         @update-answer="listeningStore.updateAnswer"
         :text="listeningStore.text"
       />

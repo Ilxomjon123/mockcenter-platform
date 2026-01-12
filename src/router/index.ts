@@ -45,7 +45,7 @@ const router = createRouter({
 })
 
 // Navigation guard - har bir route o'tishda tekshirish
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   const requiresAuth = to.meta.requiresAuth !== false // Default: true
   const isAuthenticated = authStore.isAuthenticated
@@ -63,6 +63,17 @@ router.beforeEach((to, from, next) => {
   if (to.name === 'login' && isAuthenticated) {
     next({ name: 'listening' })
     return
+  }
+
+  // Agar authenticated bo'lib, exam sahifalariga kirayotgan bo'lsa, test ma'lumotlarini tekshirish
+  if (requiresAuth && isAuthenticated && !authStore.isLoadingTest) {
+    const { useListeningStore } = await import('@/stores/listeningStore')
+    const listeningStore = useListeningStore()
+
+    // Agar test ma'lumotlari yuklanmagan bo'lsa, yuklash
+    if (!listeningStore.test) {
+      await authStore.fetchTestData()
+    }
   }
 
   next()

@@ -14,7 +14,19 @@ const storage = useLocalStorage<ListeningState>(STORAGE_KEY)
 // Mapping helpers from backend raw to UI-friendly structures
 function mapQuestion(q: ListeningQuestionRaw): ListeningQuestion {
   let type: ListeningQuestion['type'] = 'fill-blank'
-  if (q.type === 'multiple_choice') type = 'multiple-choice'
+
+  // Map backend types to frontend types
+  if (q.type === 'multiple_choice' || q.type === 'test') {
+    type = 'multiple-choice'
+  } else if (q.type === 'true_false_not_given') {
+    type = 'true-false-not-given'
+  } else if (
+    q.type === 'gap_filling' ||
+    q.type === 'sentence_completion' ||
+    q.type === 'summary_completion'
+  ) {
+    type = 'fill-blank'
+  }
 
   const text = q.name || q.title || ''
   const options = Array.isArray(q.options) ? (q.options as string[]) : undefined
@@ -27,12 +39,17 @@ function mapQuestion(q: ListeningQuestionRaw): ListeningQuestion {
 }
 
 function mapPartToSection(part: ListeningPartRaw) {
+  // Filter out 'parent' type questions as they are just grouping containers
+  const validQuestions = (part.questions as ListeningQuestionRaw[]).filter(
+    (q) => q.type !== 'parent',
+  )
+
   return {
-    id: part.id,
+    id: part.order, // Use order as section id for consistency
     title: part.title,
     instructions: part.content || '',
     audioUrl: part.file || '',
-    questions: (part.questions as ListeningQuestionRaw[])
+    questions: validQuestions
       .sort((aItem: ListeningQuestionRaw, bItem: ListeningQuestionRaw) => aItem.order - bItem.order)
       .map((qItem: ListeningQuestionRaw) => mapQuestion(qItem)),
   }

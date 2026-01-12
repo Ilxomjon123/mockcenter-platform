@@ -92,12 +92,16 @@
 
         <button
           type="submit"
-          :disabled="authStore.isLoading || !isFormValid"
-          :class="{ loading: authStore.isLoading }"
+          :disabled="authStore.isLoading || authStore.isLoadingTest || !isFormValid"
+          :class="{ loading: authStore.isLoading || authStore.isLoadingTest }"
         >
           <span v-if="authStore.isLoading">
             <span class="spinner"></span>
             Yuklanmoqda...
+          </span>
+          <span v-else-if="authStore.isLoadingTest">
+            <span class="spinner"></span>
+            Test yuklanmoqda...
           </span>
           <span v-else>Kirish</span>
         </button>
