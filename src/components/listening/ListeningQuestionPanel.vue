@@ -47,7 +47,19 @@
       >
         <div class="question-text" v-html="question.title"></div>
 
-        <div class="question-text" v-html="replaceGapsWithInputs(question.content)"></div>
+        <!-- Two column layout when options exist -->
+        <div v-if="hasOptions(question.options)" class="question-row">
+          <div class="question-col">
+            <div class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
+          </div>
+          <div class="question-col">
+            <div v-if="question.options_title" class="options-title">{{ question.options_title }}</div>
+            <div class="question-options" v-html="formatOptions(question.options)"></div>
+          </div>
+        </div>
+
+        <!-- Single column when no options -->
+        <div v-else class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
       </div>
     </div>
   </div>
@@ -73,14 +85,46 @@ const replaceGapsWithInputs = (text: string | null | unknown): string => {
     })
     .replace(/\[match\]/g, () => {
       gapCounter++
-      return `<input type="text" disabled placeholder="${gapCounter}" class="gap-input" data-gap="${gapCounter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
+      return `<span class="match-dropzone" data-match="${gapCounter}" data-gap="${gapCounter}"><span class="match-number">${gapCounter}</span><span class="match-value"></span></span>`
     })
 }
 
-// Restore saved values to gap inputs
+// Check if question has options
+const hasOptions = (options: unknown): boolean => {
+  if (!options) return false
+  if (Array.isArray(options) && options.length > 0) return true
+  if (typeof options === 'object' && Object.keys(options as object).length > 0) return true
+  return false
+}
+
+// Format options for display (draggable)
+const formatOptions = (options: unknown): string => {
+  if (!options) return ''
+
+  // If options is an array
+  if (Array.isArray(options)) {
+    return options
+      .map((opt) => {
+        return `<div class="option-item draggable-option" draggable="true" data-option-key="${opt}" data-option-value="${opt}">${opt}</div>`
+      })
+      .join('')
+  }
+
+  // If options is an object (key-value pairs)
+  if (typeof options === 'object') {
+    return Object.entries(options as Record<string, string>)
+      .map(([key, value]) => `<div class="option-item draggable-option" draggable="true" data-option-key="${key}" data-option-value="${value}">${value}</div>`)
+      .join('')
+  }
+
+  return String(options)
+}
+
+// Restore saved values to gap inputs and match dropzones
 const restoreGapValues = () => {
   if (!questionsContainerRef.value) return
 
+  // Restore gap inputs
   const inputs = questionsContainerRef.value.querySelectorAll<HTMLInputElement>('.gap-input')
   inputs.forEach((input) => {
     const gapNumber = input.dataset.gap
@@ -90,6 +134,21 @@ const restoreGapValues = () => {
     const savedValue = listeningStore.answers[gapId]
     if (savedValue !== undefined) {
       input.value = String(savedValue)
+    }
+  })
+
+  // Restore match dropzones
+  const dropzones = questionsContainerRef.value.querySelectorAll<HTMLElement>('.match-dropzone')
+  dropzones.forEach((dropzone) => {
+    const matchNumber = dropzone.dataset.match
+    if (!matchNumber) return
+
+    const matchId = parseInt(matchNumber, 10)
+    const savedValue = listeningStore.answers[matchId]
+    const valueEl = dropzone.querySelector('.match-value')
+    if (savedValue !== undefined && valueEl) {
+      valueEl.textContent = String(savedValue)
+      dropzone.classList.add('has-value')
     }
   })
 }
@@ -105,10 +164,103 @@ const handleGapInput = (e: Event) => {
   }
 }
 
+// ============ DRAG AND DROP ============
+let draggedOption: HTMLElement | null = null
+
+const handleDragStart = (e: DragEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.classList.contains('draggable-option')) return
+
+  draggedOption = target
+  target.classList.add('dragging')
+
+  // Set drag data
+  const optionKey = target.dataset.optionKey || ''
+  e.dataTransfer?.setData('text/plain', optionKey)
+}
+
+const handleDragEnd = (e: DragEvent) => {
+  const target = e.target as HTMLElement
+  target.classList.remove('dragging')
+  draggedOption = null
+}
+
+const handleDragOver = (e: DragEvent) => {
+  e.preventDefault()
+  const target = e.target as HTMLElement
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+  if (dropzone) {
+    dropzone.classList.add('drag-over')
+  }
+}
+
+const handleDragLeave = (e: DragEvent) => {
+  const target = e.target as HTMLElement
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+  if (dropzone) {
+    dropzone.classList.remove('drag-over')
+  }
+}
+
+const handleDrop = (e: DragEvent) => {
+  e.preventDefault()
+  const target = e.target as HTMLElement
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+
+  if (!dropzone || !draggedOption) return
+
+  dropzone.classList.remove('drag-over')
+
+  const matchNumber = dropzone.dataset.match
+  const optionKey = draggedOption.dataset.optionKey
+
+  if (matchNumber && optionKey) {
+    // Update the dropzone display
+    const valueEl = dropzone.querySelector('.match-value')
+    if (valueEl) {
+      valueEl.textContent = optionKey
+      dropzone.classList.add('has-value')
+    }
+
+    // Save to store
+    listeningStore.updateAnswer(parseInt(matchNumber, 10), optionKey)
+  }
+}
+
+// Handle click on dropzone to clear it
+const handleDropzoneClick = (e: Event) => {
+  const target = e.target as HTMLElement
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+
+  if (!dropzone || !dropzone.classList.contains('has-value')) return
+
+  const matchNumber = dropzone.dataset.match
+  const valueEl = dropzone.querySelector('.match-value')
+
+  if (matchNumber && valueEl) {
+    // Clear the dropzone
+    valueEl.textContent = ''
+    dropzone.classList.remove('has-value')
+
+    // Remove from store
+    delete listeningStore.answers[parseInt(matchNumber, 10)]
+    listeningStore.saveToStorage()
+  }
+}
+
 // Setup event delegation on mount
 onMounted(() => {
   if (questionsContainerRef.value) {
+    // Input events
     questionsContainerRef.value.addEventListener('input', handleGapInput)
+
+    // Drag and drop events
+    questionsContainerRef.value.addEventListener('dragstart', handleDragStart)
+    questionsContainerRef.value.addEventListener('dragend', handleDragEnd)
+    questionsContainerRef.value.addEventListener('dragover', handleDragOver)
+    questionsContainerRef.value.addEventListener('dragleave', handleDragLeave)
+    questionsContainerRef.value.addEventListener('drop', handleDrop)
+    questionsContainerRef.value.addEventListener('click', handleDropzoneClick)
   }
   nextTick(restoreGapValues)
 })
@@ -358,6 +510,47 @@ watch(
   margin: 0 0 12px 0;
 }
 
+.question-row {
+  display: flex;
+  gap: 24px;
+}
+
+.question-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-content {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.8;
+}
+
+.options-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.question-options {
+  font-size: 14px;
+  color: #374151;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.option-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
 .question-number {
   font-weight: 600;
   margin-right: 8px;
@@ -400,5 +593,74 @@ watch(
 .blank-input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Drag and Drop Styles */
+.draggable-option {
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s;
+  padding: 8px 12px !important;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.draggable-option:hover {
+  background: #e5e7eb;
+}
+
+.draggable-option.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.match-dropzone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  height: 32px;
+  padding: 4px 8px;
+  margin: 0 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.match-dropzone:hover {
+  border-color: #9ca3af;
+}
+
+.match-dropzone.drag-over {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.match-dropzone.has-value {
+  border-color: #d1d5db;
+  background: white;
+}
+
+.match-dropzone.has-value:hover {
+  border-color: #ef4444;
+}
+
+.match-number {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.match-dropzone.has-value .match-number {
+  display: none;
+}
+
+.match-value {
+  font-weight: 500;
+  color: #374151;
 }
 </style>
