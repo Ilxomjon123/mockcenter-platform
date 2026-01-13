@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { useListeningStore } from '@/stores/listeningStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -63,6 +64,15 @@ router.beforeEach(async (to, from, next) => {
   if (to.name === 'login' && isAuthenticated) {
     next({ name: 'listening' })
     return
+  }
+
+  // Agar listening tugagan bo'lsa, listening sahifasiga kirishni bloklash
+  if (to.name === 'listening' && isAuthenticated) {
+    const listeningStore = useListeningStore()
+    if (listeningStore.isCompleted) {
+      next({ name: 'reading' })
+      return
+    }
   }
 
   // Agar authenticated bo'lib, exam sahifalariga kirayotgan bo'lsa, test ma'lumotlarini har safar yangilab olish

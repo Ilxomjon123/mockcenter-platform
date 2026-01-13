@@ -11,6 +11,8 @@ interface StoredListeningState {
   currentAudioIndex: number
   currentAudioTime: number
   hasStarted: boolean
+  isCompleted: boolean
+  isManualSubmit: boolean
   answers: Record<string | number, string | number>
 }
 
@@ -26,6 +28,8 @@ export const useListeningStore = defineStore('listening', {
       currentAudioIndex: saved?.currentAudioIndex ?? 0,
       currentAudioTime: saved?.currentAudioTime ?? 0,
       hasStarted: saved?.hasStarted ?? false,
+      isCompleted: saved?.isCompleted ?? false,
+      isManualSubmit: saved?.isManualSubmit ?? false,
       answers: saved?.answers ?? {},
       test: undefined,
     }
@@ -75,12 +79,20 @@ export const useListeningStore = defineStore('listening', {
         currentAudioIndex: this.currentAudioIndex,
         currentAudioTime: this.currentAudioTime,
         hasStarted: this.hasStarted,
+        isCompleted: this.isCompleted,
+        isManualSubmit: this.isManualSubmit,
         answers: this.answers,
       })
     },
 
     setStarted(started: boolean): void {
       this.hasStarted = started
+      this.saveToStorage()
+    },
+
+    setCompleted(completed: boolean, isManual: boolean = false): void {
+      this.isCompleted = completed
+      this.isManualSubmit = isManual
       this.saveToStorage()
     },
 
@@ -140,6 +152,8 @@ export const useListeningStore = defineStore('listening', {
       this.currentAudioIndex = 0
       this.currentAudioTime = 0
       this.hasStarted = false
+      this.isCompleted = false
+      this.isManualSubmit = false
       this.answers = {}
       storage.remove()
     },

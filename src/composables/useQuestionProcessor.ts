@@ -39,6 +39,11 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
       if (question.type === 'test' || question.type === 'multiple_choice') {
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
+        // Use answers_count to properly increment counter (default to 1 for single-answer questions)
+        const answerCount = question.answers_count ?? 1
+        if (answerCount > 1) {
+          globalGapCounter += answerCount - 1
+        }
       }
 
       if (question.content) {
@@ -52,6 +57,11 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
           if (child.type === 'test' || child.type === 'multiple_choice') {
             globalGapCounter++
             processedChild.questionNumber = globalGapCounter
+            // Use answers_count to properly increment counter (default to 1 for single-answer questions)
+            const childAnswerCount = child.answers_count ?? 1
+            if (childAnswerCount > 1) {
+              globalGapCounter += childAnswerCount - 1
+            }
           }
 
           if (child.content) {
@@ -64,70 +74,6 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
       return processedQuestion
     })
   })
-
-  // Simple pass-through function for backward compatibility
-  const replaceGapsWithInputs = (text: string | null | unknown): string => {
-    if (!text || typeof text !== 'string') return ''
-    return text
-  }
-
-  // Check if question has options
-  const hasOptions = (options: unknown): boolean => {
-    if (!options) return false
-    if (Array.isArray(options) && options.length > 0) return true
-    if (typeof options === 'object' && Object.keys(options as object).length > 0) return true
-    return false
-  }
-
-  // Get options as array for radio buttons
-  const getOptionsArray = (options: unknown): { key: string; value: string }[] => {
-    if (!options) return []
-
-    if (Array.isArray(options)) {
-      return options.map((opt) => ({
-        key: String(opt),
-        value: String(opt),
-      }))
-    }
-
-    if (typeof options === 'object') {
-      return Object.entries(options as Record<string, string>).map(([key, value]) => ({
-        key,
-        value: String(value),
-      }))
-    }
-
-    return []
-  }
-
-  // Format options for display (draggable)
-  const formatOptions = (options: unknown): string => {
-    if (!options) return ''
-
-    if (Array.isArray(options)) {
-      return options
-        .map((opt) => {
-          return `<span class="draggable-option" draggable="true" data-option-key="${opt}" data-option-value="${opt}">${opt}</span>`
-        })
-        .join('')
-    }
-
-    if (typeof options === 'object') {
-      return Object.entries(options as Record<string, string>)
-        .map(
-          ([key, value]) =>
-            `<span class="draggable-option" draggable="true" data-option-key="${key}" data-option-value="${value}">${value}</span>`
-        )
-        .join('')
-    }
-
-    return String(options)
-  }
-
-  // Handle radio button change
-  const onRadioChange = (questionId: number, value: string) => {
-    listeningStore.updateAnswer(questionId, value)
-  }
 
   // Restore saved values to gap inputs and match dropzones
   const restoreGapValues = () => {
@@ -191,13 +137,6 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
     }
   }
 
-  // Cleanup input event listener
-  const cleanupInputListener = () => {
-    if (containerRef.value) {
-      containerRef.value.removeEventListener('input', handleGapInput)
-    }
-  }
-
   // Watch for questions changes to restore values
   watch(
     () => processedQuestions.value,
@@ -209,13 +148,7 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
 
   return {
     processedQuestions,
-    replaceGapsWithInputs,
-    hasOptions,
-    getOptionsArray,
-    formatOptions,
-    onRadioChange,
     restoreGapValues,
     setupInputListener,
-    cleanupInputListener,
   }
 }

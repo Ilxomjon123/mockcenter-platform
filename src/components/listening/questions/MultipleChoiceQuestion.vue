@@ -1,21 +1,25 @@
 <template>
   <div>
     <div v-if="question.content" class="question-content" v-html="question.content"></div>
-    <div class="radio-options">
+    <div class="options-container">
       <label
         v-for="(opt, idx) in optionsArray"
         :key="idx"
-        class="radio-option"
-        :class="{ selected: selectedValue === opt.key }"
+        class="option-item"
+        :class="{
+          selected: isSelected(opt.key),
+          disabled: isMultiple && !isSelected(opt.key) && selectedValues.length >= maxAnswers,
+        }"
       >
         <input
-          type="radio"
+          :type="isMultiple ? 'checkbox' : 'radio'"
           :name="`question-${question.id}`"
           :value="opt.key"
-          :checked="selectedValue === opt.key"
-          @change="onSelect(opt.key)"
+          :checked="isSelected(opt.key)"
+          :disabled="isMultiple && !isSelected(opt.key) && selectedValues.length >= maxAnswers"
+          @change="onToggle(opt.key)"
         />
-        <span class="radio-label">{{ opt.value }}</span>
+        <span class="option-label">{{ opt.value }}</span>
       </label>
     </div>
   </div>
@@ -32,9 +36,24 @@ const props = defineProps<{
 
 const listeningStore = useListeningStore()
 
-const questionKey = computed(() => props.question.questionNumber || props.question.id)
+const baseQuestionNumber = computed(() => props.question.questionNumber || props.question.id)
+const maxAnswers = computed(() => props.question.answers_count || 1)
+const isMultiple = computed(() => maxAnswers.value > 1)
 
-const selectedValue = computed(() => listeningStore.answers[questionKey.value])
+// Get all selected values from sequential keys (e.g., 11, 12, 13 for answers_count=3)
+const selectedValues = computed(() => {
+  const values: string[] = []
+  for (let i = 0; i < maxAnswers.value; i++) {
+    const key = baseQuestionNumber.value + i
+    const answer = listeningStore.answers[key]
+    if (answer !== undefined && answer !== '') {
+      values.push(String(answer))
+    }
+  }
+  return values
+})
+
+const isSelected = (key: string) => selectedValues.value.includes(key)
 
 const optionsArray = computed(() => {
   const options = props.question.options
@@ -57,8 +76,39 @@ const optionsArray = computed(() => {
   return []
 })
 
-const onSelect = (value: string) => {
-  listeningStore.updateAnswer(questionKey.value, value)
+// Get option index for sorting by options order
+const getOptionIndex = (value: string): number => {
+  return optionsArray.value.findIndex((opt) => opt.key === value)
+}
+
+const onToggle = (value: string) => {
+  if (isMultiple.value) {
+    let newValues = [...selectedValues.value]
+
+    if (isSelected(value)) {
+      // Remove the value
+      newValues = newValues.filter((v) => v !== value)
+    } else {
+      // Add if not at limit
+      if (newValues.length < maxAnswers.value) {
+        newValues.push(value)
+      } else {
+        return
+      }
+    }
+
+    // Sort by options order (not selection order)
+    newValues.sort((a, b) => getOptionIndex(a) - getOptionIndex(b))
+
+    // Clear all slots first, then reassign in sorted order
+    for (let i = 0; i < maxAnswers.value; i++) {
+      const key = baseQuestionNumber.value + i
+      const sortedValue = newValues[i] || ''
+      listeningStore.updateAnswer(key, sortedValue)
+    }
+  } else {
+    listeningStore.updateAnswer(baseQuestionNumber.value, value)
+  }
 }
 </script>
 
@@ -70,13 +120,13 @@ const onSelect = (value: string) => {
   margin-bottom: 12px;
 }
 
-.radio-options {
+.options-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.radio-option {
+.option-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -88,21 +138,26 @@ const onSelect = (value: string) => {
   background: #ffffff;
 }
 
-.radio-option:hover {
+.option-item:hover:not(.disabled) {
   border-color: #3b82f6;
   background: #f0f9ff;
 }
 
-.radio-option.selected {
+.option-item.selected {
   border-color: #3b82f6;
   background: #eff6ff;
 }
 
-.radio-option input[type='radio'] {
+.option-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.option-item input {
   display: none;
 }
 
-.radio-label {
+.option-label {
   font-size: 14px;
   color: #374151;
   line-height: 1.4;

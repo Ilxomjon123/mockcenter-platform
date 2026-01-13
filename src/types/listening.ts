@@ -6,6 +6,8 @@ export interface ListeningState {
   currentAudioIndex: number
   currentAudioTime: number
   hasStarted: boolean
+  isCompleted: boolean
+  isManualSubmit: boolean
   answers: Record<string | number, string | number>
   test?: SectionWithPartsRaw
 }

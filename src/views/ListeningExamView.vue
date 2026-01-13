@@ -25,7 +25,7 @@ import { useListeningStore } from '@/stores/listeningStore'
 const listeningStore = useListeningStore()
 
 const handleSubmit = (): void => {
-  alert('Listening exam submitted successfully!')
+  listeningStore.setCompleted(true, true) // isManual = true
 }
 </script>
 

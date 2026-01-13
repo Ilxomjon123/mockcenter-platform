@@ -8,6 +8,9 @@
     @play="startPlayback"
   />
 
+  <!-- Listening completed modal -->
+  <ListeningCompletedModal :is-visible="listeningStore.isCompleted" />
+
   <div class="question-panel">
     <div class="questions-header">
       <h3 class="questions-title">Part {{ listeningStore.currentPart }}</h3>
@@ -52,6 +55,7 @@ import { useListeningAudio } from '@/composables/useListeningAudio'
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useQuestionProcessor } from '@/composables/useQuestionProcessor'
 import AudioLoader from './AudioLoader.vue'
+import ListeningCompletedModal from './ListeningCompletedModal.vue'
 import { QuestionItem, ParentQuestion } from './questions'
 
 const listeningStore = useListeningStore()

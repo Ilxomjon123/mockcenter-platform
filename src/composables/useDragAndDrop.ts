@@ -3,7 +3,6 @@ import { useListeningStore } from '@/stores/listeningStore'
 
 interface DragAndDropOptions {
   containerRef: Ref<HTMLElement | null>
-  onAnswerUpdate?: (questionId: number, value: string) => void
 }
 
 export function useDragAndDrop(options: DragAndDropOptions) {
@@ -345,6 +344,5 @@ export function useDragAndDrop(options: DragAndDropOptions) {
   return {
     setupEventListeners,
     cleanupEventListeners,
-    showOptionByKey,
   }
 }

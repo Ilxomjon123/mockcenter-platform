@@ -6,8 +6,7 @@ export function useListeningAudio() {
   const listeningStore = useListeningStore()
   const audioCache = useAudioCache()
 
-  // Audio refs storage
-  const audioElements = ref<(HTMLAudioElement | null)[]>([])
+  // Audio ref
   const visibleAudioRef = ref<HTMLAudioElement | null>(null)
 
   // Cached blob URLs
@@ -17,12 +16,9 @@ export function useListeningAudio() {
   const isAudioLoading = ref(true)
   const loadedAudios = ref<Set<number>>(new Set())
 
-  // Playback state - use store's hasStarted
+  // Playback state
   const isStarted = computed(() => listeningStore.hasStarted)
-  const isAllAudiosFinished = ref(false)
-  const isPlaying = ref(false)
-
-  // Track if we need to restore time after load
+  let isAllAudiosFinished = false
   let shouldRestoreTime = false
   let pendingAutoPlay = false
 
@@ -40,13 +36,6 @@ export function useListeningAudio() {
   const currentAudioIndex = computed(() => listeningStore.currentAudioIndex)
   const savedAudioTime = computed(() => listeningStore.currentAudioTime)
 
-  // Set audio ref
-  const setAudioRef = (el: HTMLAudioElement | null, index: number) => {
-    if (el) {
-      audioElements.value[index] = el
-    }
-  }
-
   // Get cached URL for original URL
   const getCachedUrl = (originalUrl: string): string => {
     return cachedUrls.value.get(originalUrl) || originalUrl
@@ -54,7 +43,7 @@ export function useListeningAudio() {
 
   // Load current audio (internal)
   const loadCurrentAudio = () => {
-    if (isAllAudiosFinished.value) return
+    if (isAllAudiosFinished) return
 
     const originalUrl = audioUrls.value[currentAudioIndex.value]
     if (!originalUrl || !visibleAudioRef.value) return
@@ -99,16 +88,6 @@ export function useListeningAudio() {
     }
   }
 
-  // Mark audio as loaded (for preload elements - now used as fallback)
-  const onAudioLoaded = (index: number) => {
-    loadedAudios.value.add(index)
-  }
-
-  const onAudioError = (index: number) => {
-    console.error(`Audio ${index + 1} yuklanmadi`)
-    loadedAudios.value.add(index)
-  }
-
   // Handle audio can play - restore time and start playing
   const onAudioCanPlay = () => {
     if (!visibleAudioRef.value) return
@@ -147,19 +126,13 @@ export function useListeningAudio() {
       listeningStore.setAudioIndex(nextIndex)
       loadCurrentAudio()
     } else {
-      isAllAudiosFinished.value = true
-      isPlaying.value = false
-      alert("Barcha audiolar tugadi! Listening bo'limi yakunlandi.")
+      isAllAudiosFinished = true
+      listeningStore.setCompleted(true)
     }
   }
 
-  const onAudioPlay = () => {
-    isPlaying.value = true
-  }
-
-  const onAudioPause = () => {
-    isPlaying.value = false
-  }
+  const onAudioPlay = () => {}
+  const onAudioPause = () => {}
 
   // Watch for test data to initialize
   watch(
@@ -167,13 +140,7 @@ export function useListeningAudio() {
     (newTest) => {
       if (newTest?.parts?.length) {
         const totalParts = newTest.parts.filter((p) => p.file).length
-        if (currentAudioIndex.value >= totalParts && totalParts > 0) {
-          isAllAudiosFinished.value = true
-        } else {
-          isAllAudiosFinished.value = false
-        }
-
-        // Start caching audio files
+        isAllAudiosFinished = currentAudioIndex.value >= totalParts && totalParts > 0
         cacheAndLoadAudios()
       }
     },
@@ -181,24 +148,12 @@ export function useListeningAudio() {
   )
 
   return {
-    // Refs
-    audioElements,
     visibleAudioRef,
-
-    // State
     isAudioLoading,
     isStarted,
     loadedCount,
     totalAudios,
-    audioUrls,
-    isPlaying,
-    isAllAudiosFinished,
-
-    // Methods
-    setAudioRef,
     startPlayback,
-    onAudioLoaded,
-    onAudioError,
     onAudioCanPlay,
     onAudioTimeUpdate,
     onAudioEnded,
