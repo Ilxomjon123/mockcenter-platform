@@ -4,6 +4,6 @@ export interface ListeningState {
   currentPart: number
   currentQuestion: number
   currentAudioIndex: number
-  answers: Record<number, string | number>
+  answers: Record<string | number, string | number>
   test?: SectionWithPartsRaw
 }

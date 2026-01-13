@@ -40,29 +40,128 @@
 
     <!-- Display all questions in current part -->
     <div ref="questionsContainerRef" class="questions-container">
-      <div
-        v-for="question in listeningStore.currentQuestions"
-        :key="question.id"
-        class="question-item"
-      >
-        <div class="question-text" v-html="question.title"></div>
-
-        <!-- Two column layout when options exist -->
-        <div v-if="hasOptions(question.options)" class="question-row">
-          <div class="question-col">
-            <div class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
+      <template v-for="question in listeningStore.currentQuestions" :key="question.id">
+        <!-- Question with children -->
+        <template v-if="question.children && question.children.length > 0">
+          <!-- Parent question header -->
+          <div class="question-item question-parent">
+            <div class="question-text" v-html="question.title"></div>
+            <div v-if="question.content" class="question-content" v-html="question.content"></div>
           </div>
-          <div class="question-col">
-            <div v-if="question.options_title" class="options-title">
-              {{ question.options_title }}
-            </div>
-            <div class="question-options" v-html="formatOptions(question.options)"></div>
-          </div>
-        </div>
+          <!-- Children questions -->
+          <div
+            v-for="child in question.children"
+            :key="child.id"
+            class="question-item question-child"
+          >
+            <div v-if="child.title" class="question-text" v-html="child.title"></div>
 
-        <!-- Single column when no options -->
-        <div v-else class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
-      </div>
+            <!-- Multiple choice / test (radio) type -->
+            <template
+              v-if="
+                (child.type === 'multiple_choice' || child.type === 'test') &&
+                hasOptions(child.options)
+              "
+            >
+              <div v-if="child.content" class="question-content" v-html="child.content"></div>
+              <div class="radio-options">
+                <label
+                  v-for="(opt, idx) in getOptionsArray(child.options)"
+                  :key="idx"
+                  class="radio-option"
+                  :class="{ selected: listeningStore.answers[child.id] === opt.key }"
+                >
+                  <input
+                    type="radio"
+                    :name="`question-${child.id}`"
+                    :value="opt.key"
+                    :checked="listeningStore.answers[child.id] === opt.key"
+                    @change="onRadioChange(child.id, opt.key)"
+                  />
+                  <span class="radio-label">{{ opt.value }}</span>
+                </label>
+              </div>
+            </template>
+
+            <!-- Matching/draggable type -->
+            <template v-else-if="hasOptions(child.options)">
+              <div class="question-row">
+                <div class="question-col">
+                  <div class="question-content" v-html="replaceGapsWithInputs(child.content)"></div>
+                </div>
+                <div class="question-col">
+                  <div v-if="child.options_title" class="options-title">
+                    {{ child.options_title }}
+                  </div>
+                  <div class="question-options" v-html="formatOptions(child.options)"></div>
+                </div>
+              </div>
+            </template>
+
+            <!-- No options -->
+            <template v-else>
+              <div class="question-content" v-html="replaceGapsWithInputs(child.content)"></div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Regular question without children -->
+        <template v-else>
+          <div class="question-item">
+            <div class="question-text" v-html="question.title"></div>
+
+            <!-- Multiple choice / test (radio) type -->
+            <template
+              v-if="
+                (question.type === 'multiple_choice' || question.type === 'test') &&
+                hasOptions(question.options)
+              "
+            >
+              <div v-if="question.content" class="question-content" v-html="question.content"></div>
+              <div class="radio-options">
+                <label
+                  v-for="(opt, idx) in getOptionsArray(question.options)"
+                  :key="idx"
+                  class="radio-option"
+                  :class="{ selected: listeningStore.answers[question.id] === opt.key }"
+                >
+                  <input
+                    type="radio"
+                    :name="`question-${question.id}`"
+                    :value="opt.key"
+                    :checked="listeningStore.answers[question.id] === opt.key"
+                    @change="onRadioChange(question.id, opt.key)"
+                  />
+                  <span class="radio-label">{{ opt.value }}</span>
+                </label>
+              </div>
+            </template>
+
+            <!-- Two column layout when options exist (matching/draggable) -->
+            <template v-else-if="hasOptions(question.options)">
+              <div class="question-row">
+                <div class="question-col">
+                  <div
+                    class="question-content"
+                    v-html="replaceGapsWithInputs(question.content)"
+                  ></div>
+                </div>
+                <div class="question-col">
+                  <div v-if="question.options_title" class="options-title">
+                    {{ question.options_title }}
+                  </div>
+                  <div class="question-options" v-html="formatOptions(question.options)"></div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Single column when no options -->
+            <template v-else>
+              <div class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
+            </template>
+          </div>
+        </template>
+      </template>
     </div>
   </div>
 </template>
@@ -97,6 +196,34 @@ const hasOptions = (options: unknown): boolean => {
   if (Array.isArray(options) && options.length > 0) return true
   if (typeof options === 'object' && Object.keys(options as object).length > 0) return true
   return false
+}
+
+// Get options as array for radio buttons
+const getOptionsArray = (options: unknown): { key: string; value: string }[] => {
+  if (!options) return []
+
+  // If options is an array
+  if (Array.isArray(options)) {
+    return options.map((opt) => ({
+      key: String(opt),
+      value: String(opt),
+    }))
+  }
+
+  // If options is an object (key-value pairs)
+  if (typeof options === 'object') {
+    return Object.entries(options as Record<string, string>).map(([key, value]) => ({
+      key,
+      value: String(value),
+    }))
+  }
+
+  return []
+}
+
+// Handle radio button change
+const onRadioChange = (questionId: number, value: string) => {
+  listeningStore.updateAnswer(questionId, value)
 }
 
 // Format options for display (draggable)
@@ -161,7 +288,7 @@ const restoreGapValues = () => {
 
       // Hide the used option
       const usedOption = questionsContainerRef.value?.querySelector(
-        `.draggable-option[data-option-key="${savedValue}"]`
+        `.draggable-option[data-option-key="${savedValue}"]`,
       ) as HTMLElement
       if (usedOption) {
         usedOption.classList.add('used')
@@ -354,7 +481,7 @@ const handleDrop = (e: DragEvent) => {
 const showOptionByKey = (key: string) => {
   if (!questionsContainerRef.value) return
   const option = questionsContainerRef.value.querySelector(
-    `.draggable-option[data-option-key="${key}"]`
+    `.draggable-option[data-option-key="${key}"]`,
   ) as HTMLElement
   if (option) {
     option.classList.remove('used')
@@ -789,6 +916,21 @@ watch(
   background: white;
 }
 
+.question-item.question-parent {
+  border-bottom: none;
+  padding-bottom: 12px;
+}
+
+.question-item.question-child {
+  padding-top: 16px;
+  padding-left: 48px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.question-item.question-child:last-child {
+  border-bottom: 1px solid #e5e5e5;
+}
+
 .question-text {
   font-size: 14px;
   color: #374151;
@@ -825,6 +967,65 @@ watch(
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+}
+
+/* Radio options for multiple choice */
+.radio-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #ffffff;
+}
+
+.radio-option:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.radio-option.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.radio-option input[type='radio'] {
+  display: none;
+}
+
+.radio-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.radio-option.selected .radio-key {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.radio-label {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
 
 .question-number {

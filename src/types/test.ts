@@ -23,7 +23,9 @@ export interface QuestionRaw {
   options: unknown | null
   content: string | null
   answers?: unknown | null
+  answers_count?: number
   parent_id?: number | null
+  children?: QuestionRaw[]
   created_at?: string
   updated_at?: string
 }

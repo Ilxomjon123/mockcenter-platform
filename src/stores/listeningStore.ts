@@ -9,7 +9,7 @@ interface StoredListeningState {
   currentPart: number
   currentQuestion: number
   currentAudioIndex: number
-  answers: Record<number, string | number>
+  answers: Record<string | number, string | number>
 }
 
 const storage = useLocalStorage<StoredListeningState>(STORAGE_KEY)
@@ -38,13 +38,23 @@ export const useListeningStore = defineStore('listening', {
     currentQuestions(): QuestionRaw[] {
       const part = this.currentPartData
       if (!part?.questions) return []
+      // Faqat top-level questionlarni olish (parent_id bo'lmaganlar)
+      // Children har bir questionning children arrayida keladi
       return [...part.questions]
-        .filter((q) => q.type !== 'parent')
+        .filter((q) => !q.parent_id)
         .sort((a, b) => a.order - b.order)
     },
 
     questionIdsInPart(): number[] {
-      return this.currentQuestions.map((q) => q.id)
+      const ids: number[] = []
+      this.currentQuestions.forEach((q) => {
+        ids.push(q.id)
+        // Children ID larini ham qo'shish
+        if (q.children && q.children.length > 0) {
+          q.children.forEach((child) => ids.push(child.id))
+        }
+      })
+      return ids
     },
 
     partOrders(): number[] {
@@ -79,7 +89,7 @@ export const useListeningStore = defineStore('listening', {
         const firstPart = parts[0]!
         this.currentPart = firstPart.order
         const questions = [...firstPart.questions]
-          .filter((q) => q.type !== 'parent')
+          .filter((q) => !q.parent_id)
           .sort((a, b) => a.order - b.order)
         if (questions.length > 0) {
           this.currentQuestion = questions[0]!.id
@@ -102,7 +112,7 @@ export const useListeningStore = defineStore('listening', {
       this.saveToStorage()
     },
 
-    updateAnswer(questionId: number, answer: string | number): void {
+    updateAnswer(questionId: string | number, answer: string | number): void {
       this.answers[questionId] = answer
       this.saveToStorage()
     },
