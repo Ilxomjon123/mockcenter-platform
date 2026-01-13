@@ -7,9 +7,7 @@
 
     <div class="passage-content">
       <h2 class="passage-title">{{ passage?.title }}</h2>
-      <div class="passage-text">
-        {{ passage?.content }}
-      </div>
+      <div class="passage-text" v-html="passage?.content"></div>
     </div>
   </div>
 </template>
