@@ -87,7 +87,7 @@ const replaceGapsWithInputs = (text: string | null | unknown): string => {
     })
     .replace(/\[match\]/g, () => {
       gapCounter++
-      return `<span class="match-dropzone" data-match="${gapCounter}" data-gap="${gapCounter}"><span class="match-number">${gapCounter}</span><span class="match-value"></span></span>`
+      return `<span class="match-dropzone" draggable="true" data-match="${gapCounter}" data-gap="${gapCounter}"><span class="match-number">${gapCounter}</span><span class="match-value"></span></span>`
     })
 }
 
@@ -183,13 +183,16 @@ const handleGapInput = (e: Event) => {
 
 // ============ DRAG AND DROP ============
 let draggedOption: HTMLElement | null = null
+let sourceDropzone: HTMLElement | null = null // Track source dropzone when dragging from dropzone
+let draggedValue: string | null = null // Track the value being dragged
 let touchClone: HTMLElement | null = null
 let currentDropzone: HTMLElement | null = null
 
 // Create custom drag image
-const createDragImage = (element: HTMLElement): HTMLElement => {
-  const clone = element.cloneNode(true) as HTMLElement
+const createDragImage = (element: HTMLElement, text?: string): HTMLElement => {
+  const clone = document.createElement('span')
   clone.classList.add('drag-ghost')
+  clone.textContent = text || element.textContent || ''
   clone.style.position = 'fixed'
   clone.style.pointerEvents = 'none'
   clone.style.zIndex = '10000'
@@ -202,31 +205,71 @@ const createDragImage = (element: HTMLElement): HTMLElement => {
 
 const handleDragStart = (e: DragEvent) => {
   const target = e.target as HTMLElement
-  if (!target.classList.contains('draggable-option')) return
 
-  draggedOption = target
-  target.classList.add('dragging')
+  // Check if dragging from an option
+  if (target.classList.contains('draggable-option')) {
+    draggedOption = target
+    target.classList.add('dragging')
+    draggedValue = target.dataset.optionKey || ''
+    sourceDropzone = null
 
-  // Set drag data
-  const optionKey = target.dataset.optionKey || ''
-  e.dataTransfer?.setData('text/plain', optionKey)
+    e.dataTransfer?.setData('text/plain', draggedValue)
 
-  // Custom drag image
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move'
-    const dragImage = target.cloneNode(true) as HTMLElement
-    dragImage.style.transform = 'rotate(3deg)'
-    dragImage.style.opacity = '0.9'
-    document.body.appendChild(dragImage)
-    e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
-    setTimeout(() => document.body.removeChild(dragImage), 0)
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move'
+      const dragImage = target.cloneNode(true) as HTMLElement
+      dragImage.style.transform = 'rotate(3deg)'
+      dragImage.style.opacity = '0.9'
+      document.body.appendChild(dragImage)
+      e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
+      setTimeout(() => document.body.removeChild(dragImage), 0)
+    }
+    return
+  }
+
+  // Check if dragging from a dropzone with value
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+  if (dropzone && dropzone.classList.contains('has-value')) {
+    const valueEl = dropzone.querySelector('.match-value')
+    draggedValue = valueEl?.textContent || ''
+    if (!draggedValue) return
+
+    sourceDropzone = dropzone
+    draggedOption = null
+    dropzone.classList.add('dragging-from')
+
+    e.dataTransfer?.setData('text/plain', draggedValue)
+
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move'
+      // Create drag image with the value text
+      const dragImage = document.createElement('span')
+      dragImage.textContent = draggedValue
+      dragImage.style.padding = '10px 20px'
+      dragImage.style.background = '#fff'
+      dragImage.style.border = '1px solid #3b82f6'
+      dragImage.style.borderRadius = '6px'
+      dragImage.style.position = 'absolute'
+      dragImage.style.top = '-1000px'
+      document.body.appendChild(dragImage)
+      e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
+      setTimeout(() => document.body.removeChild(dragImage), 0)
+    }
   }
 }
 
 const handleDragEnd = (e: DragEvent) => {
   const target = e.target as HTMLElement
   target.classList.remove('dragging')
+
+  // Clear source dropzone state
+  if (sourceDropzone) {
+    sourceDropzone.classList.remove('dragging-from')
+  }
+
   draggedOption = null
+  sourceDropzone = null
+  draggedValue = null
 
   // Clear all drag-over states
   document.querySelectorAll('.match-dropzone.drag-over').forEach((el) => {
@@ -238,7 +281,8 @@ const handleDragOver = (e: DragEvent) => {
   e.preventDefault()
   const target = e.target as HTMLElement
   const dropzone = target.closest('.match-dropzone') as HTMLElement
-  if (dropzone) {
+  // Don't highlight source dropzone
+  if (dropzone && dropzone !== sourceDropzone) {
     dropzone.classList.add('drag-over')
   }
 }
@@ -256,34 +300,53 @@ const handleDrop = (e: DragEvent) => {
   const target = e.target as HTMLElement
   const dropzone = target.closest('.match-dropzone') as HTMLElement
 
-  if (!dropzone || !draggedOption) return
+  // Need either draggedOption or sourceDropzone, and a valid dropzone
+  if (!dropzone || (!draggedOption && !sourceDropzone)) return
+  // Can't drop on the same dropzone
+  if (dropzone === sourceDropzone) return
 
   dropzone.classList.remove('drag-over')
   dropzone.classList.add('drop-animation')
   setTimeout(() => dropzone.classList.remove('drop-animation'), 300)
 
   const matchNumber = dropzone.dataset.match
-  const optionKey = draggedOption.dataset.optionKey
 
-  if (matchNumber && optionKey) {
-    // If dropzone already has a value, restore the old option first
+  if (matchNumber && draggedValue) {
+    // If target dropzone already has a value, restore that option
     const oldValue = dropzone.querySelector('.match-value')?.textContent
     if (oldValue) {
       showOptionByKey(oldValue)
     }
 
-    // Update the dropzone display
+    // Update the target dropzone display
     const valueEl = dropzone.querySelector('.match-value')
     if (valueEl) {
-      valueEl.textContent = optionKey
+      valueEl.textContent = draggedValue
       dropzone.classList.add('has-value')
     }
 
-    // Hide the used option
-    draggedOption.classList.add('used')
-
     // Save to store
-    listeningStore.updateAnswer(parseInt(matchNumber, 10), optionKey)
+    listeningStore.updateAnswer(parseInt(matchNumber, 10), draggedValue)
+
+    // Handle source: either an option or another dropzone
+    if (draggedOption) {
+      // Dragging from option list - hide it
+      draggedOption.classList.add('used')
+    } else if (sourceDropzone) {
+      // Dragging from another dropzone - clear the source
+      const sourceValueEl = sourceDropzone.querySelector('.match-value')
+      const sourceMatchNumber = sourceDropzone.dataset.match
+      if (sourceValueEl) {
+        sourceValueEl.textContent = ''
+      }
+      sourceDropzone.classList.remove('has-value', 'dragging-from')
+
+      // Remove from store
+      if (sourceMatchNumber) {
+        delete listeningStore.answers[parseInt(sourceMatchNumber, 10)]
+        listeningStore.saveToStorage()
+      }
+    }
   }
 }
 
@@ -301,32 +364,51 @@ const showOptionByKey = (key: string) => {
 // ============ TOUCH SUPPORT ============
 const handleTouchStart = (e: TouchEvent) => {
   const target = e.target as HTMLElement
-  const option = target.closest('.draggable-option') as HTMLElement
-
-  if (!option) return
 
   const touch = e.touches[0]
   if (!touch) return
 
-  draggedOption = option
-  option.classList.add('touch-dragging')
+  // Check if touching an option
+  const option = target.closest('.draggable-option') as HTMLElement
+  if (option) {
+    draggedOption = option
+    draggedValue = option.dataset.optionKey || ''
+    sourceDropzone = null
+    option.classList.add('touch-dragging')
 
-  // Create clone for visual feedback
-  touchClone = createDragImage(option)
-  touchClone.style.left = `${touch.clientX - option.offsetWidth / 2}px`
-  touchClone.style.top = `${touch.clientY - option.offsetHeight / 2}px`
+    touchClone = createDragImage(option, draggedValue)
+    touchClone.style.left = `${touch.clientX - 60}px`
+    touchClone.style.top = `${touch.clientY - 20}px`
+    return
+  }
+
+  // Check if touching a dropzone with value
+  const dropzone = target.closest('.match-dropzone') as HTMLElement
+  if (dropzone && dropzone.classList.contains('has-value')) {
+    const valueEl = dropzone.querySelector('.match-value')
+    draggedValue = valueEl?.textContent || ''
+    if (!draggedValue) return
+
+    sourceDropzone = dropzone
+    draggedOption = null
+    dropzone.classList.add('dragging-from')
+
+    touchClone = createDragImage(dropzone, draggedValue)
+    touchClone.style.left = `${touch.clientX - 60}px`
+    touchClone.style.top = `${touch.clientY - 20}px`
+  }
 }
 
 const handleTouchMove = (e: TouchEvent) => {
-  if (!draggedOption || !touchClone) return
+  if ((!draggedOption && !sourceDropzone) || !touchClone) return
 
   e.preventDefault()
   const touch = e.touches[0]
   if (!touch) return
 
   // Move the clone
-  touchClone.style.left = `${touch.clientX - draggedOption.offsetWidth / 2}px`
-  touchClone.style.top = `${touch.clientY - draggedOption.offsetHeight / 2}px`
+  touchClone.style.left = `${touch.clientX - 60}px`
+  touchClone.style.top = `${touch.clientY - 20}px`
 
   // Find dropzone under touch point
   touchClone.style.display = 'none'
@@ -340,7 +422,8 @@ const handleTouchMove = (e: TouchEvent) => {
     currentDropzone.classList.remove('drag-over')
   }
 
-  if (dropzone) {
+  // Don't highlight source dropzone
+  if (dropzone && dropzone !== sourceDropzone) {
     dropzone.classList.add('drag-over')
     currentDropzone = dropzone
   } else {
@@ -349,9 +432,15 @@ const handleTouchMove = (e: TouchEvent) => {
 }
 
 const handleTouchEnd = () => {
-  if (!draggedOption) return
+  if (!draggedOption && !sourceDropzone) return
 
-  draggedOption.classList.remove('touch-dragging')
+  // Clean up dragging states
+  if (draggedOption) {
+    draggedOption.classList.remove('touch-dragging')
+  }
+  if (sourceDropzone) {
+    sourceDropzone.classList.remove('dragging-from')
+  }
 
   // Remove clone
   if (touchClone) {
@@ -359,17 +448,16 @@ const handleTouchEnd = () => {
     touchClone = null
   }
 
-  // Handle drop if over a dropzone
-  if (currentDropzone) {
+  // Handle drop if over a valid dropzone
+  if (currentDropzone && currentDropzone !== sourceDropzone) {
     currentDropzone.classList.remove('drag-over')
     currentDropzone.classList.add('drop-animation')
     setTimeout(() => currentDropzone?.classList.remove('drop-animation'), 300)
 
     const matchNumber = currentDropzone.dataset.match
-    const optionKey = draggedOption.dataset.optionKey
 
-    if (matchNumber && optionKey) {
-      // If dropzone already has a value, restore the old option first
+    if (matchNumber && draggedValue) {
+      // If target dropzone already has a value, restore that option
       const oldValue = currentDropzone.querySelector('.match-value')?.textContent
       if (oldValue) {
         showOptionByKey(oldValue)
@@ -377,18 +465,34 @@ const handleTouchEnd = () => {
 
       const valueEl = currentDropzone.querySelector('.match-value')
       if (valueEl) {
-        valueEl.textContent = optionKey
+        valueEl.textContent = draggedValue
         currentDropzone.classList.add('has-value')
       }
 
-      // Hide the used option
-      draggedOption.classList.add('used')
+      listeningStore.updateAnswer(parseInt(matchNumber, 10), draggedValue)
 
-      listeningStore.updateAnswer(parseInt(matchNumber, 10), optionKey)
+      // Handle source
+      if (draggedOption) {
+        draggedOption.classList.add('used')
+      } else if (sourceDropzone) {
+        const sourceValueEl = sourceDropzone.querySelector('.match-value')
+        const sourceMatchNumber = sourceDropzone.dataset.match
+        if (sourceValueEl) {
+          sourceValueEl.textContent = ''
+        }
+        sourceDropzone.classList.remove('has-value')
+
+        if (sourceMatchNumber) {
+          delete listeningStore.answers[parseInt(sourceMatchNumber, 10)]
+          listeningStore.saveToStorage()
+        }
+      }
     }
   }
 
   draggedOption = null
+  sourceDropzone = null
+  draggedValue = null
   currentDropzone = null
 }
 
@@ -775,14 +879,13 @@ watch(
   cursor: grab;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 10px 20px;
-  border-radius: 6px;
-  margin: 6px 0;
+  padding: 6px 14px;
+  border-radius: 4px;
+  margin: 4px 0;
   background: #ffffff;
   border: 1px solid #d1d5db;
-  font-size: 14px;
+  font-size: 13px;
   color: #374151;
-  min-width: 120px;
   -webkit-touch-callout: none;
   touch-action: none;
 }
@@ -814,30 +917,30 @@ watch(
 
 /* Drag ghost (for touch) */
 :global(.drag-ghost) {
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 4px;
   background: #ffffff;
   border: 1px solid #3b82f6;
-  font-size: 14px;
+  font-size: 13px;
   color: #374151;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 :deep(.match-dropzone) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 120px;
-  height: 40px;
-  padding: 8px 16px;
-  margin: 0 8px;
+  min-width: 100px;
+  height: 32px;
+  padding: 4px 12px;
+  margin: 0 4px;
   border: 1px dashed #9ca3af;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #ffffff;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   vertical-align: middle;
-  font-size: 14px;
+  font-size: 13px;
   position: relative;
 }
 
@@ -857,11 +960,19 @@ watch(
   border-style: solid;
   border-color: #d1d5db;
   background: #ffffff;
+  cursor: grab;
 }
 
 :deep(.match-dropzone.has-value:hover) {
-  border-color: #ef4444;
-  background: #fef2f2;
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+:deep(.match-dropzone.dragging-from) {
+  opacity: 0.5;
+  border-color: #3b82f6;
+  border-style: dashed;
+  cursor: grabbing;
 }
 
 /* Drop animation */
@@ -900,7 +1011,7 @@ watch(
 }
 
 :deep(.match-number) {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: #374151;
 }
