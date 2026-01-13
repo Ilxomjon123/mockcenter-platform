@@ -9,6 +9,8 @@ interface StoredListeningState {
   currentPart: number
   currentQuestion: number
   currentAudioIndex: number
+  currentAudioTime: number
+  hasStarted: boolean
   answers: Record<string | number, string | number>
 }
 
@@ -22,6 +24,8 @@ export const useListeningStore = defineStore('listening', {
       currentPart: saved?.currentPart ?? 1,
       currentQuestion: saved?.currentQuestion ?? 1,
       currentAudioIndex: saved?.currentAudioIndex ?? 0,
+      currentAudioTime: saved?.currentAudioTime ?? 0,
+      hasStarted: saved?.hasStarted ?? false,
       answers: saved?.answers ?? {},
       test: undefined,
     }
@@ -69,12 +73,25 @@ export const useListeningStore = defineStore('listening', {
         currentPart: this.currentPart,
         currentQuestion: this.currentQuestion,
         currentAudioIndex: this.currentAudioIndex,
+        currentAudioTime: this.currentAudioTime,
+        hasStarted: this.hasStarted,
         answers: this.answers,
       })
     },
 
+    setStarted(started: boolean): void {
+      this.hasStarted = started
+      this.saveToStorage()
+    },
+
     setAudioIndex(index: number): void {
       this.currentAudioIndex = index
+      this.currentAudioTime = 0 // Reset time when switching audio
+      this.saveToStorage()
+    },
+
+    setAudioTime(time: number): void {
+      this.currentAudioTime = time
       this.saveToStorage()
     },
 
@@ -121,6 +138,8 @@ export const useListeningStore = defineStore('listening', {
       this.currentPart = 1
       this.currentQuestion = 1
       this.currentAudioIndex = 0
+      this.currentAudioTime = 0
+      this.hasStarted = false
       this.answers = {}
       storage.remove()
     },

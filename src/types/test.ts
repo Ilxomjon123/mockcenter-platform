@@ -30,6 +30,13 @@ export interface QuestionRaw {
   updated_at?: string
 }
 
+// Processed question with additional computed properties
+export interface ProcessedQuestion extends Omit<QuestionRaw, 'children'> {
+  questionNumber?: number
+  processedContent?: string
+  children?: ProcessedQuestion[]
+}
+
 export interface PartRaw {
   id: number
   section_type: 'listening' | 'reading' | 'writing' | 'speaking'
