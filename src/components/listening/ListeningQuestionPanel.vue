@@ -40,13 +40,22 @@
 
     <!-- Display all questions in current part -->
     <div ref="questionsContainerRef" class="questions-container">
-      <template v-for="question in listeningStore.currentQuestions" :key="question.id">
+      <template v-for="question in processedQuestions" :key="question.id">
         <!-- Question with children -->
         <template v-if="question.children && question.children.length > 0">
           <!-- Parent question header -->
           <div class="question-item question-parent">
             <div class="question-text" v-html="question.title"></div>
-            <div v-if="question.content" class="question-content" v-html="question.content"></div>
+            <div
+              v-if="question.processedContent"
+              class="question-content"
+              v-html="question.processedContent"
+            ></div>
+            <div
+              v-else-if="question.content"
+              class="question-content"
+              v-html="question.content"
+            ></div>
           </div>
           <!-- Children questions -->
           <div
@@ -54,7 +63,15 @@
             :key="child.id"
             class="question-item question-child"
           >
-            <div v-if="child.title" class="question-text" v-html="child.title"></div>
+            <div
+              v-if="child.title"
+              class="question-text"
+              :class="{ 'has-number': child.questionNumber }"
+            >
+              <span v-if="child.questionNumber" class="question-number"
+                >{{ child.questionNumber }}. </span
+              ><span v-html="child.title"></span>
+            </div>
 
             <!-- Multiple choice / test (radio) type -->
             <template
@@ -69,14 +86,16 @@
                   v-for="(opt, idx) in getOptionsArray(child.options)"
                   :key="idx"
                   class="radio-option"
-                  :class="{ selected: listeningStore.answers[child.id] === opt.key }"
+                  :class="{
+                    selected: listeningStore.answers[child.questionNumber || child.id] === opt.key,
+                  }"
                 >
                   <input
                     type="radio"
                     :name="`question-${child.id}`"
                     :value="opt.key"
-                    :checked="listeningStore.answers[child.id] === opt.key"
-                    @change="onRadioChange(child.id, opt.key)"
+                    :checked="listeningStore.answers[child.questionNumber || child.id] === opt.key"
+                    @change="onRadioChange(child.questionNumber || child.id, opt.key)"
                   />
                   <span class="radio-label">{{ opt.value }}</span>
                 </label>
@@ -87,7 +106,16 @@
             <template v-else-if="hasOptions(child.options)">
               <div class="question-row">
                 <div class="question-col">
-                  <div class="question-content" v-html="replaceGapsWithInputs(child.content)"></div>
+                  <div
+                    v-if="child.processedContent"
+                    class="question-content"
+                    v-html="child.processedContent"
+                  ></div>
+                  <div
+                    v-else
+                    class="question-content"
+                    v-html="replaceGapsWithInputs(child.content)"
+                  ></div>
                 </div>
                 <div class="question-col">
                   <div v-if="child.options_title" class="options-title">
@@ -100,7 +128,16 @@
 
             <!-- No options -->
             <template v-else>
-              <div class="question-content" v-html="replaceGapsWithInputs(child.content)"></div>
+              <div
+                v-if="child.processedContent"
+                class="question-content"
+                v-html="child.processedContent"
+              ></div>
+              <div
+                v-else
+                class="question-content"
+                v-html="replaceGapsWithInputs(child.content)"
+              ></div>
             </template>
           </div>
         </template>
@@ -108,7 +145,11 @@
         <!-- Regular question without children -->
         <template v-else>
           <div class="question-item">
-            <div class="question-text" v-html="question.title"></div>
+            <div class="question-text" :class="{ 'has-number': question.questionNumber }">
+              <span v-if="question.questionNumber" class="question-number"
+                >{{ question.questionNumber }}. </span
+              ><span v-html="question.title"></span>
+            </div>
 
             <!-- Multiple choice / test (radio) type -->
             <template
@@ -123,14 +164,19 @@
                   v-for="(opt, idx) in getOptionsArray(question.options)"
                   :key="idx"
                   class="radio-option"
-                  :class="{ selected: listeningStore.answers[question.id] === opt.key }"
+                  :class="{
+                    selected:
+                      listeningStore.answers[question.questionNumber || question.id] === opt.key,
+                  }"
                 >
                   <input
                     type="radio"
                     :name="`question-${question.id}`"
                     :value="opt.key"
-                    :checked="listeningStore.answers[question.id] === opt.key"
-                    @change="onRadioChange(question.id, opt.key)"
+                    :checked="
+                      listeningStore.answers[question.questionNumber || question.id] === opt.key
+                    "
+                    @change="onRadioChange(question.questionNumber || question.id, opt.key)"
                   />
                   <span class="radio-label">{{ opt.value }}</span>
                 </label>
@@ -142,6 +188,12 @@
               <div class="question-row">
                 <div class="question-col">
                   <div
+                    v-if="question.processedContent"
+                    class="question-content"
+                    v-html="question.processedContent"
+                  ></div>
+                  <div
+                    v-else
                     class="question-content"
                     v-html="replaceGapsWithInputs(question.content)"
                   ></div>
@@ -157,7 +209,16 @@
 
             <!-- Single column when no options -->
             <template v-else>
-              <div class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
+              <div
+                v-if="question.processedContent"
+                class="question-content"
+                v-html="question.processedContent"
+              ></div>
+              <div
+                v-else
+                class="question-content"
+                v-html="replaceGapsWithInputs(question.content)"
+              ></div>
             </template>
           </div>
         </template>
@@ -175,19 +236,70 @@ const listeningStore = useListeningStore()
 // Questions container ref
 const questionsContainerRef = ref<HTMLElement | null>(null)
 
-const replaceGapsWithInputs = (text: string | null | unknown): string => {
-  if (!text || typeof text !== 'string') return ''
-  let gapCounter = (listeningStore.currentPart - 1) * 10
+// Process all content when questions or part changes
+const processedQuestions = computed(() => {
+  const questions = listeningStore.currentQuestions
+  const part = listeningStore.currentPart
 
+  if (!questions || questions.length === 0) return []
+
+  let globalGapCounter = (part - 1) * 10
+
+  const processText = (text: string | null | unknown): string => {
+    if (!text || typeof text !== 'string') return ''
+
+    return text
+      .replace(/\[gap\]/g, () => {
+        globalGapCounter++
+        return `<input type="text" placeholder="${globalGapCounter}" class="gap-input" data-gap="${globalGapCounter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
+      })
+      .replace(/\[match\]/g, () => {
+        globalGapCounter++
+        return `<span class="match-dropzone" draggable="true" data-match="${globalGapCounter}" data-gap="${globalGapCounter}"><span class="match-number">${globalGapCounter}</span><span class="match-value"></span></span>`
+      })
+  }
+
+  // Process all questions and their children
+  return questions.map((question) => {
+    const processedQuestion = { ...question }
+
+    // Increment counter for test type questions
+    if (question.type === 'test' || question.type === 'multiple_choice') {
+      globalGapCounter++
+      processedQuestion.questionNumber = globalGapCounter
+    }
+
+    if (question.content) {
+      processedQuestion.processedContent = processText(question.content)
+    }
+
+    if (question.children && question.children.length > 0) {
+      processedQuestion.children = question.children.map((child) => {
+        const processedChild = { ...child }
+
+        // Increment counter for test type child questions
+        if (child.type === 'test' || child.type === 'multiple_choice') {
+          globalGapCounter++
+          processedChild.questionNumber = globalGapCounter
+        }
+
+        if (child.content) {
+          processedChild.processedContent = processText(child.content)
+        }
+        return processedChild
+      })
+    }
+
+    return processedQuestion
+  })
+})
+
+// Simple pass-through function that returns pre-processed content
+const replaceGapsWithInputs = (text: string | null | unknown): string => {
+  // This function is now just for backward compatibility
+  // The actual processing happens in the computed property above
+  if (!text || typeof text !== 'string') return ''
   return text
-    .replace(/\[gap\]/g, () => {
-      gapCounter++
-      return `<input type="text" placeholder="${gapCounter}" class="gap-input" data-gap="${gapCounter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
-    })
-    .replace(/\[match\]/g, () => {
-      gapCounter++
-      return `<span class="match-dropzone" draggable="true" data-match="${gapCounter}" data-gap="${gapCounter}"><span class="match-number">${gapCounter}</span><span class="match-value"></span></span>`
-    })
 }
 
 // Check if question has options
@@ -674,12 +786,13 @@ onMounted(() => {
     questionsContainerRef.value.addEventListener('touchmove', handleTouchMove, { passive: false })
     questionsContainerRef.value.addEventListener('touchend', handleTouchEnd)
   }
+
   nextTick(restoreGapValues)
 })
 
-// Watch for part/questions changes to restore values
+// Watch for questions changes to restore values
 watch(
-  () => [listeningStore.currentPart, listeningStore.currentQuestions],
+  () => processedQuestions.value,
   () => {
     nextTick(restoreGapValues)
   },
@@ -935,6 +1048,46 @@ watch(
   font-size: 14px;
   color: #374151;
   margin: 0 0 12px 0;
+  display: block;
+}
+
+/* Only apply flex layout when question has a number */
+.question-text.has-number {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+}
+
+.question-text span {
+  display: inline;
+}
+
+/* Force inline only for numbered questions */
+.question-text.has-number p {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.question-number {
+  font-weight: 600;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+/* Force all block elements inside numbered question-text to be inline */
+.question-text.has-number :deep(p),
+.question-text.has-number :deep(div),
+.question-text.has-number :deep(h1),
+.question-text.has-number :deep(h2),
+.question-text.has-number :deep(h3),
+.question-text.has-number :deep(h4),
+.question-text.has-number :deep(h5),
+.question-text.has-number :deep(h6) {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .question-row {
@@ -951,6 +1104,17 @@ watch(
   font-size: 14px;
   color: #374151;
   line-height: 1.8;
+}
+
+/* Limit image height in question content */
+.question-content :deep(img) {
+  max-height: 500px;
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 12px 0;
 }
 
 .options-title {

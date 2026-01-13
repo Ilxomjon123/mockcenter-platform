@@ -41,5 +41,30 @@ const handleSubmit = (): void => {
   flex: 1;
   display: flex;
   overflow: hidden;
+  /* Add margin to account for fixed header and footer */
+  margin-top: 64px;
+  margin-bottom: 72px;
+}
+
+/* Make header sticky at top */
+:deep(.exam-header) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Make footer sticky at bottom */
+:deep(.exam-footer) {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>
