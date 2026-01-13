@@ -53,7 +53,9 @@
             <div class="question-content" v-html="replaceGapsWithInputs(question.content)"></div>
           </div>
           <div class="question-col">
-            <div v-if="question.options_title" class="options-title">{{ question.options_title }}</div>
+            <div v-if="question.options_title" class="options-title">
+              {{ question.options_title }}
+            </div>
             <div class="question-options" v-html="formatOptions(question.options)"></div>
           </div>
         </div>
@@ -105,7 +107,7 @@ const formatOptions = (options: unknown): string => {
   if (Array.isArray(options)) {
     return options
       .map((opt) => {
-        return `<div class="option-item draggable-option" draggable="true" data-option-key="${opt}" data-option-value="${opt}">${opt}</div>`
+        return `<span class="draggable-option" draggable="true" data-option-key="${opt}" data-option-value="${opt}">${opt}</span>`
       })
       .join('')
   }
@@ -113,7 +115,10 @@ const formatOptions = (options: unknown): string => {
   // If options is an object (key-value pairs)
   if (typeof options === 'object') {
     return Object.entries(options as Record<string, string>)
-      .map(([key, value]) => `<div class="option-item draggable-option" draggable="true" data-option-key="${key}" data-option-value="${value}">${value}</div>`)
+      .map(
+        ([key, value]) =>
+          `<span class="draggable-option" draggable="true" data-option-key="${key}" data-option-value="${value}">${value}</span>`,
+      )
       .join('')
   }
 
@@ -123,6 +128,10 @@ const formatOptions = (options: unknown): string => {
 // Restore saved values to gap inputs and match dropzones
 const restoreGapValues = () => {
   if (!questionsContainerRef.value) return
+
+  // First, reset all options to visible
+  const allOptions = questionsContainerRef.value.querySelectorAll<HTMLElement>('.draggable-option')
+  allOptions.forEach((opt) => opt.classList.remove('used'))
 
   // Restore gap inputs
   const inputs = questionsContainerRef.value.querySelectorAll<HTMLInputElement>('.gap-input')
@@ -137,7 +146,7 @@ const restoreGapValues = () => {
     }
   })
 
-  // Restore match dropzones
+  // Restore match dropzones and hide used options
   const dropzones = questionsContainerRef.value.querySelectorAll<HTMLElement>('.match-dropzone')
   dropzones.forEach((dropzone) => {
     const matchNumber = dropzone.dataset.match
@@ -149,6 +158,14 @@ const restoreGapValues = () => {
     if (savedValue !== undefined && valueEl) {
       valueEl.textContent = String(savedValue)
       dropzone.classList.add('has-value')
+
+      // Hide the used option
+      const usedOption = questionsContainerRef.value?.querySelector(
+        `.draggable-option[data-option-key="${savedValue}"]`
+      ) as HTMLElement
+      if (usedOption) {
+        usedOption.classList.add('used')
+      }
     }
   })
 }
@@ -166,6 +183,22 @@ const handleGapInput = (e: Event) => {
 
 // ============ DRAG AND DROP ============
 let draggedOption: HTMLElement | null = null
+let touchClone: HTMLElement | null = null
+let currentDropzone: HTMLElement | null = null
+
+// Create custom drag image
+const createDragImage = (element: HTMLElement): HTMLElement => {
+  const clone = element.cloneNode(true) as HTMLElement
+  clone.classList.add('drag-ghost')
+  clone.style.position = 'fixed'
+  clone.style.pointerEvents = 'none'
+  clone.style.zIndex = '10000'
+  clone.style.transform = 'rotate(3deg) scale(1.05)'
+  clone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)'
+  clone.style.opacity = '0.95'
+  document.body.appendChild(clone)
+  return clone
+}
 
 const handleDragStart = (e: DragEvent) => {
   const target = e.target as HTMLElement
@@ -177,12 +210,28 @@ const handleDragStart = (e: DragEvent) => {
   // Set drag data
   const optionKey = target.dataset.optionKey || ''
   e.dataTransfer?.setData('text/plain', optionKey)
+
+  // Custom drag image
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    const dragImage = target.cloneNode(true) as HTMLElement
+    dragImage.style.transform = 'rotate(3deg)'
+    dragImage.style.opacity = '0.9'
+    document.body.appendChild(dragImage)
+    e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
+    setTimeout(() => document.body.removeChild(dragImage), 0)
+  }
 }
 
 const handleDragEnd = (e: DragEvent) => {
   const target = e.target as HTMLElement
   target.classList.remove('dragging')
   draggedOption = null
+
+  // Clear all drag-over states
+  document.querySelectorAll('.match-dropzone.drag-over').forEach((el) => {
+    el.classList.remove('drag-over')
+  })
 }
 
 const handleDragOver = (e: DragEvent) => {
@@ -210,11 +259,19 @@ const handleDrop = (e: DragEvent) => {
   if (!dropzone || !draggedOption) return
 
   dropzone.classList.remove('drag-over')
+  dropzone.classList.add('drop-animation')
+  setTimeout(() => dropzone.classList.remove('drop-animation'), 300)
 
   const matchNumber = dropzone.dataset.match
   const optionKey = draggedOption.dataset.optionKey
 
   if (matchNumber && optionKey) {
+    // If dropzone already has a value, restore the old option first
+    const oldValue = dropzone.querySelector('.match-value')?.textContent
+    if (oldValue) {
+      showOptionByKey(oldValue)
+    }
+
     // Update the dropzone display
     const valueEl = dropzone.querySelector('.match-value')
     if (valueEl) {
@@ -222,9 +279,117 @@ const handleDrop = (e: DragEvent) => {
       dropzone.classList.add('has-value')
     }
 
+    // Hide the used option
+    draggedOption.classList.add('used')
+
     // Save to store
     listeningStore.updateAnswer(parseInt(matchNumber, 10), optionKey)
   }
+}
+
+// Helper to show option by key
+const showOptionByKey = (key: string) => {
+  if (!questionsContainerRef.value) return
+  const option = questionsContainerRef.value.querySelector(
+    `.draggable-option[data-option-key="${key}"]`
+  ) as HTMLElement
+  if (option) {
+    option.classList.remove('used')
+  }
+}
+
+// ============ TOUCH SUPPORT ============
+const handleTouchStart = (e: TouchEvent) => {
+  const target = e.target as HTMLElement
+  const option = target.closest('.draggable-option') as HTMLElement
+
+  if (!option) return
+
+  const touch = e.touches[0]
+  if (!touch) return
+
+  draggedOption = option
+  option.classList.add('touch-dragging')
+
+  // Create clone for visual feedback
+  touchClone = createDragImage(option)
+  touchClone.style.left = `${touch.clientX - option.offsetWidth / 2}px`
+  touchClone.style.top = `${touch.clientY - option.offsetHeight / 2}px`
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!draggedOption || !touchClone) return
+
+  e.preventDefault()
+  const touch = e.touches[0]
+  if (!touch) return
+
+  // Move the clone
+  touchClone.style.left = `${touch.clientX - draggedOption.offsetWidth / 2}px`
+  touchClone.style.top = `${touch.clientY - draggedOption.offsetHeight / 2}px`
+
+  // Find dropzone under touch point
+  touchClone.style.display = 'none'
+  const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY)
+  touchClone.style.display = ''
+
+  const dropzone = elementUnder?.closest('.match-dropzone') as HTMLElement
+
+  // Update drag-over states
+  if (currentDropzone && currentDropzone !== dropzone) {
+    currentDropzone.classList.remove('drag-over')
+  }
+
+  if (dropzone) {
+    dropzone.classList.add('drag-over')
+    currentDropzone = dropzone
+  } else {
+    currentDropzone = null
+  }
+}
+
+const handleTouchEnd = () => {
+  if (!draggedOption) return
+
+  draggedOption.classList.remove('touch-dragging')
+
+  // Remove clone
+  if (touchClone) {
+    touchClone.remove()
+    touchClone = null
+  }
+
+  // Handle drop if over a dropzone
+  if (currentDropzone) {
+    currentDropzone.classList.remove('drag-over')
+    currentDropzone.classList.add('drop-animation')
+    setTimeout(() => currentDropzone?.classList.remove('drop-animation'), 300)
+
+    const matchNumber = currentDropzone.dataset.match
+    const optionKey = draggedOption.dataset.optionKey
+
+    if (matchNumber && optionKey) {
+      // If dropzone already has a value, restore the old option first
+      const oldValue = currentDropzone.querySelector('.match-value')?.textContent
+      if (oldValue) {
+        showOptionByKey(oldValue)
+      }
+
+      const valueEl = currentDropzone.querySelector('.match-value')
+      if (valueEl) {
+        valueEl.textContent = optionKey
+        currentDropzone.classList.add('has-value')
+      }
+
+      // Hide the used option
+      draggedOption.classList.add('used')
+
+      listeningStore.updateAnswer(parseInt(matchNumber, 10), optionKey)
+    }
+  }
+
+  draggedOption = null
+  currentDropzone = null
 }
 
 // Handle click on dropzone to clear it
@@ -234,17 +399,28 @@ const handleDropzoneClick = (e: Event) => {
 
   if (!dropzone || !dropzone.classList.contains('has-value')) return
 
+  // Add remove animation
+  dropzone.classList.add('remove-animation')
+
   const matchNumber = dropzone.dataset.match
   const valueEl = dropzone.querySelector('.match-value')
+  const currentValue = valueEl?.textContent
 
   if (matchNumber && valueEl) {
-    // Clear the dropzone
-    valueEl.textContent = ''
-    dropzone.classList.remove('has-value')
+    setTimeout(() => {
+      // Show the option back
+      if (currentValue) {
+        showOptionByKey(currentValue)
+      }
 
-    // Remove from store
-    delete listeningStore.answers[parseInt(matchNumber, 10)]
-    listeningStore.saveToStorage()
+      // Clear the dropzone
+      valueEl.textContent = ''
+      dropzone.classList.remove('has-value', 'remove-animation')
+
+      // Remove from store
+      delete listeningStore.answers[parseInt(matchNumber, 10)]
+      listeningStore.saveToStorage()
+    }, 150)
   }
 }
 
@@ -254,13 +430,18 @@ onMounted(() => {
     // Input events
     questionsContainerRef.value.addEventListener('input', handleGapInput)
 
-    // Drag and drop events
+    // Drag and drop events (mouse)
     questionsContainerRef.value.addEventListener('dragstart', handleDragStart)
     questionsContainerRef.value.addEventListener('dragend', handleDragEnd)
     questionsContainerRef.value.addEventListener('dragover', handleDragOver)
     questionsContainerRef.value.addEventListener('dragleave', handleDragLeave)
     questionsContainerRef.value.addEventListener('drop', handleDrop)
     questionsContainerRef.value.addEventListener('click', handleDropzoneClick)
+
+    // Touch events for mobile
+    questionsContainerRef.value.addEventListener('touchstart', handleTouchStart, { passive: true })
+    questionsContainerRef.value.addEventListener('touchmove', handleTouchMove, { passive: false })
+    questionsContainerRef.value.addEventListener('touchend', handleTouchEnd)
   }
   nextTick(restoreGapValues)
 })
@@ -378,7 +559,7 @@ watch(
       isAudioLoading.value = true
 
       // Check if all audios are already finished
-      const totalParts = newTest.parts.filter(p => p.file).length
+      const totalParts = newTest.parts.filter((p) => p.file).length
       if (currentAudioIndex.value >= totalParts && totalParts > 0) {
         isAllAudiosFinished.value = true
       } else {
@@ -536,19 +717,10 @@ watch(
 .question-options {
   font-size: 14px;
   color: #374151;
-  background: #f9fafb;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.option-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.option-item:last-child {
-  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .question-number {
@@ -595,71 +767,149 @@ watch(
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Drag and Drop Styles */
-.draggable-option {
-  cursor: grab;
-  user-select: none;
-  transition: all 0.2s;
-  padding: 8px 12px !important;
-  border-radius: 4px;
-  margin-bottom: 4px;
-}
-
-.draggable-option:hover {
-  background: #e5e7eb;
-}
-
-.draggable-option.dragging {
-  opacity: 0.5;
-  cursor: grabbing;
-}
-
-.match-dropzone {
+/* Drag and Drop Styles - using :deep() for v-html content */
+:deep(.draggable-option) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 100px;
-  height: 32px;
-  padding: 4px 8px;
-  margin: 0 4px;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 20px;
+  border-radius: 6px;
+  margin: 6px 0;
+  background: #ffffff;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  vertical-align: middle;
   font-size: 14px;
+  color: #374151;
+  min-width: 120px;
+  -webkit-touch-callout: none;
+  touch-action: none;
 }
 
-.match-dropzone:hover {
+:deep(.draggable-option:hover) {
   border-color: #9ca3af;
+  background: #f9fafb;
+  cursor: grab;
 }
 
-.match-dropzone.drag-over {
+:deep(.draggable-option:active) {
+  cursor: grabbing;
+}
+
+:deep(.draggable-option.dragging) {
+  opacity: 0.5;
+  cursor: grabbing;
   border-color: #3b82f6;
   background: #eff6ff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.match-dropzone.has-value {
-  border-color: #d1d5db;
-  background: white;
+:deep(.draggable-option.touch-dragging) {
+  opacity: 0.5;
 }
 
-.match-dropzone.has-value:hover {
-  border-color: #ef4444;
-}
-
-.match-number {
-  font-size: 14px;
-  color: #9ca3af;
-}
-
-.match-dropzone.has-value .match-number {
+:deep(.draggable-option.used) {
   display: none;
 }
 
-.match-value {
+/* Drag ghost (for touch) */
+:global(.drag-ghost) {
+  padding: 10px 20px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #3b82f6;
+  font-size: 14px;
+  color: #374151;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.match-dropzone) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 40px;
+  padding: 8px 16px;
+  margin: 0 8px;
+  border: 1px dashed #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  vertical-align: middle;
+  font-size: 14px;
+  position: relative;
+}
+
+:deep(.match-dropzone:hover) {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+:deep(.match-dropzone.drag-over) {
+  border-color: #3b82f6;
+  border-style: dashed;
+  background: #dbeafe;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+:deep(.match-dropzone.has-value) {
+  border-style: solid;
+  border-color: #d1d5db;
+  background: #ffffff;
+}
+
+:deep(.match-dropzone.has-value:hover) {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Drop animation */
+:deep(.match-dropzone.drop-animation) {
+  animation: drop-bounce 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes drop-bounce {
+  0% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Remove animation */
+:deep(.match-dropzone.remove-animation) {
+  animation: shake-remove 0.15s ease-in-out;
+}
+
+@keyframes shake-remove {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+:deep(.match-number) {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+:deep(.match-dropzone.has-value .match-number) {
+  display: none;
+}
+
+:deep(.match-value) {
   font-weight: 500;
   color: #374151;
 }
