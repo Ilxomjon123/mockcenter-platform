@@ -1,18 +1,3 @@
-export interface Question {
-  id: number
-  type: 'true-false-not-given' | 'multiple-choice' | 'fill-blank' | 'matching'
-  text: string
-  options?: string[]
-  answer?: string | number
-}
-
-export interface Passage {
-  id: number
-  title: string
-  content: string
-  questions: Question[]
-}
-
 export interface ReadingTestRaw {
   id: number
   type: 'reading'
@@ -38,9 +23,20 @@ export interface ReadingTestRaw {
       name: string | null
       options_title: string | null
       options: unknown | null
-      content: unknown | null
+      content: string | null
       answers?: unknown | null
+      answers_count?: number
       parent_id?: number | null
+      children?: Array<{
+        id: number
+        type: string
+        order: number
+        title: string | null
+        name: string | null
+        options: unknown | null
+        content: string | null
+        answers_count?: number
+      }>
       created_at?: string
       updated_at?: string
     }>
@@ -49,7 +45,6 @@ export interface ReadingTestRaw {
 
 export interface ReadingState {
   currentPart: number
-  passages: Passage[]
   answers: Record<number, string | number>
   test?: ReadingTestRaw
 }

@@ -1,0 +1,6 @@
+export { default as QuestionItem } from './QuestionItem.vue'
+export { default as ParentQuestion } from './ParentQuestion.vue'
+export { default as MultipleChoiceQuestion } from './MultipleChoiceQuestion.vue'
+export { default as MatchingQuestion } from './MatchingQuestion.vue'
+export { default as HeadingQuestion } from './HeadingQuestion.vue'
+export { default as GapFillQuestion } from './GapFillQuestion.vue'

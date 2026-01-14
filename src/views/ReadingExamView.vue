@@ -3,22 +3,23 @@
     <ExamHeader />
 
     <div class="main-content">
-      <ReadingPassagePanel
-        :part="readingStore.currentPart"
-        :width="leftWidth"
-        :passage="readingStore.currentPassage"
-        :questions-range="getQuestionsRange()"
-      />
+      <!-- Shared sticky header -->
+      <div class="reading-header">
+        <span class="part-label">Part {{ readingStore.currentPart }}</span>
+        <p class="instruction">Read the text and answer questions {{ getQuestionsRange() }}</p>
+      </div>
 
-      <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
+      <!-- Panels container -->
+      <div class="panels-container">
+        <ReadingPassagePanel
+          :width="leftWidth"
+          :passage="readingStore.currentPassage"
+        />
 
-      <ReadingQuestionPanel
-        :questions="readingStore.currentPassage?.questions || []"
-        :questions-range="getQuestionsRange()"
-        :instruction="getInstruction()"
-        :answers="readingStore.answers"
-        @update-answer="readingStore.updateAnswer"
-      />
+        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
+
+        <ReadingQuestionPanel />
+      </div>
     </div>
 
     <ExamFooter
@@ -32,53 +33,49 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
 import { useResizable } from '@/composables/useResizable'
+import { useGlobalReadingDragDrop } from '@/composables/useGlobalReadingDragDrop'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
 import ReadingPassagePanel from '@/components/reading/ReadingPassagePanel.vue'
 import ReadingQuestionPanel from '@/components/reading/ReadingQuestionPanel.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
-import type { Passage, Question } from '@/types/reading'
 
 const readingStore = useReadingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
+const { setupGlobalListeners, cleanupGlobalListeners } = useGlobalReadingDragDrop()
+
+onMounted(() => {
+  setupGlobalListeners()
+})
+
+onUnmounted(() => {
+  cleanupGlobalListeners()
+})
 
 const getQuestionsRange = (): string => {
-  const passage: Passage | undefined = readingStore.currentPassage
-  if (!passage?.questions?.length) return ''
-
-  const questions: Question[] = passage.questions
-  const firstQ = questions[0]?.id
-  const lastQ = questions[questions.length - 1]?.id
-
-  // Check if both values exist
-  if (!firstQ || !lastQ) return ''
-
-  return firstQ === lastQ ? `${firstQ}` : `${firstQ}-${lastQ}`
-}
-
-const getInstruction = (): string => {
   const part = readingStore.currentPart
   switch (part) {
     case 1:
-      return 'Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.'
+      return '1-13'
     case 2:
-      return 'The text has four sections. Choose the correct heading for each section and move it into the gap.'
+      return '14-26'
     case 3:
-      return 'Complete the summary. Write ONE WORD ONLY from the text for each answer.'
+      return '27-40'
     default:
-      return 'Read the passage and answer the questions below.'
+      return ''
   }
 }
 
 const getTotalParts = (): number => {
-  return readingStore.passages.length
+  return readingStore.test?.parts.length || 0
 }
 
 const getPartOrders = (): number[] => {
-  // Return passage IDs which are based on part orders
-  return readingStore.passages.map((p) => p.id)
+  // Return part orders from test
+  return readingStore.test?.parts.map((p) => p.order) || []
 }
 
 const handlePageChange = (page: number): void => {
@@ -100,8 +97,61 @@ const handleSubmit = (): void => {
 }
 
 .main-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  top: 64px;
+  bottom: 72px;
+  left: 0;
+  right: 0;
+}
+
+.reading-header {
+  background: #f5f5f5;
+  padding: 16px 32px;
+  border-bottom: 1px solid #e5e5e5;
+  flex-shrink: 0;
+}
+
+.part-label {
+  font-weight: 600;
+  font-size: 16px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.instruction {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.panels-container {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+/* Make header sticky at top */
+:deep(.exam-header) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Make footer sticky at bottom */
+:deep(.exam-footer) {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>

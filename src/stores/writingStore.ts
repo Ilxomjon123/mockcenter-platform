@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { WritingState, WritingTestRaw } from '@/types/writing'
-import type { ExamTestRaw, PartRaw } from '@/types/test'
+import type { ExamTestRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_writing_state'
@@ -42,7 +42,7 @@ export const useWritingStore = defineStore('writing', {
       const writing = test.writing as WritingTestRaw
       this.test = writing
       const parts = [...writing.parts].sort((a, b) => a.order - b.order)
-      const prompts = parts.map((p: PartRaw) => ({
+      const prompts = parts.map((p) => ({
         title: p.title,
         content: p.content || '',
       }))
