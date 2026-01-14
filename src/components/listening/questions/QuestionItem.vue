@@ -1,8 +1,8 @@
 <template>
   <div class="question-item" :class="itemClass">
     <!-- Question title/header -->
-    <div v-if="question.title" class="question-text" :class="{ 'has-number': question.questionNumber }">
-      <span v-if="question.questionNumber" class="question-number">{{ question.questionNumber }}. </span>
+    <div v-if="question.title" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
+      <span v-if="question.displayNumber || question.questionNumber" class="question-number">{{ question.displayNumber || question.questionNumber }}. </span>
       <span v-html="question.title"></span>
     </div>
 

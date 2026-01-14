@@ -57,16 +57,11 @@ onUnmounted(() => {
 
 const getQuestionsRange = (): string => {
   const part = readingStore.currentPart
-  switch (part) {
-    case 1:
-      return '1-13'
-    case 2:
-      return '14-26'
-    case 3:
-      return '27-40'
-    default:
-      return ''
+  const stats = readingStore.partStats[part]
+  if (stats) {
+    return `${stats.start}-${stats.end}`
   }
+  return ''
 }
 
 const getTotalParts = (): number => {

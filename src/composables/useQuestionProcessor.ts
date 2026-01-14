@@ -42,7 +42,11 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
         // Use answers_count to properly increment counter (default to 1 for single-answer questions)
         const answerCount = question.answers_count ?? 1
         if (answerCount > 1) {
+          const startNumber = globalGapCounter
           globalGapCounter += answerCount - 1
+          processedQuestion.displayNumber = `${startNumber}-${globalGapCounter}`
+        } else {
+          processedQuestion.displayNumber = String(globalGapCounter)
         }
       }
 
@@ -60,7 +64,11 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
             // Use answers_count to properly increment counter (default to 1 for single-answer questions)
             const childAnswerCount = child.answers_count ?? 1
             if (childAnswerCount > 1) {
+              const startNumber = globalGapCounter
               globalGapCounter += childAnswerCount - 1
+              processedChild.displayNumber = `${startNumber}-${globalGapCounter}`
+            } else {
+              processedChild.displayNumber = String(globalGapCounter)
             }
           }
 

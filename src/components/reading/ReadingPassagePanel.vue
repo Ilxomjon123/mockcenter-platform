@@ -1,16 +1,52 @@
 <template>
   <div class="passage-panel" :style="{ width: `${width}%` }">
-    <div ref="passageContainerRef" class="passage-content">
+    <div ref="passageContainerRef" class="passage-content" @mouseup="handleMouseUp">
       <h2 class="passage-title">{{ passage?.title }}</h2>
-      <div class="passage-text" v-html="processedContent"></div>
+      <div class="passage-text" v-html="processedPassageContent"></div>
     </div>
+
+    <!-- Highlight Toolbar -->
+    <Teleport to="body">
+      <div
+        v-if="showToolbar"
+        class="highlight-toolbar"
+        :style="{
+          top: toolbarStyle.top,
+          left: toolbarStyle.left,
+          transform: 'translateX(-50%)'
+        }"
+      >
+        <div class="color-options">
+          <button
+            v-for="color in colors"
+            :key="color.name"
+            class="color-btn"
+            :style="{ backgroundColor: color.value }"
+            :title="`Highlight ${color.name}`"
+            @mousedown.prevent
+            @click="applyHighlight(color.value)"
+          ></button>
+          <div class="divider"></div>
+          <button
+            class="clear-btn"
+            title="Remove Highlight"
+            @mousedown.prevent
+            @click="removeHighlight"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        </div>
+        <div class="toolbar-arrow"></div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import type { ReadingTestRaw } from '@/types/reading'
 import { useReadingStore } from '@/stores/readingStore'
+import { useReadingQuestionProcessor } from '@/composables/useReadingQuestionProcessor'
 
 type Part = ReadingTestRaw['parts'][0]
 
@@ -19,102 +55,122 @@ interface Props {
   passage?: Part | null
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const readingStore = useReadingStore()
 const passageContainerRef = ref<HTMLElement | null>(null)
 
-// Get starting question number for each part
-const getStartNumber = (partOrder: number): number => {
-  switch (partOrder) {
-    case 1: return 1
-    case 2: return 14
-    case 3: return 27
-    default: return 1
-  }
-}
-
-// Process passage content for [match] placeholders
-const processedContent = computed(() => {
-  if (!props.passage?.content) return ''
-
-  const currentPart = readingStore.currentPart
-  let gapCounter = getStartNumber(currentPart) - 1
-
-  return props.passage.content
-    .replace(/\[gap\]/g, () => {
-      gapCounter++
-      return `<input type="text" placeholder="${gapCounter}" class="gap-input" data-gap="${gapCounter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
-    })
-    .replace(/\[match\]/g, () => {
-      gapCounter++
-      return `<span class="match-dropzone" draggable="true" data-match="${gapCounter}" data-gap="${gapCounter}"><span class="match-number">${gapCounter}</span><span class="match-value"></span></span>`
-    })
+// Use central question processor
+const { processedPassageContent, restoreGapValues, setupInputListener } = useReadingQuestionProcessor({
+  containerRef: passageContainerRef
 })
 
-// Handle input events for gap inputs
-const handleGapInput = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (!target.classList.contains('gap-input')) return
+// Highlight state
+const showToolbar = ref(false)
+const toolbarStyle = ref({ top: '0px', left: '0px' })
+const colors = [
+  { name: 'yellow', value: '#fef08a' },
+  { name: 'green', value: '#bbf7d0' },
+  { name: 'pink', value: '#fbcfe8' },
+  { name: 'blue', value: '#bfdbfe' },
+  { name: 'orange', value: '#fed7aa' },
+  { name: 'purple', value: '#e9d5ff' },
+  { name: 'red', value: '#fecaca' },
+  { name: 'cyan', value: '#a5f3fc' },
+]
 
-  const gap = target.dataset.gap
-  if (gap) {
-    readingStore.updateAnswer(parseInt(gap, 10), target.value)
+const handleMouseUp = () => {
+  const selection = window.getSelection()
+  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+    const range = selection.getRangeAt(0)
+    const rect = range.getBoundingClientRect()
+
+    // Check if selection is within passage-text
+    const container = passageContainerRef.value?.querySelector('.passage-text')
+    if (container && container.contains(range.commonAncestorContainer)) {
+      toolbarStyle.value = {
+        top: `${rect.top + window.scrollY - 45}px`,
+        left: `${rect.left + window.scrollX + rect.width / 2}px`,
+      }
+      showToolbar.value = true
+    } else {
+      showToolbar.value = false
+    }
+  } else {
+    showToolbar.value = false
   }
 }
 
-// Restore saved values
-const restoreValues = () => {
-  if (!passageContainerRef.value) return
+const applyHighlight = (color: string) => {
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) return
 
-  // Restore gap inputs
-  const inputs = passageContainerRef.value.querySelectorAll<HTMLInputElement>('.gap-input')
-  inputs.forEach((input) => {
-    const gapNumber = input.dataset.gap
-    if (!gapNumber) return
+  const range = selection.getRangeAt(0)
+  const span = document.createElement('span')
+  span.className = 'passage-highlight'
+  span.style.backgroundColor = color
+  span.dataset.highlightId = Math.random().toString(36).substr(2, 9)
 
-    const gapId = parseInt(gapNumber, 10)
-    const savedValue = readingStore.answers[gapId]
-    if (savedValue !== undefined) {
-      input.value = String(savedValue)
+  try {
+    const content = range.extractContents()
+    span.appendChild(content)
+    range.insertNode(span)
+
+    // Save highlighted HTML to store for persistence
+    const container = passageContainerRef.value?.querySelector('.passage-text')
+    if (container) {
+      readingStore.savePassageHtml(container.innerHTML)
     }
-  })
 
-  // Restore match dropzones and mark used options globally
-  const dropzones = passageContainerRef.value.querySelectorAll<HTMLElement>('.match-dropzone')
-  dropzones.forEach((dropzone) => {
-    const matchNumber = dropzone.dataset.match
-    if (!matchNumber) return
+    // Clear selection after highlighting
+    selection.removeAllRanges()
+    showToolbar.value = false
+  } catch (e) {
+    console.error('Could not apply highlight:', e)
+  }
+}
 
-    const matchId = parseInt(matchNumber, 10)
-    const savedValue = readingStore.answers[matchId]
-    const valueEl = dropzone.querySelector('.match-value')
-    if (savedValue !== undefined && valueEl) {
-      valueEl.textContent = String(savedValue)
-      dropzone.classList.add('has-value')
+const removeHighlight = () => {
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) return
 
-      // Mark option as used globally (might be in question panel)
-      const usedOption = document.querySelector(
-        `.draggable-option[data-option-key="${savedValue}"]`
-      ) as HTMLElement
-      if (usedOption) {
-        usedOption.classList.add('used')
-      }
+  const range = selection.getRangeAt(0)
+  const commonAncestor = range.commonAncestorContainer
+
+  let highlightNode: HTMLElement | null = null
+  if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+    highlightNode = (commonAncestor as HTMLElement).closest('.passage-highlight')
+  } else {
+    highlightNode = (commonAncestor.parentElement as HTMLElement).closest('.passage-highlight')
+  }
+
+  if (highlightNode) {
+    const parent = highlightNode.parentNode
+    while (highlightNode.firstChild) {
+      parent?.insertBefore(highlightNode.firstChild, highlightNode)
     }
-  })
+    parent?.removeChild(highlightNode)
+
+    // Save updated HTML to store
+    const container = passageContainerRef.value?.querySelector('.passage-text')
+    if (container) {
+      readingStore.savePassageHtml(container.innerHTML)
+    }
+
+    showToolbar.value = false
+    selection.removeAllRanges()
+  }
 }
 
 onMounted(() => {
-  if (passageContainerRef.value) {
-    passageContainerRef.value.addEventListener('input', handleGapInput)
-  }
-  nextTick(restoreValues)
+  setupInputListener()
+  nextTick(restoreGapValues)
 })
 
-// Watch for content changes
+// Watch for content changes to restore values
 watch(
-  () => processedContent.value,
+  () => processedPassageContent.value,
   () => {
-    nextTick(restoreValues)
+    nextTick(restoreGapValues)
   }
 )
 </script>
@@ -252,5 +308,82 @@ watch(
 .passage-text :deep(.match-value) {
   font-weight: 500;
   color: #374151;
+}
+
+.passage-text :deep(.passage-highlight) {
+  border-radius: 2px;
+  padding: 2px 0;
+  transition: background-color 0.2s ease;
+}
+
+/* Highlight Toolbar Styles */
+.highlight-toolbar {
+  position: absolute;
+  z-index: 9999;
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  pointer-events: auto;
+}
+
+.color-options {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+  border-color: white;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: #4b5563;
+  margin: 0 4px;
+}
+
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #374151;
+  color: #ef4444;
+}
+
+.toolbar-arrow {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #1f2937;
 }
 </style>

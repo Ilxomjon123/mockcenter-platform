@@ -43,8 +43,17 @@ export interface ReadingTestRaw {
   }>
 }
 
+export interface HighlightItem {
+  id: string
+  text: string
+  color: string
+  startIndex: number
+  endIndex: number
+}
+
 export interface ReadingState {
   currentPart: number
   answers: Record<number, string | number>
   test?: ReadingTestRaw
+  highlights: Record<number, HighlightItem[] | string>
 }

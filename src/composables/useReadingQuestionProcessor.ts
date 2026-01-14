@@ -14,41 +14,42 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
   const readingStore = useReadingStore()
   const { containerRef } = options
 
-  // Get starting question number for each part
-  const getStartNumber = (partOrder: number): number => {
-    switch (partOrder) {
-      case 1: return 1
-      case 2: return 14
-      case 3: return 27
-      default: return 1
-    }
+  // Process text with gap/match tags
+  const processText = (text: string | null | unknown, startCounter: number): { html: string; nextCounter: number } => {
+    if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
+
+    let counter = startCounter
+    const html = text
+      .replace(/\[gap\]/g, () => {
+        counter++
+        return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
+      })
+      .replace(/\[match\]/g, () => {
+        counter++
+        return `<span class="match-dropzone" draggable="true" data-match="${counter}" data-gap="${counter}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
+      })
+
+    return { html, nextCounter: counter }
   }
 
   // Process all content when questions or part changes
   const processedQuestions = computed<ProcessedQuestion[]>(() => {
     const currentPart = readingStore.currentPart
     const test = readingStore.test
+    const stats = readingStore.partStats
 
-    if (!test || !test.parts) return []
+    if (!test || !test.parts || !stats[currentPart]) return []
 
-    const part = test.parts.find(p => p.order === currentPart)
+    const part = test.parts.find((p) => p.order === currentPart)
     if (!part || !part.questions) return []
 
     const questions = [...part.questions].sort((a, b) => a.order - b.order)
-    let globalGapCounter = getStartNumber(currentPart) - 1
+    let globalGapCounter = stats[currentPart].start - 1
 
-    const processText = (text: string | null | unknown): string => {
-      if (!text || typeof text !== 'string') return ''
-
-      return text
-        .replace(/\[gap\]/g, () => {
-          globalGapCounter++
-          return `<input type="text" placeholder="${globalGapCounter}" class="gap-input" data-gap="${globalGapCounter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
-        })
-        .replace(/\[match\]/g, () => {
-          globalGapCounter++
-          return `<span class="match-dropzone" draggable="true" data-match="${globalGapCounter}" data-gap="${globalGapCounter}"><span class="match-number">${globalGapCounter}</span><span class="match-value"></span></span>`
-        })
+    // Also account for gaps in passage content to keep globalGapCounter correct
+    if (part.content) {
+      const { nextCounter } = processText(part.content, globalGapCounter)
+      globalGapCounter = nextCounter
     }
 
     const processChild = (child: RawChild): ProcessedQuestion => {
@@ -69,17 +70,24 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
         processedChild.options = ['True', 'False', 'Not given']
         globalGapCounter++
         processedChild.questionNumber = globalGapCounter
+        processedChild.displayNumber = String(globalGapCounter)
       } else if (child.type === 'test' || child.type === 'multiple_choice') {
         globalGapCounter++
         processedChild.questionNumber = globalGapCounter
         const childAnswerCount = child.answers_count ?? 1
         if (childAnswerCount > 1) {
+          const startNumber = globalGapCounter
           globalGapCounter += childAnswerCount - 1
+          processedChild.displayNumber = `${startNumber}-${globalGapCounter}`
+        } else {
+          processedChild.displayNumber = String(globalGapCounter)
         }
       }
 
       if (child.content) {
-        processedChild.processedContent = processText(child.content)
+        const { html, nextCounter } = processText(child.content, globalGapCounter)
+        processedChild.processedContent = html
+        globalGapCounter = nextCounter
       }
       return processedChild
     }
@@ -105,17 +113,24 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
         processedQuestion.options = ['True', 'False', 'Not given']
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
+        processedQuestion.displayNumber = String(globalGapCounter)
       } else if (question.type === 'test' || question.type === 'multiple_choice') {
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
         const answerCount = question.answers_count ?? 1
         if (answerCount > 1) {
+          const startNumber = globalGapCounter
           globalGapCounter += answerCount - 1
+          processedQuestion.displayNumber = `${startNumber}-${globalGapCounter}`
+        } else {
+          processedQuestion.displayNumber = String(globalGapCounter)
         }
       }
 
       if (question.content) {
-        processedQuestion.processedContent = processText(question.content)
+        const { html, nextCounter } = processText(question.content, globalGapCounter)
+        processedQuestion.processedContent = html
+        globalGapCounter = nextCounter
       }
 
       if (question.children && question.children.length > 0) {
@@ -125,8 +140,24 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
       return processedQuestion
     }
 
-    // Filter out 'parent' type questions only at root level and process them
     return questions.map(processQuestion)
+  })
+
+  // Process passage content
+  const processedPassageContent = computed(() => {
+    const currentPart = readingStore.currentPart
+    const passage = readingStore.currentPassage
+    const stats = readingStore.partStats
+
+    if (!passage || !passage.content || !stats[currentPart]) return ''
+
+    // Agar storeda highlight qilingan HTML bo'lsa, o'shani ishlatish
+    if (readingStore.highlights[currentPart] && typeof readingStore.highlights[currentPart] === 'string') {
+      return readingStore.highlights[currentPart] as unknown as string
+    }
+
+    const { html } = processText(passage.content, stats[currentPart].start - 1)
+    return html
   })
 
   // Restore saved values to gap inputs and match dropzones
@@ -202,6 +233,7 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
 
   return {
     processedQuestions,
+    processedPassageContent,
     restoreGapValues,
     setupInputListener,
   }

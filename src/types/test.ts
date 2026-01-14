@@ -33,6 +33,7 @@ export interface QuestionRaw {
 // Processed question with additional computed properties
 export interface ProcessedQuestion extends Omit<QuestionRaw, 'children'> {
   questionNumber?: number
+  displayNumber?: string
   processedContent?: string
   children?: ProcessedQuestion[]
 }
