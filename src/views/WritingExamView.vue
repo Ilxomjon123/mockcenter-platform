@@ -10,7 +10,12 @@
         </div>
         <div class="timer-display" :class="{ 'timer-low': isTimerLow }">
           <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span class="timer-time">{{ remainingTimeFormatted }}</span>
         </div>
@@ -80,7 +85,7 @@ const startTimer = () => {
 
   timerInterval = window.setInterval(() => {
     currentTime.value = Date.now()
-    if (remainingTimeMs.value <= 0 && (!writingStore.isCompleted || writingStore.isManualSubmit)) {
+    if (remainingTimeMs.value <= 0 && !writingStore.isCompleted) {
       handleAutoSubmit()
     }
   }, 1000)
@@ -200,9 +205,15 @@ const handleSubmit = (): void => {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .part-label {

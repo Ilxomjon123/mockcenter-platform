@@ -43,39 +43,55 @@ export const useWritingStore = defineStore('writing', {
   },
 
   actions: {
+    saveToStorage(): void {
+      storage.save({
+        currentPage: this.currentPage,
+        answers: this.answers,
+        test: this.test,
+        startTime: this.startTime,
+        isCompleted: this.isCompleted,
+        isManualSubmit: this.isManualSubmit,
+      } as WritingState)
+    },
+
     setTest(test: ExamTestRaw): void {
       const writing = test.writing as WritingTestRaw
       this.test = writing
-      this.currentPage = writing.parts.length > 0 ? Math.min(...writing.parts.map((p) => p.order)) : 1
+      this.currentPage =
+        writing.parts.length > 0 ? Math.min(...writing.parts.map((p) => p.order)) : 1
 
       // Initialize answers if not present
-      writing.parts.forEach(part => {
+      writing.parts.forEach((part) => {
         if (this.answers[part.order] === undefined) {
           this.answers[part.order] = ''
         }
       })
 
-      storage.save(this.$state)
+      this.saveToStorage()
     },
+
     setPage(page: number): void {
       this.currentPage = page
-      storage.save(this.$state)
+      this.saveToStorage()
     },
 
     updateAnswer(text: string): void {
       this.answers[this.currentPage] = text
-      storage.save(this.$state)
+      this.saveToStorage()
     },
 
     setStartTime(time: number): void {
-      this.startTime = time
-      storage.save(this.$state)
+      // Should only be set once
+      if (!this.startTime) {
+        this.startTime = time
+        this.saveToStorage()
+      }
     },
 
     setCompleted(completed: boolean, isManual: boolean = false): void {
       this.isCompleted = completed
       this.isManualSubmit = isManual
-      storage.save(this.$state)
+      this.saveToStorage()
     },
 
     clearWriting(): void {
