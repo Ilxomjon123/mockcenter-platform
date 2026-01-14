@@ -76,6 +76,7 @@ const goBack = () => {
 }
 
 const goToWriting = () => {
+  readingStore.setFinalized(true)
   router.push({ name: 'writing' })
 }
 </script>

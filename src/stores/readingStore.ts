@@ -16,6 +16,7 @@ export const useReadingStore = defineStore('reading', {
       highlights: saved?.highlights ?? {},
       isCompleted: saved?.isCompleted ?? false,
       isManualSubmit: saved?.isManualSubmit ?? false,
+      isFinalized: saved?.isFinalized ?? false,
       startTime: saved?.startTime,
       partStats: saved?.partStats ?? {},
     }
@@ -36,6 +37,7 @@ export const useReadingStore = defineStore('reading', {
         highlights: this.highlights,
         isCompleted: this.isCompleted,
         isManualSubmit: this.isManualSubmit,
+        isFinalized: this.isFinalized,
         startTime: this.startTime,
         partStats: this.partStats,
       } as ReadingState)
@@ -105,6 +107,11 @@ export const useReadingStore = defineStore('reading', {
       this.saveToStorage()
     },
 
+    setFinalized(finalized: boolean): void {
+      this.isFinalized = finalized
+      this.saveToStorage()
+    },
+
     setStartTime(time: number): void {
       // Faqat bir marta set qilinishi kerak
       if (!this.startTime) {
@@ -129,6 +136,7 @@ export const useReadingStore = defineStore('reading', {
       this.highlights = {}
       this.isCompleted = false
       this.isManualSubmit = false
+      this.isFinalized = false
       this.startTime = undefined
       storage.remove()
     },

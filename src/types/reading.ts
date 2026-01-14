@@ -50,6 +50,7 @@ export interface ReadingState {
   highlights: Record<string | number, string>
   isCompleted: boolean
   isManualSubmit: boolean
+  isFinalized: boolean
   startTime?: number
   partStats: Record<number, { start: number; end: number }>
 }

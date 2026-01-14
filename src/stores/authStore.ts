@@ -16,6 +16,19 @@ interface TestDataResponse {
   data: ExamTestRaw
 }
 
+interface ExamResults {
+  listening_count: number
+  reading_count: number
+  listening_score: number
+  reading_score: number
+  overall: number
+}
+
+interface SubmitResponse {
+  message: string
+  results: ExamResults
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const route = useRoute()
@@ -116,7 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = async () => {
+  const logout = async (redirectPath: string = '/login') => {
     // Clear all store data
     const { useListeningStore } = await import('@/stores/listeningStore')
     const { useReadingStore } = await import('@/stores/readingStore')
@@ -134,7 +147,42 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = ''
     localStorage.removeItem('token')
 
-    router.push('/login')
+    router.push(redirectPath)
+  }
+
+  const submitExam = async () => {
+    isLoading.value = true
+    try {
+      const { useListeningStore } = await import('@/stores/listeningStore')
+      const { useReadingStore } = await import('@/stores/readingStore')
+      const { useWritingStore } = await import('@/stores/writingStore')
+
+      const listeningStore = useListeningStore()
+      const readingStore = useReadingStore()
+      const writingStore = useWritingStore()
+
+      const payload = {
+        listening_answers: listeningStore.answers,
+        reading_answers: readingStore.answers,
+        writing_answers: writingStore.answers,
+      }
+
+      const response = await post<SubmitResponse>('/api/exam/submit', payload)
+
+      if (response) {
+        return { success: true, results: response.results }
+      } else {
+        return { success: false, message: "Imtihonni topshirishda xatolik yuz berdi" }
+      }
+    } catch (error: unknown) {
+      let message = 'Serverga ulanishda xatolik'
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message || error.message
+      }
+      return { success: false, message }
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const clearError = () => {
@@ -159,6 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
+    submitExam,
     clearError,
     checkAuth,
     fetchTestData,

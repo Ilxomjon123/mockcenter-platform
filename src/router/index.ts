@@ -35,6 +35,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/completed',
+    name: 'completed',
+    component: () => import('@/views/CompletedView.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     redirect: '/listening',
@@ -83,7 +89,10 @@ router.beforeEach(async (to, from, next) => {
     const now = Date.now()
     const elapsed = now - (readingStore.startTime || now)
 
-    if (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit)) {
+    if (
+      readingStore.isFinalized ||
+      (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit))
+    ) {
       next({ name: 'writing' })
       return
     }

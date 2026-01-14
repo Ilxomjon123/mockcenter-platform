@@ -95,6 +95,7 @@ const startTimer = () => {
 
 const handleAutoSubmit = () => {
   readingStore.setCompleted(true, false) // isManual = false
+  readingStore.setFinalized(true)
   if (timerInterval) {
     clearInterval(timerInterval)
   }
