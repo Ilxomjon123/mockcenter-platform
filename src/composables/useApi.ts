@@ -153,6 +153,6 @@ export const useApi = () => {
     del,
     isLoading,
     error,
-    axiosInstance, // Direct access agar kerak bo'lsa
+    axiosInstance, // Direct access if needed
   }
 }

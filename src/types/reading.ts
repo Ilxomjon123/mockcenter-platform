@@ -1,3 +1,5 @@
+import { QuestionType } from './test'
+
 export interface ReadingTestRaw {
   id: number
   type: 'reading'
@@ -17,7 +19,7 @@ export interface ReadingTestRaw {
     questions: Array<{
       id: number
       part_id?: number
-      type: string
+      type: QuestionType | string
       order: number
       title: string | null
       name: string | null
@@ -29,7 +31,7 @@ export interface ReadingTestRaw {
       parent_id?: number | null
       children?: Array<{
         id: number
-        type: string
+        type: QuestionType | string
         order: number
         title: string | null
         name: string | null

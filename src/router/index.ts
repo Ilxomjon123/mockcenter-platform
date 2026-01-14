@@ -52,28 +52,28 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard - har bir route o'tishda tekshirish
+// Navigation guard - check on each route transition
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   const requiresAuth = to.meta.requiresAuth !== false // Default: true
   const isAuthenticated = authStore.isAuthenticated
 
-  // Agar route auth talab qilsa va user login qilmagan bo'lsa
+  // If route requires auth and user is not logged in
   if (requiresAuth && !isAuthenticated) {
     next({
       name: 'login',
-      query: { redirect: to.fullPath }, // Login qilgandan keyin qaytish uchun
+      query: { redirect: to.fullPath }, // Redirect back after login
     })
     return
   }
 
-  // Agar user allaqachon login qilgan bo'lsa va login sahifasiga kirmoqchi bo'lsa
+  // If user is already logged in and trying to access login page
   if (to.name === 'login' && isAuthenticated) {
     next({ name: 'listening' })
     return
   }
 
-  // Agar listening tugagan bo'lsa, listening sahifasiga kirishni bloklash
+  // Block access to listening page if listening is completed
   if (to.name === 'listening' && isAuthenticated) {
     const listeningStore = useListeningStore()
     if (listeningStore.isCompleted) {
@@ -82,7 +82,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Agar reading tugagan bo'lsa va 60 daqiqadan ko'p o'tgan bo'lsa, reading sahifasiga kirishni bloklash
+  // Block access to reading page if reading is completed and more than 60 minutes passed
   if (to.name === 'reading' && isAuthenticated) {
     const readingStore = useReadingStore()
     const SIXTY_MINUTES = 60 * 60 * 1000
@@ -98,9 +98,9 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Agar authenticated bo'lib, exam sahifalariga kirayotgan bo'lsa, test ma'lumotlarini har safar yangilab olish
+  // Fetch test data when authenticated and accessing exam pages
   if (requiresAuth && isAuthenticated && !authStore.isLoadingTest) {
-    // Har safar page refresh qilinganda test ma'lumotlarini API dan yangilab olish
+    // Refresh test data from API on each page refresh
     await authStore.fetchTestData()
   }
 

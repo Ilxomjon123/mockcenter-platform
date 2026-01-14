@@ -145,7 +145,35 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Clear token
     token.value = ''
-    localStorage.removeItem('token')
+
+    // Clear all localStorage
+    localStorage.clear()
+
+    // Clear sessionStorage
+    sessionStorage.clear()
+
+    // Clear all IndexedDB databases
+    try {
+      const databases = await indexedDB.databases()
+      for (const db of databases) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name)
+        }
+      }
+    } catch (e) {
+      // indexedDB.databases() may not be supported in all browsers
+      console.warn('Could not clear IndexedDB:', e)
+    }
+
+    // Clear caches if available
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map((name) => caches.delete(name)))
+      } catch (e) {
+        console.warn('Could not clear caches:', e)
+      }
+    }
 
     router.push(redirectPath)
   }

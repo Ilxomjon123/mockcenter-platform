@@ -133,8 +133,8 @@ const handleSubmit = async () => {
   const result = await authStore.login(email.value, password.value)
 
   if (result.success) {
-    successMessage.value = 'Muvaffaqiyatli kirdingiz!'
-    // Router avtomatik redirect qiladi
+    successMessage.value = 'Successfully logged in!'
+    // Router will automatically redirect
   }
 }
 </script>

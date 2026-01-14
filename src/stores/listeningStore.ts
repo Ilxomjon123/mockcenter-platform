@@ -46,8 +46,8 @@ export const useListeningStore = defineStore('listening', {
     currentQuestions(): QuestionRaw[] {
       const part = this.currentPartData
       if (!part?.questions) return []
-      // Faqat top-level questionlarni olish (parent_id bo'lmaganlar)
-      // Children har bir questionning children arrayida keladi
+      // Get only top-level questions (those without parent_id)
+      // Children come in each question's children array
       return [...part.questions]
         .filter((q) => !q.parent_id)
         .sort((a, b) => a.order - b.order)
@@ -57,7 +57,7 @@ export const useListeningStore = defineStore('listening', {
       const ids: number[] = []
       this.currentQuestions.forEach((q) => {
         ids.push(q.id)
-        // Children ID larini ham qo'shish
+        // Also add children IDs
         if (q.children && q.children.length > 0) {
           q.children.forEach((child) => ids.push(child.id))
         }
@@ -110,7 +110,7 @@ export const useListeningStore = defineStore('listening', {
     setTest(test: ExamTestRaw): void {
       this.test = test.listening
 
-      // Agar currentPart test da mavjud bo'lmasa, birinchi partga o'rnatish
+      // If currentPart doesn't exist in test, set to first part
       const parts = [...this.test.parts].sort((a, b) => a.order - b.order)
       const currentPartExists = parts.some((p) => p.order === this.currentPart)
 

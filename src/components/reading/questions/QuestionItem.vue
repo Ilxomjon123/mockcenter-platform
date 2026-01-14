@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProcessedQuestion } from '@/types/test'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import MultipleChoiceQuestion from './MultipleChoiceQuestion.vue'
 import MatchingQuestion from './MatchingQuestion.vue'
 import HeadingQuestion from './HeadingQuestion.vue'
@@ -53,18 +53,21 @@ const props = defineProps<{
 }>()
 
 const isMultipleChoice = computed(() => {
-  return props.question.type === 'multiple_choice' ||
-         props.question.type === 'test' ||
-         props.question.type === 'true_false_not_given'
+  return props.question.type === QuestionType.MULTIPLE_CHOICE ||
+         props.question.type === QuestionType.TRUE_FALSE_NOT_GIVEN ||
+         props.question.type === QuestionType.YES_NO_NOT_GIVEN
 })
 
+// Heading-style matching: has options but dropzones are in passage (no [match] in question content)
 const isHeading = computed(() => {
-  return props.question.type === 'heading' ||
-         props.question.type === 'matching_headings'
+  if (props.question.type !== QuestionType.MATCHING) return false
+  // If question content has [match], dropzones are in question, not heading style
+  const hasMatchInContent = props.question.content?.includes('[match]') || false
+  return !hasMatchInContent
 })
 
 const isMatching = computed(() => {
-  return props.question.type === 'matching'
+  return props.question.type === QuestionType.MATCHING
 })
 
 const hasOptions = computed(() => {

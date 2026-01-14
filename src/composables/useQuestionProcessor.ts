@@ -1,6 +1,6 @@
 import { computed, type Ref, nextTick, watch } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
-import type { ProcessedQuestion } from '@/types/test'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import { processQuestionText, restoreAnswersInContainer } from '@/utils/questionUtils'
 
 interface QuestionProcessorOptions {
@@ -23,7 +23,7 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
     return questions.map((question): ProcessedQuestion => {
       const processedQuestion: ProcessedQuestion = { ...question }
 
-      if (question.type === 'test' || question.type === 'multiple_choice') {
+      if (question.type === QuestionType.MULTIPLE_CHOICE) {
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
         // Use answers_count to properly increment counter (default to 1 for single-answer questions)
@@ -47,7 +47,7 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
         processedQuestion.children = question.children.map((child): ProcessedQuestion => {
           const processedChild: ProcessedQuestion = { ...child }
 
-          if (child.type === 'test' || child.type === 'multiple_choice') {
+          if (child.type === QuestionType.MULTIPLE_CHOICE) {
             globalGapCounter++
             processedChild.questionNumber = globalGapCounter
             // Use answers_count to properly increment counter (default to 1 for single-answer questions)

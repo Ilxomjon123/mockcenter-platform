@@ -1,21 +1,16 @@
-export type BackendQuestionType =
-  | 'multiple_choice'
-  | 'sentence_completion'
-  | 'matching'
-  | 'matching_sentence_endings'
-  | 'matching_information'
-  | 'flow_chart_completion'
-  | 'plan_map_diagram'
-  | 'diagram_labelling'
-  | 'short_answer_questions'
-  | 'summary_completion'
-  | 'speaking'
-  | 'writing'
+export enum QuestionType {
+  PARENT = 'parent',
+  GAP_FILLING = 'gap_filling',
+  MULTIPLE_CHOICE = 'multiple_choice',
+  MATCHING = 'matching',
+  TRUE_FALSE_NOT_GIVEN = 'true_false_not_given',
+  YES_NO_NOT_GIVEN = 'yes_no_not_given',
+}
 
 export interface QuestionRaw {
   id: number
   part_id?: number
-  type: BackendQuestionType | string
+  type: QuestionType | string
   order: number
   title: string | null
   name: string | null

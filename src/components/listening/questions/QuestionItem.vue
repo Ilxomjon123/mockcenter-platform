@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProcessedQuestion } from '@/types/test'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import MultipleChoiceQuestion from './MultipleChoiceQuestion.vue'
 import MatchingQuestion from './MatchingQuestion.vue'
 import GapFillQuestion from './GapFillQuestion.vue'
@@ -40,7 +40,7 @@ const props = defineProps<{
 }>()
 
 const isMultipleChoice = computed(() => {
-  return props.question.type === 'multiple_choice' || props.question.type === 'test'
+  return props.question.type === QuestionType.MULTIPLE_CHOICE
 })
 
 const hasOptions = computed(() => {

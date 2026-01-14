@@ -108,7 +108,7 @@ onUnmounted(() => {
 })
 
 const showBackButton = computed(() => {
-  // Agar manual submit bo'lsa va vaqt hali tugamagan bo'lsa back button ko'rinadi
+  // Show back button if manually submitted and time hasn't expired
   if (!writingStore.isManualSubmit) return false
 
   const SIXTY_MINUTES_MS = 60 * 60 * 1000
@@ -128,14 +128,13 @@ const finishTest = async () => {
   isSubmitting.value = true
   try {
     const result = await authStore.submitExam()
-    if (result.success) {
+    if (result.success && result.results) {
       const { results } = result
       const query = new URLSearchParams({
         l_c: results.listening_count.toString(),
         r_c: results.reading_count.toString(),
         l_s: results.listening_score.toString(),
         r_s: results.reading_score.toString(),
-        o: results.overall.toString(),
       }).toString()
       await authStore.logout(`/completed?${query}`)
     } else {

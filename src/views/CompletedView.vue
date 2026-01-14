@@ -10,7 +10,7 @@
         </div>
       </div>
 
-      <h1 class="title">Test muvaffaqiyatli topshirildi</h1>
+      <h1 class="title">Test Successfully Submitted</h1>
 
       <div class="message-section">
         <div class="results-container">
@@ -18,26 +18,20 @@
             <div class="result-header">Listening</div>
             <div class="result-body">
               <div class="score">{{ results.listening_score }}</div>
-              <div class="details">{{ results.listening_count }} ta to'g'ri javob</div>
+              <div class="details">{{ results.listening_count }} correct answers</div>
             </div>
           </div>
           <div class="result-card">
             <div class="result-header">Reading</div>
             <div class="result-body">
               <div class="score">{{ results.reading_score }}</div>
-              <div class="details">{{ results.reading_count }} ta to'g'ri javob</div>
-            </div>
-          </div>
-          <div class="result-card overall">
-            <div class="result-header">Overall Band</div>
-            <div class="result-body">
-              <div class="score">{{ results.overall }}</div>
+              <div class="details">{{ results.reading_count }} correct answers</div>
             </div>
           </div>
         </div>
 
         <p class="writing-notice">
-          Writing natijalari tekshirilgandan so'ng tez orada e'lon qilinadi.
+          Writing results will be announced shortly after review.
         </p>
 
         <div class="info-box">
@@ -120,7 +114,7 @@ const results = computed(() => ({
 
 .results-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-bottom: 32px;
 }
@@ -157,19 +151,6 @@ const results = computed(() => ({
   font-size: 13px;
   color: #64748b;
   margin-top: 8px;
-}
-
-.result-card.overall {
-  background: #f0f9ff;
-  border-color: #bae6fd;
-}
-
-.result-card.overall .result-header {
-  color: #0284c7;
-}
-
-.result-card.overall .score {
-  color: #0369a1;
 }
 
 .writing-notice {

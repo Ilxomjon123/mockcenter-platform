@@ -1,6 +1,6 @@
 import { computed, type Ref, nextTick, watch } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
-import type { ProcessedQuestion } from '@/types/test'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import type { ReadingTestRaw } from '@/types/reading'
 import { processQuestionText, restoreAnswersInContainer } from '@/utils/questionUtils'
 
@@ -50,12 +50,17 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
         parent_id: (q as RawQuestion).parent_id,
       }
 
-      if (q.type === 'true_false_not_given') {
+      if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN) {
         processed.options = ['True', 'False', 'Not given']
         globalGapCounter++
         processed.questionNumber = globalGapCounter
         processed.displayNumber = String(globalGapCounter)
-      } else if (q.type === 'test' || q.type === 'multiple_choice') {
+      } else if (q.type === QuestionType.YES_NO_NOT_GIVEN) {
+        processed.options = ['Yes', 'No', 'Not given']
+        globalGapCounter++
+        processed.questionNumber = globalGapCounter
+        processed.displayNumber = String(globalGapCounter)
+      } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
         globalGapCounter++
         processed.questionNumber = globalGapCounter
         const answerCount = q.answers_count ?? 1
@@ -92,7 +97,7 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
 
     if (!passage || !passage.content || !stats[currentPart]) return ''
 
-    // Agar storeda highlight qilingan HTML bo'lsa, o'shani ishlatish
+    // If there's highlighted HTML in store, use that
     const highlight = readingStore.highlights[currentPart] || readingStore.highlights[String(currentPart)]
     if (highlight && typeof highlight === 'string') {
       return highlight

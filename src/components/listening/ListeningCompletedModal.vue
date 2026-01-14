@@ -56,7 +56,7 @@ const goBack = () => {
 }
 
 const goToReading = () => {
-  // Reading bo'limiga o'tishda timer boshlanish vaqtini fix qilamiz
+  // Set timer start time when transitioning to Reading section
   readingStore.setStartTime(Date.now())
   router.push({ name: 'reading' })
 }

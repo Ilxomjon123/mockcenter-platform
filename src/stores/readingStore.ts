@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { ReadingState, ReadingTestRaw } from '@/types/reading'
-import type { ExamTestRaw } from '@/types/test'
+import { QuestionType, type ExamTestRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_reading_state'
@@ -64,9 +64,9 @@ export const useReadingStore = defineStore('reading', {
       }
 
       const processNode = (q: RawQuestion | RawChild) => {
-        if (q.type === 'true_false_not_given') {
+        if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN || q.type === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
-        } else if (q.type === 'test' || q.type === 'multiple_choice') {
+        } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += (q as RawQuestion).answers_count || 1
         }
         currentCounter += countGapsAndMatches(q.content)
@@ -88,7 +88,7 @@ export const useReadingStore = defineStore('reading', {
       })
       this.partStats = stats
 
-      // Agar currentPart passages da mavjud bo'lmasa, birinchisiga o'rnatish
+      // If currentPart doesn't exist in passages, set to first one
       const currentPartExists = parts.some((p) => p.order === this.currentPart)
       this.currentPart = currentPartExists ? this.currentPart : parts[0]?.order || 1
 
@@ -113,7 +113,7 @@ export const useReadingStore = defineStore('reading', {
     },
 
     setStartTime(time: number): void {
-      // Faqat bir marta set qilinishi kerak
+      // Should only be set once
       if (!this.startTime) {
         this.startTime = time
         this.saveToStorage()
