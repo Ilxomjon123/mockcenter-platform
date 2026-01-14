@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useListeningStore } from '@/stores/listeningStore'
+import { useReadingStore } from '@/stores/readingStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -71,6 +72,19 @@ router.beforeEach(async (to, from, next) => {
     const listeningStore = useListeningStore()
     if (listeningStore.isCompleted) {
       next({ name: 'reading' })
+      return
+    }
+  }
+
+  // Agar reading tugagan bo'lsa va 60 daqiqadan ko'p o'tgan bo'lsa, reading sahifasiga kirishni bloklash
+  if (to.name === 'reading' && isAuthenticated) {
+    const readingStore = useReadingStore()
+    const SIXTY_MINUTES = 60 * 60 * 1000
+    const now = Date.now()
+    const elapsed = now - (readingStore.startTime || now)
+
+    if (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit)) {
+      next({ name: 'writing' })
       return
     }
   }

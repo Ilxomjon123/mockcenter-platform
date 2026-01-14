@@ -43,17 +43,13 @@ export interface ReadingTestRaw {
   }>
 }
 
-export interface HighlightItem {
-  id: string
-  text: string
-  color: string
-  startIndex: number
-  endIndex: number
-}
-
 export interface ReadingState {
   currentPart: number
   answers: Record<number, string | number>
   test?: ReadingTestRaw
-  highlights: Record<number, HighlightItem[] | string>
+  highlights: Record<string | number, string>
+  isCompleted: boolean
+  isManualSubmit: boolean
+  startTime?: number
+  partStats: Record<number, { start: number; end: number }>
 }

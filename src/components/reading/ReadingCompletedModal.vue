@@ -9,11 +9,11 @@
         </svg>
       </div>
 
-      <h2 class="modal-title">Listening Section Completed</h2>
+      <h2 class="modal-title">Reading Section Completed</h2>
 
       <p class="modal-description">
-        You have successfully completed the Listening section.
-        Click the button below to proceed to the Reading section.
+        You have successfully completed the Reading section.
+        Click the button below to proceed to the Writing section.
       </p>
 
       <div class="button-group">
@@ -24,8 +24,8 @@
           Back
         </button>
 
-        <button class="continue-button" @click="goToReading">
-          Continue to Reading
+        <button class="continue-button" @click="goToWriting">
+          Continue to Writing
           <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -36,9 +36,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 
 defineProps<{
@@ -46,19 +45,38 @@ defineProps<{
 }>()
 
 const router = useRouter()
-const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
+const currentTime = ref(Date.now())
+let timerInterval: number | null = null
 
-const showBackButton = computed(() => listeningStore.isManualSubmit)
+onMounted(() => {
+  timerInterval = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+  }
+})
+
+const showBackButton = computed(() => {
+  if (!readingStore.isManualSubmit) return false
+
+  // 60 minutes in milliseconds
+  const SIXTY_MINUTES = 60 * 60 * 1000
+  const startTime = readingStore.startTime || currentTime.value
+
+  return (currentTime.value - startTime) < SIXTY_MINUTES
+})
 
 const goBack = () => {
-  listeningStore.setCompleted(false)
+  readingStore.setCompleted(false)
 }
 
-const goToReading = () => {
-  // Reading bo'limiga o'tishda timer boshlanish vaqtini fix qilamiz
-  readingStore.setStartTime(Date.now())
-  router.push({ name: 'reading' })
+const goToWriting = () => {
+  router.push({ name: 'writing' })
 }
 </script>
 
@@ -112,6 +130,7 @@ const goToReading = () => {
 .button-group {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 

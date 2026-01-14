@@ -55,6 +55,17 @@ interface Props {
   passage?: Part | null
 }
 
+const colors = [
+  { name: 'yellow', value: '#fef08a' },
+  { name: 'green', value: '#bbf7d0' },
+  { name: 'pink', value: '#fbcfe8' },
+  { name: 'blue', value: '#bfdbfe' },
+  { name: 'orange', value: '#fed7aa' },
+  { name: 'purple', value: '#e9d5ff' },
+  { name: 'red', value: '#fecaca' },
+  { name: 'cyan', value: '#a5f3fc' },
+]
+
 defineProps<Props>()
 const readingStore = useReadingStore()
 const passageContainerRef = ref<HTMLElement | null>(null)
@@ -67,16 +78,6 @@ const { processedPassageContent, restoreGapValues, setupInputListener } = useRea
 // Highlight state
 const showToolbar = ref(false)
 const toolbarStyle = ref({ top: '0px', left: '0px' })
-const colors = [
-  { name: 'yellow', value: '#fef08a' },
-  { name: 'green', value: '#bbf7d0' },
-  { name: 'pink', value: '#fbcfe8' },
-  { name: 'blue', value: '#bfdbfe' },
-  { name: 'orange', value: '#fed7aa' },
-  { name: 'purple', value: '#e9d5ff' },
-  { name: 'red', value: '#fecaca' },
-  { name: 'cyan', value: '#a5f3fc' },
-]
 
 const handleMouseUp = () => {
   const selection = window.getSelection()

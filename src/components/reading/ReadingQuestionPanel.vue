@@ -17,9 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useReadingQuestionProcessor } from '@/composables/useReadingQuestionProcessor'
-import { useReadingDragAndDrop } from '@/composables/useReadingDragAndDrop'
 import { QuestionItem, ParentQuestion } from './questions'
 
 // Questions container ref
@@ -30,16 +29,10 @@ const { processedQuestions, restoreGapValues, setupInputListener } = useReadingQ
   containerRef: questionsContainerRef,
 })
 
-// Drag and drop composable
-const { setupEventListeners: setupDragDropListeners } = useReadingDragAndDrop({
-  containerRef: questionsContainerRef,
-})
-
 // Setup event delegation on mount
 onMounted(() => {
   setupInputListener()
-  setupDragDropListeners()
-  nextTick(restoreGapValues)
+  restoreGapValues()
 })
 </script>
 
