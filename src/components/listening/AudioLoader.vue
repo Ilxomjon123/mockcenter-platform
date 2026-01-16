@@ -45,9 +45,11 @@ defineEmits<{
   play: []
 }>()
 
-// Only show overlay if user hasn't started yet (first time visit)
+// Only show overlay if:
+// 1. User hasn't started yet (first time visit)
+// 2. There are audios to load (totalAudios > 0)
 // On refresh (hasStarted=true), never show loader
-const isVisible = computed(() => !props.isStarted)
+const isVisible = computed(() => !props.isStarted && props.totalAudios > 0)
 </script>
 
 <style scoped>
