@@ -38,6 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const errorMessage = ref('')
   const isLoadingTest = ref(false)
+  const isFullscreenEnforced = ref(false)
 
   const isAuthenticated = computed(() => !!token.value)
 
@@ -71,6 +72,12 @@ export const useAuthStore = defineStore('auth', () => {
           writingStore.setTest(testData)
         }
 
+        if (testData.speaking) {
+          const { useSpeakingStore } = await import('@/stores/speakingStore')
+          const speakingStore = useSpeakingStore()
+          speakingStore.setTest(testData)
+        }
+
         return { success: true }
       } else {
         throw new Error('Test ma\'lumotlari topilmadi')
@@ -94,7 +101,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
 
     try {
-      const response = await post<LoginResponse>('/api/exam/login', {
+      const { useModeStore } = await import('@/stores/modeStore')
+      const modeStore = useModeStore()
+
+      const endpoint = modeStore.isPracticeMode ? '/api/auth/login' : '/api/exam/login'
+
+      const response = await post<LoginResponse>(endpoint, {
         email,
         key: password,
       })
@@ -103,12 +115,30 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.access_token
         localStorage.setItem('token', response.data.access_token)
 
-        // Fetch test data after successful login
-        await fetchTestData()
+        // Fetch test data after successful login for exam mode
+        if (modeStore.isExamMode) {
+          await fetchTestData()
 
-        // Query parametrdan redirect manzilni olish
-        const redirectPath = (route.query.redirect as string) || '/listening'
-        await router.push(redirectPath)
+          // Enforce fullscreen in exam mode
+          try {
+            await document.documentElement.requestFullscreen()
+            isFullscreenEnforced.value = true
+          } catch (e) {
+            console.warn('Could not enter fullscreen:', e)
+          }
+
+          // Query parametrdan redirect manzilni olish
+          const redirectPath = (route.query.redirect as string) || '/listening'
+          await router.push(redirectPath)
+        } else {
+          // In practice mode, fetch user profile and redirect to dashboard
+          const { useUserStore } = await import('@/stores/userStore')
+          const userStore = useUserStore()
+          await userStore.fetchProfile()
+
+          const redirectPath = (route.query.redirect as string) || '/dashboard'
+          await router.push(redirectPath)
+        }
 
         return { success: true }
       } else {
@@ -129,25 +159,52 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = async (redirectPath: string = '/login') => {
+  const logout = async (redirectPath: string = '/login', autoLogout: boolean = false) => {
+    const { useModeStore } = await import('@/stores/modeStore')
+    const modeStore = useModeStore()
+
+    // In exam mode, auto logout after submit
+    // In practice mode, don't auto logout unless explicitly requested
+    if (modeStore.isPracticeMode && !autoLogout) {
+      // Don't logout in practice mode, just redirect to dashboard
+      router.push('/dashboard')
+      return
+    }
+
     // Clear all store data
     const { useListeningStore } = await import('@/stores/listeningStore')
     const { useReadingStore } = await import('@/stores/readingStore')
     const { useWritingStore } = await import('@/stores/writingStore')
+    const { useUserStore } = await import('@/stores/userStore')
+    const { useSpeakingStore } = await import('@/stores/speakingStore')
 
     const listeningStore = useListeningStore()
     const readingStore = useReadingStore()
     const writingStore = useWritingStore()
+    const userStore = useUserStore()
+    const speakingStore = useSpeakingStore()
 
     listeningStore.clearListening()
     readingStore.clearReading()
     writingStore.clearWriting()
+    userStore.clearUser()
+    speakingStore.clearSpeaking()
+
+    // Exit fullscreen if enforced
+    if (isFullscreenEnforced.value && document.fullscreenElement) {
+      await document.exitFullscreen()
+    }
+    isFullscreenEnforced.value = false
 
     // Clear token
     token.value = ''
 
-    // Clear all localStorage
-    localStorage.clear()
+    // Clear all localStorage (except practice mode preferences if in practice mode)
+    if (modeStore.isExamMode) {
+      localStorage.clear()
+    } else {
+      localStorage.removeItem('token')
+    }
 
     // Clear sessionStorage
     sessionStorage.clear()
@@ -174,6 +231,9 @@ export const useAuthStore = defineStore('auth', () => {
         console.warn('Could not clear caches:', e)
       }
     }
+
+    // Reset mode
+    modeStore.clearMode()
 
     router.push(redirectPath)
   }
