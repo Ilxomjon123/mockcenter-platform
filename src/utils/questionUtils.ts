@@ -3,6 +3,41 @@
  */
 
 /**
+ * Auto-resizes an input element based on its content
+ * @param input The input element to resize
+ */
+export function autoResizeInput(input: HTMLInputElement): void {
+  const minWidth = 80
+  const padding = 20 // Account for padding
+
+  // Create a temporary span to measure text width
+  const span = document.createElement('span')
+  span.style.visibility = 'hidden'
+  span.style.position = 'absolute'
+  span.style.whiteSpace = 'pre'
+  span.style.font = window.getComputedStyle(input).font
+  span.textContent = input.value || input.placeholder || ''
+
+  document.body.appendChild(span)
+  const textWidth = span.offsetWidth
+  document.body.removeChild(span)
+
+  // Set the width based on content, with min and max constraints
+  const newWidth = Math.max(minWidth, textWidth + padding)
+  input.style.width = `${newWidth}px`
+}
+
+/**
+ * Auto-resizes all gap inputs in a container
+ * @param container The container element
+ */
+export function autoResizeAllInputs(container: HTMLElement | null): void {
+  if (!container) return
+  const inputs = container.querySelectorAll<HTMLInputElement>('.gap-input')
+  inputs.forEach(autoResizeInput)
+}
+
+/**
  * Processes text containing [gap] and [match] tags and replaces them with HTML elements
  * @param text The raw text content
  * @param startCounter The starting number for the gaps/matches
@@ -18,7 +53,7 @@ export function processQuestionText(
   const html = text
     .replace(/\[gap\]/g, () => {
       counter++
-      return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px; text-align: center;">`
+      return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}">`
     })
     .replace(/\[match\]/g, () => {
       counter++

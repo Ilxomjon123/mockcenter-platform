@@ -2,7 +2,7 @@ import { computed, type Ref, nextTick, watch } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
 import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import type { ReadingTestRaw } from '@/types/reading'
-import { processQuestionText, restoreAnswersInContainer } from '@/utils/questionUtils'
+import { processQuestionText, restoreAnswersInContainer, autoResizeInput, autoResizeAllInputs } from '@/utils/questionUtils'
 
 interface QuestionProcessorOptions {
   containerRef: Ref<HTMLElement | null>
@@ -110,6 +110,7 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
   // Restore saved values to gap inputs and match dropzones
   const restoreGapValues = () => {
     restoreAnswersInContainer(containerRef.value, readingStore.answers)
+    autoResizeAllInputs(containerRef.value)
   }
 
   // Handle input events using event delegation
@@ -121,6 +122,7 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
     if (gap) {
       readingStore.updateAnswer(parseInt(gap, 10), target.value)
     }
+    autoResizeInput(target)
   }
 
   // Setup input event listener

@@ -210,7 +210,9 @@ watch(
 
 /* Gap input styles */
 .passage-text :deep(.gap-input) {
-  width: 100px;
+  min-width: 80px;
+  width: auto;
+  max-width: 100%;
   padding: 4px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -218,7 +220,8 @@ watch(
   text-align: center;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, width 0.1s ease;
+  box-sizing: content-box;
 }
 
 .passage-text :deep(.gap-input:focus) {
