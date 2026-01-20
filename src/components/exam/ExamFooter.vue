@@ -35,40 +35,31 @@
       </template>
     </div>
 
-    <div class="nav-buttons">
+    <!-- Submit button in footer - only show on last part -->
+    <button v-if="isLastPart" @click="emit('submit')" class="submit-btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </button>
+
+    <!-- Floating navigation buttons -->
+    <div class="floating-nav">
       <button
-        v-if="getPreviousPartOrder !== null"
-        @click="emit('changePage', getPreviousPartOrder!)"
-        class="nav-btn back"
+        class="float-btn prev"
+        :disabled="!hasPreviousQuestion"
+        @click="goToPreviousQuestion"
       >
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-
       <button
-        v-if="!isLastPart && getNextPartOrder !== null"
-        @click="emit('changePage', getNextPartOrder!)"
-        class="nav-btn"
+        class="float-btn next"
+        :disabled="!hasNextQuestion"
+        @click="goToNextQuestion"
       >
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      <button v-else-if="isLastPart" @click="emit('submit')" class="nav-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5 13l4 4L19 7"
-          />
         </svg>
       </button>
     </div>
@@ -159,28 +150,87 @@ const getCurrentIndex = computed(() => {
   return partOrders.value.indexOf(props.currentPage)
 })
 
-// Get previous part order
-const getPreviousPartOrder = computed(() => {
-  const currentIndex = getCurrentIndex.value
-  if (currentIndex > 0) {
-    return partOrders.value[currentIndex - 1]
-  }
-  return null
-})
-
-// Get next part order
-const getNextPartOrder = computed(() => {
-  const currentIndex = getCurrentIndex.value
-  if (currentIndex >= 0 && currentIndex < partOrders.value.length - 1) {
-    return partOrders.value[currentIndex + 1]
-  }
-  return null
-})
-
 // Check if current page is the last part
 const isLastPart = computed(() => {
   return getCurrentIndex.value === partOrders.value.length - 1
 })
+
+// Get all questions across all parts
+const allQuestions = computed(() => {
+  const questions: number[] = []
+  for (const partOrder of partOrders.value) {
+    questions.push(...getQuestionsForPart(partOrder))
+  }
+  return questions
+})
+
+// Check if there's a previous question
+const hasPreviousQuestion = computed(() => {
+  if (!props.currentQuestion) return allQuestions.value.length > 0
+  const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
+  return currentIndex > 0
+})
+
+// Check if there's a next question
+const hasNextQuestion = computed(() => {
+  if (!props.currentQuestion) return allQuestions.value.length > 0
+  const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
+  return currentIndex < allQuestions.value.length - 1
+})
+
+// Go to previous question
+const goToPreviousQuestion = () => {
+  if (!hasPreviousQuestion.value) return
+
+  let targetQuestion: number | undefined
+  if (!props.currentQuestion) {
+    targetQuestion = allQuestions.value[0]
+  } else {
+    const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
+    targetQuestion = allQuestions.value[currentIndex - 1]
+  }
+
+  if (targetQuestion === undefined) return
+
+  // Find which part this question belongs to and switch if needed
+  for (const partOrder of partOrders.value) {
+    const partQuestions = getQuestionsForPart(partOrder)
+    if (partQuestions.includes(targetQuestion)) {
+      if (props.currentPage !== partOrder) {
+        emit('changePage', partOrder)
+      }
+      emit('changeQuestion', targetQuestion)
+      break
+    }
+  }
+}
+
+// Go to next question
+const goToNextQuestion = () => {
+  if (!hasNextQuestion.value) return
+
+  let targetQuestion: number | undefined
+  if (!props.currentQuestion) {
+    targetQuestion = allQuestions.value[0]
+  } else {
+    const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
+    targetQuestion = allQuestions.value[currentIndex + 1]
+  }
+
+  if (targetQuestion === undefined) return
+
+  // Find which part this question belongs to and switch if needed
+  for (const partOrder of partOrders.value) {
+    const partQuestions = getQuestionsForPart(partOrder)
+    if (partQuestions.includes(targetQuestion)) {
+      if (props.currentPage !== partOrder) {
+        emit('changePage', partOrder)
+      }
+      emit('changeQuestion', targetQuestion)
+      break
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -278,39 +328,86 @@ const isLastPart = computed(() => {
   margin-left: 4px;
 }
 
-.nav-buttons {
+/* Floating navigation buttons */
+.floating-nav {
+  position: fixed;
+  right: 24px;
+  bottom: 90px;
   display: flex;
+  flex-direction: row;
   gap: 8px;
-  flex-shrink: 0;
-  margin-left: 16px;
+  z-index: 50;
 }
 
-.nav-btn {
+.float-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: none;
   background: #1f2937;
   color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.nav-btn:hover {
+.float-btn:hover:not(:disabled) {
   background: #111827;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.nav-btn.back {
+.float-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.float-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.float-btn.prev {
   background: #4b5563;
 }
 
-.nav-btn.back:hover {
+.float-btn.prev:hover:not(:disabled) {
   background: #374151;
 }
 
-.nav-btn svg {
+.float-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Submit button in footer */
+.submit-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: #1f2937;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.submit-btn:hover {
+  background: #111827;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn svg {
   width: 18px;
   height: 18px;
 }
