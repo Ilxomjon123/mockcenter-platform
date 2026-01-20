@@ -24,6 +24,12 @@
       :question="question"
     />
 
+    <!-- Dropdown type (options are inside dropdowns, not shown separately) -->
+    <GapFillQuestion
+      v-else-if="isDropdown"
+      :question="question"
+    />
+
     <!-- Other types with options -->
     <MatchingQuestion
       v-else-if="hasOptions"
@@ -68,6 +74,10 @@ const isHeading = computed(() => {
 
 const isMatching = computed(() => {
   return props.question.type === QuestionType.MATCHING
+})
+
+const isDropdown = computed(() => {
+  return props.question.type === QuestionType.DROP_DOWN
 })
 
 const hasOptions = computed(() => {

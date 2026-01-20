@@ -64,6 +64,41 @@ export function processQuestionText(
 }
 
 /**
+ * Processes text containing [match] tags for dropdown questions and replaces them with select elements
+ * @param text The raw text content
+ * @param startCounter The starting number for the dropdowns
+ * @param options The options for the dropdown (array or object)
+ * @returns Object containing the processed HTML and the next counter value
+ */
+export function processDropdownText(
+  text: string | null | unknown,
+  startCounter: number,
+  options: unknown
+): { html: string; nextCounter: number } {
+  if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
+
+  // Build options HTML
+  let optionsHtml = '<option value="">--</option>'
+  if (Array.isArray(options)) {
+    optionsHtml += options
+      .map((opt) => `<option value="${opt}">${opt}</option>`)
+      .join('')
+  } else if (options && typeof options === 'object') {
+    optionsHtml += Object.entries(options as Record<string, string>)
+      .map(([key, value]) => `<option value="${key}">${value}</option>`)
+      .join('')
+  }
+
+  let counter = startCounter
+  const html = text.replace(/\[match\]/g, () => {
+    counter++
+    return `<span class="dropdown-wrapper"><span class="dropdown-number">${counter}</span><select class="dropdown-select" data-gap="${counter}">${optionsHtml}</select></span>`
+  })
+
+  return { html, nextCounter: counter }
+}
+
+/**
  * Restores saved answer values to gap inputs and match dropzones in a container
  * @param container The HTML element containing the inputs/dropzones
  * @param answers The answers record from the store
@@ -112,6 +147,19 @@ export function restoreAnswersInContainer(
       if (usedOption) {
         usedOption.classList.add(usedClass)
       }
+    }
+  })
+
+  // Restore dropdown selects
+  const dropdowns = container.querySelectorAll<HTMLSelectElement>('.dropdown-select')
+  dropdowns.forEach((dropdown) => {
+    const gapNumber = dropdown.dataset.gap
+    if (!gapNumber) return
+
+    const gapId = parseInt(gapNumber, 10)
+    const savedValue = answers[gapId]
+    if (savedValue !== undefined) {
+      dropdown.value = String(savedValue)
     }
   })
 }

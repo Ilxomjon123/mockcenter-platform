@@ -2,7 +2,7 @@ import { computed, type Ref, nextTick, watch } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
 import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import type { ReadingTestRaw } from '@/types/reading'
-import { processQuestionText, restoreAnswersInContainer, autoResizeInput, autoResizeAllInputs } from '@/utils/questionUtils'
+import { processQuestionText, processDropdownText, restoreAnswersInContainer, autoResizeInput, autoResizeAllInputs } from '@/utils/questionUtils'
 
 interface QuestionProcessorOptions {
   containerRef: Ref<HTMLElement | null>
@@ -74,9 +74,15 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
       }
 
       if (q.content) {
-        const { html, nextCounter } = processQuestionText(q.content, globalGapCounter)
-        processed.processedContent = html
-        globalGapCounter = nextCounter
+        if (q.type === QuestionType.DROP_DOWN) {
+          const { html, nextCounter } = processDropdownText(q.content, globalGapCounter, q.options)
+          processed.processedContent = html
+          globalGapCounter = nextCounter
+        } else {
+          const { html, nextCounter } = processQuestionText(q.content, globalGapCounter)
+          processed.processedContent = html
+          globalGapCounter = nextCounter
+        }
       }
 
       if ('children' in q && q.children && q.children.length > 0) {
@@ -125,10 +131,22 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
     autoResizeInput(target)
   }
 
+  // Handle dropdown change events
+  const handleDropdownChange = (e: Event) => {
+    const target = e.target as HTMLSelectElement
+    if (!target.classList.contains('dropdown-select')) return
+
+    const gap = target.dataset.gap
+    if (gap) {
+      readingStore.updateAnswer(parseInt(gap, 10), target.value)
+    }
+  }
+
   // Setup input event listener
   const setupInputListener = () => {
     if (containerRef.value) {
       containerRef.value.addEventListener('input', handleGapInput)
+      containerRef.value.addEventListener('change', handleDropdownChange)
     }
   }
 
