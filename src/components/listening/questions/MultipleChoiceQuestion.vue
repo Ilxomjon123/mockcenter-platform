@@ -19,6 +19,12 @@
           :disabled="isMultiple && !isSelected(opt.key) && selectedValues.length >= maxAnswers"
           @change="onToggle(opt.key)"
         />
+        <span class="option-indicator" :class="{ checkbox: isMultiple, radio: !isMultiple }">
+          <svg v-if="isSelected(opt.key) && isMultiple" class="check-icon" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span v-if="isSelected(opt.key) && !isMultiple" class="radio-dot"></span>
+        </span>
         <span class="option-label">{{ opt.value }}</span>
       </label>
     </div>
@@ -155,6 +161,48 @@ const onToggle = (value: string) => {
 
 .option-item input {
   display: none;
+}
+
+.option-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  background: #ffffff;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.option-indicator.radio {
+  border-radius: 50%;
+}
+
+.option-indicator.checkbox {
+  border-radius: 4px;
+}
+
+.option-item:hover:not(.disabled) .option-indicator {
+  border-color: #3b82f6;
+}
+
+.option-item.selected .option-indicator {
+  border-color: #3b82f6;
+  background: #3b82f6;
+}
+
+.option-indicator .check-icon {
+  width: 12px;
+  height: 12px;
+  color: #ffffff;
+}
+
+.option-indicator .radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
 }
 
 .option-label {
