@@ -134,7 +134,7 @@ const handleSubmit = (): void => {
   display: flex;
   overflow: hidden;
   /* Add margin to account for fixed header and footer */
-  margin-top: 64px;
+  margin-top: 85px;
   margin-bottom: 72px;
 }
 

@@ -2,7 +2,20 @@
   <header class="exam-header">
     <div class="header-left">
       <div class="logo">IELTS</div>
-      <div class="test-id">Test taker ID</div>
+      <div class="test-info">
+        <div class="test-id">Test taker ID</div>
+        <div v-if="timer" class="timer-display" :class="{ 'timer-low': isTimerLow }">
+          <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span class="timer-time">{{ timer }}</span>
+        </div>
+      </div>
     </div>
     <div class="header-right">
       <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,6 +51,16 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/authStore'
 
+interface Props {
+  timer?: string
+  isTimerLow?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  timer: '',
+  isTimerLow: false
+})
+
 const authStore = useAuthStore()
 
 const handleLogout = () => {
@@ -70,9 +93,47 @@ const handleLogout = () => {
   font-weight: bold;
 }
 
+.test-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .test-id {
   color: #4b5563;
   font-size: 14px;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.timer-display.timer-low {
+  color: #dc2626;
+  background: #fee2e2;
+  border-color: #fecaca;
+  animation: pulse 2s infinite;
+}
+
+.timer-icon {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
 }
 
 .header-right {

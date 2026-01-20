@@ -1,23 +1,12 @@
 <template>
   <div class="exam-view">
-    <ExamHeader />
+    <ExamHeader :timer="remainingTimeFormatted" :is-timer-low="isTimerLow" />
 
     <div class="main-content">
       <div class="writing-header">
         <div class="header-info">
           <span class="part-label">Part {{ writingStore.currentPage }}</span>
           <p v-if="instructionText" class="instruction">{{ instructionText }}</p>
-        </div>
-        <div class="timer-display" :class="{ 'timer-low': isTimerLow }">
-          <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span class="timer-time">{{ remainingTimeFormatted }}</span>
         </div>
       </div>
 
@@ -161,71 +150,36 @@ const handleSubmit = (): void => {
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 64px;
+  top: 85px;
   bottom: 72px;
   left: 0;
   right: 0;
 }
 
 .writing-header {
-  background: #f5f5f5;
-  padding: 16px 32px;
-  border-bottom: 1px solid #e5e5e5;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.timer-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
   background: white;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  font-family: monospace;
-  font-size: 18px;
-  font-weight: 600;
-  color: #374151;
-  transition: all 0.3s ease;
+  padding: 12px 24px;
+  flex-shrink: 0;
 }
 
-.timer-display.timer-low {
-  color: #dc2626;
-  background: #fee2e2;
-  border-color: #fecaca;
-  animation: pulse 2s infinite;
-}
-
-.timer-icon {
-  width: 20px;
-  height: 20px;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
+.header-info {
+  background: #f1f2ed;
+  padding: 16px 20px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
 }
 
 .part-label {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
+  color: #1f2937;
   display: block;
   margin-bottom: 4px;
 }
 
 .instruction {
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563;
   margin: 0;
 }
 
