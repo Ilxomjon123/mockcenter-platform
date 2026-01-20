@@ -51,12 +51,12 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
       }
 
       if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN) {
-        processed.options = ['True', 'False', 'Not given']
+        processed.options = ['TRUE', 'FALSE', 'NOT GIVEN']
         globalGapCounter++
         processed.questionNumber = globalGapCounter
         processed.displayNumber = String(globalGapCounter)
       } else if (q.type === QuestionType.YES_NO_NOT_GIVEN) {
-        processed.options = ['Yes', 'No', 'Not given']
+        processed.options = ['YES', 'NO', 'NOT GIVEN']
         globalGapCounter++
         processed.questionNumber = globalGapCounter
         processed.displayNumber = String(globalGapCounter)

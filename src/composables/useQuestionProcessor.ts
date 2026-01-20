@@ -26,12 +26,12 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
       const processedQuestion: ProcessedQuestion = { ...question }
 
       if (question.type === QuestionType.TRUE_FALSE_NOT_GIVEN) {
-        processedQuestion.options = ['True', 'False', 'Not given']
+        processedQuestion.options = ['TRUE', 'FALSE', 'NOT GIVEN']
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
         processedQuestion.displayNumber = String(globalGapCounter)
       } else if (question.type === QuestionType.YES_NO_NOT_GIVEN) {
-        processedQuestion.options = ['Yes', 'No', 'Not given']
+        processedQuestion.options = ['YES', 'NO', 'NOT GIVEN']
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
         processedQuestion.displayNumber = String(globalGapCounter)
