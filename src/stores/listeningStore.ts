@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { ListeningState } from '@/types/listening'
-import type { ExamTestRaw, PartRaw, QuestionRaw } from '@/types/test'
+import { QuestionType, type ExamTestRaw, type PartRaw, type QuestionRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_listening_state'
@@ -68,6 +68,51 @@ export const useListeningStore = defineStore('listening', {
     partOrders(): number[] {
       if (!this.test?.parts) return []
       return [...this.test.parts].sort((a, b) => a.order - b.order).map((p) => p.order)
+    },
+
+    partStats(): Record<number, { start: number; end: number }> {
+      if (!this.test?.parts) return {}
+
+      const stats: Record<number, { start: number; end: number }> = {}
+      const sortedParts = [...this.test.parts].sort((a, b) => a.order - b.order)
+      let currentCounter = 1
+
+      const countGapsAndMatches = (text: string | null | undefined): number => {
+        if (!text) return 0
+        const gaps = (text.match(/\[gap\]/g) || []).length
+        const matches = (text.match(/\[match\]/g) || []).length
+        return gaps + matches
+      }
+
+      const processQuestion = (q: QuestionRaw) => {
+        if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN || q.type === QuestionType.YES_NO_NOT_GIVEN) {
+          currentCounter += 1
+        } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
+          currentCounter += q.answers_count || 1
+        }
+        currentCounter += countGapsAndMatches(q.content)
+
+        if (q.children && q.children.length > 0) {
+          const sortedChildren = [...q.children].sort((a, b) => a.order - b.order)
+          sortedChildren.forEach(processQuestion)
+        }
+      }
+
+      sortedParts.forEach((part) => {
+        const start = currentCounter
+        currentCounter += countGapsAndMatches(part.content)
+
+        if (part.questions) {
+          const sortedQuestions = [...part.questions]
+            .filter((q) => !q.parent_id)
+            .sort((a, b) => a.order - b.order)
+          sortedQuestions.forEach(processQuestion)
+        }
+
+        stats[part.order] = { start, end: currentCounter - 1 }
+      })
+
+      return stats
     },
   },
 

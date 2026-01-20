@@ -32,9 +32,13 @@
 
     <ExamFooter
       :current-page="readingStore.currentPart"
+      :current-question="currentQuestion"
       :total-pages="totalParts"
       :part-orders="partOrders"
+      :part-stats="readingStore.partStats"
+      :answers="readingStore.answers"
       @change-page="handlePageChange"
+      @change-question="handleQuestionChange"
       @submit="handleSubmit"
     />
 
@@ -43,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
 import { useResizable } from '@/composables/useResizable'
 import { useGlobalReadingDragDrop } from '@/composables/useGlobalReadingDragDrop'
@@ -57,6 +61,7 @@ import ReadingCompletedModal from '@/components/reading/ReadingCompletedModal.vu
 const readingStore = useReadingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 const { setupGlobalListeners, cleanupGlobalListeners } = useGlobalReadingDragDrop()
+const currentQuestion = ref(0)
 
 // 60 minutes in milliseconds
 const SIXTY_MINUTES_MS = 60 * 60 * 1000
@@ -109,10 +114,47 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   }
 }
 
+// Handle focus/click on inputs to update footer
+const handleInputFocus = (e: Event) => {
+  const target = e.target as HTMLElement
+
+  // Check if it's a gap input
+  if (target.classList.contains('gap-input')) {
+    const gap = (target as HTMLInputElement).dataset.gap
+    if (gap) {
+      currentQuestion.value = parseInt(gap, 10)
+    }
+    return
+  }
+
+  // Check if it's a match dropzone
+  if (target.classList.contains('match-dropzone') || target.closest('.match-dropzone')) {
+    const dropzone = target.classList.contains('match-dropzone')
+      ? target
+      : target.closest('.match-dropzone')
+    const gap = (dropzone as HTMLElement)?.dataset.gap
+    if (gap) {
+      currentQuestion.value = parseInt(gap, 10)
+    }
+    return
+  }
+
+  // Check if it's inside a multiple choice question
+  const mcQuestion = target.closest('[data-question-number]')
+  if (mcQuestion) {
+    const qNum = (mcQuestion as HTMLElement).dataset.questionNumber
+    if (qNum) {
+      currentQuestion.value = parseInt(qNum, 10)
+    }
+  }
+}
+
 onMounted(() => {
   setupGlobalListeners()
   startTimer()
   window.addEventListener('beforeunload', handleBeforeUnload)
+  document.addEventListener('focusin', handleInputFocus)
+  document.addEventListener('click', handleInputFocus)
 })
 
 onUnmounted(() => {
@@ -121,6 +163,8 @@ onUnmounted(() => {
     clearInterval(timerInterval)
   }
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  document.removeEventListener('focusin', handleInputFocus)
+  document.removeEventListener('click', handleInputFocus)
 })
 
 const getQuestionsRange = computed((): string => {
@@ -144,6 +188,46 @@ const partOrders = computed((): number[] => {
 const handlePageChange = (page: number): void => {
   // page here is the order value from API
   readingStore.setPart(page)
+}
+
+const handleQuestionChange = async (questionNumber: number): Promise<void> => {
+  currentQuestion.value = questionNumber
+
+  await nextTick()
+
+  // Find the input or dropzone with the matching data-gap attribute
+  const container = document.querySelector('.question-panel .questions-container')
+  if (!container) return
+
+  // Try gap input first
+  let element = container.querySelector<HTMLInputElement>(
+    `.gap-input[data-gap="${questionNumber}"]`
+  )
+
+  // If not found, try match dropzone
+  if (!element) {
+    element = container.querySelector<HTMLElement>(
+      `.match-dropzone[data-gap="${questionNumber}"]`
+    ) as HTMLInputElement
+  }
+
+  // If not found, try multiple choice option with matching question number
+  if (!element) {
+    const mcQuestion = container.querySelector(
+      `[data-question-number="${questionNumber}"]`
+    )
+    if (mcQuestion) {
+      mcQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
+  }
+
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (element.tagName === 'INPUT') {
+      element.focus()
+    }
+  }
 }
 
 const handleSubmit = (): void => {

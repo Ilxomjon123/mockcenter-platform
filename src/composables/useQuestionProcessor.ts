@@ -15,18 +15,29 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
   const processedQuestions = computed<ProcessedQuestion[]>(() => {
     const questions = listeningStore.currentQuestions
     const part = listeningStore.currentPart
+    const stats = listeningStore.partStats
 
-    if (!questions || questions.length === 0) return []
+    if (!questions || questions.length === 0 || !stats[part]) return []
 
-    let globalGapCounter = (part - 1) * 10
+    // Use partStats to get the correct starting counter
+    let globalGapCounter = stats[part].start - 1
 
-    return questions.map((question): ProcessedQuestion => {
+    const processQuestion = (question: ProcessedQuestion): ProcessedQuestion => {
       const processedQuestion: ProcessedQuestion = { ...question }
 
-      if (question.type === QuestionType.MULTIPLE_CHOICE) {
+      if (question.type === QuestionType.TRUE_FALSE_NOT_GIVEN) {
+        processedQuestion.options = ['True', 'False', 'Not given']
         globalGapCounter++
         processedQuestion.questionNumber = globalGapCounter
-        // Use answers_count to properly increment counter (default to 1 for single-answer questions)
+        processedQuestion.displayNumber = String(globalGapCounter)
+      } else if (question.type === QuestionType.YES_NO_NOT_GIVEN) {
+        processedQuestion.options = ['Yes', 'No', 'Not given']
+        globalGapCounter++
+        processedQuestion.questionNumber = globalGapCounter
+        processedQuestion.displayNumber = String(globalGapCounter)
+      } else if (question.type === QuestionType.MULTIPLE_CHOICE) {
+        globalGapCounter++
+        processedQuestion.questionNumber = globalGapCounter
         const answerCount = question.answers_count ?? 1
         if (answerCount > 1) {
           const startNumber = globalGapCounter
@@ -45,33 +56,14 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
 
       if (question.children && question.children.length > 0) {
         processedQuestion.children = question.children.map((child): ProcessedQuestion => {
-          const processedChild: ProcessedQuestion = { ...child }
-
-          if (child.type === QuestionType.MULTIPLE_CHOICE) {
-            globalGapCounter++
-            processedChild.questionNumber = globalGapCounter
-            // Use answers_count to properly increment counter (default to 1 for single-answer questions)
-            const childAnswerCount = child.answers_count ?? 1
-            if (childAnswerCount > 1) {
-              const startNumber = globalGapCounter
-              globalGapCounter += childAnswerCount - 1
-              processedChild.displayNumber = `${startNumber}-${globalGapCounter}`
-            } else {
-              processedChild.displayNumber = String(globalGapCounter)
-            }
-          }
-
-          if (child.content) {
-            const { html, nextCounter } = processQuestionText(child.content, globalGapCounter)
-            processedChild.processedContent = html
-            globalGapCounter = nextCounter
-          }
-          return processedChild
+          return processQuestion({ ...child })
         })
       }
 
       return processedQuestion
-    })
+    }
+
+    return questions.map((question): ProcessedQuestion => processQuestion({ ...question }))
   })
 
   // Restore saved values to gap inputs and match dropzones

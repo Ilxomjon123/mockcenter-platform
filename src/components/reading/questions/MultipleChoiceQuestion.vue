@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :data-question-number="baseQuestionNumber">
     <div v-if="question.content" class="question-content" v-html="question.content"></div>
     <div class="options-container">
       <label
