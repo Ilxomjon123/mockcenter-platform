@@ -1,7 +1,6 @@
 <template>
   <div class="passage-panel" :style="{ width: `${width}%` }">
     <div ref="passageContainerRef" class="passage-content" @mouseup="handleMouseUp">
-      <h2 class="passage-title">{{ passage?.title }}</h2>
       <div class="passage-text" v-html="processedPassageContent"></div>
     </div>
 
@@ -13,7 +12,7 @@
         :style="{
           top: toolbarStyle.top,
           left: toolbarStyle.left,
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
         }"
       >
         <div class="color-options">
@@ -33,7 +32,21 @@
             @mousedown.prevent
             @click="removeHighlight"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
           </button>
         </div>
         <div class="toolbar-arrow"></div>
@@ -71,9 +84,10 @@ const readingStore = useReadingStore()
 const passageContainerRef = ref<HTMLElement | null>(null)
 
 // Use central question processor
-const { processedPassageContent, restoreGapValues, setupInputListener } = useReadingQuestionProcessor({
-  containerRef: passageContainerRef
-})
+const { processedPassageContent, restoreGapValues, setupInputListener } =
+  useReadingQuestionProcessor({
+    containerRef: passageContainerRef,
+  })
 
 // Highlight state
 const showToolbar = ref(false)
@@ -172,7 +186,7 @@ watch(
   () => processedPassageContent.value,
   () => {
     nextTick(restoreGapValues)
-  }
+  },
 )
 </script>
 
@@ -220,7 +234,9 @@ watch(
   text-align: center;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.15s ease, width 0.1s ease;
+  transition:
+    border-color 0.15s ease,
+    width 0.1s ease;
   box-sizing: content-box;
 }
 
@@ -284,9 +300,15 @@ watch(
 }
 
 @keyframes drop-bounce {
-  0% { transform: scale(1.05); }
-  50% { transform: scale(0.98); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .passage-text :deep(.match-dropzone.remove-animation) {
@@ -294,9 +316,16 @@ watch(
 }
 
 @keyframes shake-remove {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
 }
 
 .passage-text :deep(.match-number) {
@@ -329,7 +358,9 @@ watch(
   padding: 6px;
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   pointer-events: auto;
 }
 

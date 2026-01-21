@@ -13,10 +13,7 @@
 
       <!-- Panels container -->
       <div class="panels-container">
-        <ReadingPassagePanel
-          :width="leftWidth"
-          :passage="readingStore.currentPassage"
-        />
+        <ReadingPassagePanel :width="leftWidth" :passage="readingStore.currentPassage" />
 
         <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
 
@@ -195,21 +192,19 @@ const handleQuestionChange = async (questionNumber: number): Promise<void> => {
 
   // Try gap input first
   let element = container.querySelector<HTMLInputElement>(
-    `.gap-input[data-gap="${questionNumber}"]`
+    `.gap-input[data-gap="${questionNumber}"]`,
   )
 
   // If not found, try match dropzone
   if (!element) {
     element = container.querySelector<HTMLElement>(
-      `.match-dropzone[data-gap="${questionNumber}"]`
+      `.match-dropzone[data-gap="${questionNumber}"]`,
     ) as HTMLInputElement
   }
 
   // If not found, try multiple choice option with matching question number
   if (!element) {
-    const mcQuestion = container.querySelector(
-      `[data-question-number="${questionNumber}"]`
-    )
+    const mcQuestion = container.querySelector(`[data-question-number="${questionNumber}"]`)
     if (mcQuestion) {
       mcQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
@@ -255,10 +250,10 @@ const handleSubmit = (): void => {
 }
 
 .header-info {
-  background: #e8e8e8;
+  background: #f1f2ed;
   padding: 16px 20px;
-  border-radius: 8px;
-  border-left: 4px solid #9ca3af;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
 }
 
 .part-label {

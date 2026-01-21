@@ -14,6 +14,7 @@ export const useReadingStore = defineStore('reading', {
       answers: saved?.answers ?? {},
       test: undefined,
       highlights: saved?.highlights ?? {},
+      questionHighlights: saved?.questionHighlights ?? {},
       isCompleted: saved?.isCompleted ?? false,
       isManualSubmit: saved?.isManualSubmit ?? false,
       isFinalized: saved?.isFinalized ?? false,
@@ -35,6 +36,7 @@ export const useReadingStore = defineStore('reading', {
         currentPart: this.currentPart,
         answers: this.answers,
         highlights: this.highlights,
+        questionHighlights: this.questionHighlights,
         isCompleted: this.isCompleted,
         isManualSubmit: this.isManualSubmit,
         isFinalized: this.isFinalized,
@@ -93,6 +95,7 @@ export const useReadingStore = defineStore('reading', {
       this.currentPart = currentPartExists ? this.currentPart : parts[0]?.order || 1
 
       if (!this.highlights) this.highlights = {}
+      if (!this.questionHighlights) this.questionHighlights = {}
 
       this.saveToStorage()
     },
@@ -130,10 +133,16 @@ export const useReadingStore = defineStore('reading', {
       this.saveToStorage()
     },
 
+    saveQuestionHtml(html: string): void {
+      this.questionHighlights[this.currentPart] = html
+      this.saveToStorage()
+    },
+
     clearReading(): void {
       this.currentPart = 1
       this.answers = {}
       this.highlights = {}
+      this.questionHighlights = {}
       this.isCompleted = false
       this.isManualSubmit = false
       this.isFinalized = false

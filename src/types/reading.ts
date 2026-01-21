@@ -50,6 +50,7 @@ export interface ReadingState {
   answers: Record<number, string | number>
   test?: ReadingTestRaw
   highlights: Record<string | number, string>
+  questionHighlights: Record<string | number, string>
   isCompleted: boolean
   isManualSubmit: boolean
   isFinalized: boolean
