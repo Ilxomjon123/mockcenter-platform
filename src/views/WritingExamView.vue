@@ -150,7 +150,7 @@ const handleSubmit = (): void => {
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 85px;
+  top: 61px;
   bottom: 72px;
   left: 0;
   right: 0;

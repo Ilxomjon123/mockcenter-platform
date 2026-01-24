@@ -215,87 +215,126 @@ const selectTextSize = (value: TextSize) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 40px;
+  padding-top: 60px;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .options-modal {
   background: white;
   width: 100%;
-  max-width: 560px;
-  border-radius: 8px;
+  max-width: 480px;
+  margin: 0 16px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px 24px;
+  padding: 18px 24px;
   position: relative;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafbfc;
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: #1f2937;
+  color: #1e293b;
   margin: 0;
 }
 
 .back-btn {
   position: absolute;
-  left: 16px;
+  left: 12px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   background: none;
   border: none;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
-  padding: 4px 8px;
+  color: #3b82f6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .back-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .back-btn:hover {
-  color: #4b5563;
+  background: #eff6ff;
+}
+
+.back-btn:active {
+  transform: scale(0.97);
 }
 
 .close-btn {
   position: absolute;
-  right: 16px;
+  right: 12px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .close-btn svg {
-  width: 24px;
-  height: 24px;
-  color: #1f2937;
+  width: 22px;
+  height: 22px;
+  color: #64748b;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
 }
 
 .close-btn:hover svg {
-  color: #4b5563;
+  color: #334155;
+}
+
+.close-btn:active {
+  transform: scale(0.95);
 }
 
 .options-content {
-  padding: 24px;
+  padding: 20px;
 }
 
 .submission-btn {
@@ -303,20 +342,26 @@ const selectTextSize = (value: TextSize) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
-  background: #c53030;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   margin-bottom: 16px;
-  transition: background 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 }
 
 .submission-btn:hover {
-  background: #9b2c2c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+}
+
+.submission-btn:active {
+  transform: translateY(0);
 }
 
 .submission-btn svg {
@@ -326,28 +371,31 @@ const selectTextSize = (value: TextSize) => {
 
 .submission-btn .arrow-icon {
   margin-left: auto;
+  opacity: 0.8;
 }
 
 .options-list {
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   overflow: hidden;
+  background: white;
 }
 
 .option-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: 14px;
+  padding: 14px 18px;
   background: white;
   border: none;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  font-size: 16px;
-  color: #1f2937;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1e293b;
   text-align: left;
-  transition: background 0.2s;
+  transition: all 0.15s ease;
 }
 
 .option-item:last-child {
@@ -355,22 +403,33 @@ const selectTextSize = (value: TextSize) => {
 }
 
 .option-item:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+}
+
+.option-item:active {
+  background: #f1f5f9;
 }
 
 .option-item svg {
   width: 20px;
   height: 20px;
-  color: #6b7280;
+  color: #64748b;
   flex-shrink: 0;
 }
 
 .option-item .arrow-icon {
   margin-left: auto;
+  color: #cbd5e1;
+  transition: transform 0.2s ease;
+}
+
+.option-item:hover .arrow-icon {
+  transform: translateX(2px);
+  color: #94a3b8;
 }
 
 .option-item.selectable svg {
-  color: #1f2937;
+  color: #10b981;
 }
 
 .option-item.selectable span.with-icon {
@@ -378,10 +437,14 @@ const selectTextSize = (value: TextSize) => {
 }
 
 .option-item.selectable span:not(.with-icon) {
-  margin-left: 32px;
+  margin-left: 34px;
 }
 
 .option-item.selected {
-  background: #f9fafb;
+  background: #f0fdf4;
+}
+
+.option-item.selected:hover {
+  background: #ecfdf5;
 }
 </style>

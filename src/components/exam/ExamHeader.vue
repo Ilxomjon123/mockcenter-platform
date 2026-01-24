@@ -88,57 +88,61 @@ const handleLogout = () => {
 <style scoped>
 .exam-header {
   background: white;
-  border-bottom: 1px solid #e5e5e5;
-  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .logo {
   color: #dc2626;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .test-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
 }
 
 .test-id {
-  color: #4b5563;
-  font-size: 14px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .timer-display {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-family: monospace;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
-  transition: all 0.3s ease;
+  color: #334155;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .timer-display.timer-low {
   color: #dc2626;
-  background: #fee2e2;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border-color: #fecaca;
-  animation: pulse 2s infinite;
+  animation: pulse-warning 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .timer-icon {
@@ -146,39 +150,42 @@ const handleLogout = () => {
   height: 16px;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+@keyframes pulse-warning {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+  }
 }
 
 .header-right {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 8px;
 }
 
 .icon {
   width: 20px;
   height: 20px;
-  color: #6b7280;
-  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s ease;
 }
 
-.icon:hover {
-  color: #374151;
-}
-
-.options-btn {
+.options-btn,
+.logout-btn {
   background: none;
   border: none;
-  padding: 0;
-  margin: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  border-radius: 4px;
-  padding: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .options-btn:hover {
@@ -189,22 +196,13 @@ const handleLogout = () => {
   color: #374151;
 }
 
-.logout-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  border-radius: 4px;
-  padding: 4px;
+.options-btn:active {
+  transform: scale(0.95);
+  background: #e5e7eb;
 }
 
 .logout-btn:hover {
-  background: #fee2e2;
+  background: #fef2f2;
 }
 
 .logout-btn:hover .icon {
@@ -213,5 +211,6 @@ const handleLogout = () => {
 
 .logout-btn:active {
   transform: scale(0.95);
+  background: #fee2e2;
 }
 </style>

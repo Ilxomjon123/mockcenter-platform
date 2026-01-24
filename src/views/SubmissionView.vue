@@ -234,7 +234,7 @@ const handleSubmit = async () => {
 <style scoped>
 .submission-view {
   min-height: 100vh;
-  background: #f3f4f6;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .submission-content {
@@ -247,63 +247,82 @@ const handleSubmit = async () => {
 
 .submission-card {
   background: white;
-  border-radius: 16px;
-  padding: 40px;
-  max-width: 560px;
+  border-radius: 20px;
+  padding: 36px;
+  max-width: 520px;
   width: 100%;
   box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    0 20px 40px -12px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 12px;
 }
 
 .header-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   color: #10b981;
 }
 
 .card-header h1 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1f2937;
+  color: #1e293b;
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .description {
-  color: #6b7280;
-  font-size: 15px;
+  color: #64748b;
+  font-size: 14px;
   line-height: 1.6;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .progress-summary {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .progress-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.progress-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .progress-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,38 +330,41 @@ const handleSubmit = async () => {
 }
 
 .progress-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   color: white;
 }
 
 .progress-icon.listening {
-  background: #8b5cf6;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .progress-icon.reading {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .progress-icon.writing {
-  background: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .progress-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .progress-label {
   font-weight: 600;
-  color: #1f2937;
-  font-size: 15px;
+  color: #1e293b;
+  font-size: 14px;
 }
 
 .progress-status {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -355,40 +377,42 @@ const handleSubmit = async () => {
 }
 
 .progress-status.not-started {
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 .progress-count {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: #6b7280;
-  background: #e5e7eb;
-  padding: 4px 12px;
-  border-radius: 20px;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
 }
 
 .warning-box {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px;
-  background: #fef3c7;
-  border: 1px solid #f59e0b;
-  border-radius: 12px;
-  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 14px;
+  margin-bottom: 20px;
 }
 
 .warning-box svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   color: #d97706;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .warning-box span {
   color: #92400e;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
+  font-weight: 500;
 }
 
 .actions {
@@ -403,23 +427,28 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 24px;
-  border-radius: 10px;
-  font-size: 15px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary {
   background: white;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
 }
 
 .btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 .btn-secondary svg {
@@ -428,18 +457,26 @@ const handleSubmit = async () => {
 }
 
 .btn-primary {
-  background: #c53030;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   border: none;
   color: white;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #9b2c2c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary svg {
@@ -453,7 +490,7 @@ const handleSubmit = async () => {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {

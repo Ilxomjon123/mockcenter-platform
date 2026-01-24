@@ -12,13 +12,15 @@
   <ListeningCompletedModal :is-visible="listeningStore.isCompleted" />
 
   <div class="question-panel">
-    <div class="questions-header">
-      <h3 class="questions-title">Part {{ listeningStore.currentPart }}</h3>
-      <p class="questions-instruction">
-        Listen and answer questions {{ (listeningStore.currentPart - 1) * 10 + 1 }}–{{
-          listeningStore.currentPart * 10
-        }}.
-      </p>
+    <div class="listening-header">
+      <div class="header-info">
+        <span class="part-label">Part {{ listeningStore.currentPart }}</span>
+        <p class="instruction">
+          Listen and answer questions {{ (listeningStore.currentPart - 1) * 10 + 1 }}–{{
+            listeningStore.currentPart * 10
+          }}.
+        </p>
+      </div>
     </div>
 
     <!-- Main audio player (hidden) -->
@@ -123,22 +125,30 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.questions-header {
+.listening-header {
   background: white;
-  padding: 24px 32px;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 8px 24px;
   flex-shrink: 0;
 }
 
-.questions-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
+.header-info {
+  background: #f1f2ed;
+  padding: 10px 16px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
 }
 
-.questions-instruction {
+.part-label {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.instruction {
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563;
   margin: 0;
 }
 
