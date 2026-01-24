@@ -18,14 +18,27 @@
       </div>
     </div>
     <div class="header-right">
-      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-        />
-      </svg>
+      <div class="wifi-wrapper">
+        <div class="wifi-status" :class="{ online: isOnline, offline: !isOnline }">
+          <svg class="icon wifi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+            />
+          </svg>
+        </div>
+        <div class="wifi-tooltip" :class="{ online: isOnline, offline: !isOnline }">
+          <div class="tooltip-status">
+            <span class="status-dot"></span>
+            <span class="status-text">{{ isOnline ? 'Connected' : 'Disconnected' }}</span>
+          </div>
+          <p class="tooltip-message">
+            {{ isOnline ? 'Your internet connection is stable. Your answers are being saved automatically.' : 'No internet connection. Your answers will be saved once the connection is restored.' }}
+          </p>
+        </div>
+      </div>
       <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
@@ -61,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
 
@@ -77,6 +90,57 @@ withDefaults(defineProps<Props>(), {
 
 const authStore = useAuthStore()
 const isOptionsOpen = ref(false)
+const isOnline = ref(true)
+let checkInterval: number | null = null
+
+const checkInternetConnection = () => {
+  return new Promise<void>((resolve) => {
+    const img = new Image()
+    const timeout = setTimeout(() => {
+      img.src = ''
+      isOnline.value = false
+      resolve()
+    }, 5000)
+
+    img.onload = () => {
+      clearTimeout(timeout)
+      isOnline.value = true
+      resolve()
+    }
+
+    img.onerror = () => {
+      clearTimeout(timeout)
+      isOnline.value = false
+      resolve()
+    }
+
+    img.src = `https://www.google.com/favicon.ico?_=${Date.now()}`
+  })
+}
+
+const handleOnlineChange = () => {
+  if (navigator.onLine) {
+    checkInternetConnection()
+  } else {
+    isOnline.value = false
+  }
+}
+
+onMounted(() => {
+  checkInternetConnection()
+  checkInterval = window.setInterval(checkInternetConnection, 10000)
+
+  window.addEventListener('online', handleOnlineChange)
+  window.addEventListener('offline', handleOnlineChange)
+})
+
+onUnmounted(() => {
+  if (checkInterval) {
+    clearInterval(checkInterval)
+  }
+  window.removeEventListener('online', handleOnlineChange)
+  window.removeEventListener('offline', handleOnlineChange)
+})
 
 const handleLogout = () => {
   if (confirm('Rostdan ham chiqmoqchimisiz?')) {
@@ -172,6 +236,132 @@ const handleLogout = () => {
   height: 20px;
   color: #9ca3af;
   transition: color 0.2s ease;
+}
+
+.wifi-wrapper {
+  position: relative;
+}
+
+.wifi-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.wifi-status.online .wifi-icon {
+  color: #22c55e;
+}
+
+.wifi-status.offline {
+  background: #fef2f2;
+  animation: pulse-offline 1.5s ease-in-out infinite;
+}
+
+.wifi-status.offline .wifi-icon {
+  color: #dc2626;
+}
+
+@keyframes pulse-offline {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.wifi-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.wifi-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.wifi-wrapper:hover .wifi-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.tooltip-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.wifi-tooltip.online .status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.wifi-tooltip.offline .status-dot {
+  background: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.3);
+  }
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wifi-tooltip.online .status-text {
+  color: #16a34a;
+}
+
+.wifi-tooltip.offline .status-text {
+  color: #dc2626;
+}
+
+.tooltip-message {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
 }
 
 .options-btn,
