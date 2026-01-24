@@ -196,8 +196,9 @@ const goToPreviousQuestion = () => {
   // Parts only mode (Writing)
   if (isPartsOnlyMode.value) {
     const prevIndex = getCurrentIndex.value - 1
-    if (prevIndex >= 0) {
-      emit('changePage', partOrders.value[prevIndex])
+    const prevPage = partOrders.value[prevIndex]
+    if (prevIndex >= 0 && prevPage !== undefined) {
+      emit('changePage', prevPage)
     }
     return
   }
@@ -232,8 +233,9 @@ const goToNextQuestion = () => {
   // Parts only mode (Writing)
   if (isPartsOnlyMode.value) {
     const nextIndex = getCurrentIndex.value + 1
-    if (nextIndex < partOrders.value.length) {
-      emit('changePage', partOrders.value[nextIndex])
+    const nextPage = partOrders.value[nextIndex]
+    if (nextIndex < partOrders.value.length && nextPage !== undefined) {
+      emit('changePage', nextPage)
     }
     return
   }

@@ -143,15 +143,18 @@ const authStore = useAuthStore()
 const isSubmitting = ref(false)
 
 const listeningAnsweredCount = computed(() => {
-  return Object.keys(listeningStore.answers).filter((key) => listeningStore.answers[key]).length
+  const answers = listeningStore.answers as Record<string, unknown>
+  return Object.keys(answers).filter((key) => answers[key]).length
 })
 
 const readingAnsweredCount = computed(() => {
-  return Object.keys(readingStore.answers).filter((key) => readingStore.answers[key]).length
+  const answers = readingStore.answers as Record<string, unknown>
+  return Object.keys(answers).filter((key) => answers[key]).length
 })
 
 const writingAnsweredCount = computed(() => {
-  return Object.keys(writingStore.answers).filter((key) => writingStore.answers[key]).length
+  const answers = writingStore.answers as Record<string, unknown>
+  return Object.keys(answers).filter((key) => answers[key]).length
 })
 
 const listeningStatus = computed(() => {
