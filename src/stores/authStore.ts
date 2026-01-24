@@ -175,7 +175,15 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    router.push(redirectPath)
+    // Navigate to redirect path
+    try {
+      await router.push(redirectPath)
+    } catch (e) {
+      // Handle navigation failure (e.g., same route)
+      console.warn('Navigation error:', e)
+      // Force navigation using window.location if router.push fails
+      window.location.href = redirectPath
+    }
   }
 
   const submitExam = async () => {

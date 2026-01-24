@@ -209,25 +209,39 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true
 
+  // Default values
+  let queryParams = {
+    l_c: '0',
+    r_c: '0',
+    l_s: '0',
+    r_s: '0',
+    o: '0',
+  }
+
   try {
     const result = await authStore.submitExam()
 
+    // Use API results if available
     if (result.success && result.results) {
-      router.push({
-        name: 'completed',
-        query: {
-          l_c: result.results.listening_count.toString(),
-          r_c: result.results.reading_count.toString(),
-          l_s: result.results.listening_score.toString(),
-          r_s: result.results.reading_score.toString(),
-          o: result.results.overall.toString(),
-        },
-      })
-    } else {
-      alert(result.message || 'Failed to submit exam. Please try again.')
+      queryParams = {
+        l_c: result.results.listening_count.toString(),
+        r_c: result.results.reading_count.toString(),
+        l_s: result.results.listening_score.toString(),
+        r_s: result.results.reading_score.toString(),
+        o: result.results.overall.toString(),
+      }
     }
-  } catch {
-    alert('An error occurred while submitting. Please try again.')
+  } catch (error) {
+    console.error('Submit exam error:', error)
+  }
+
+  // Always navigate to completed page after submit attempt
+  try {
+    await authStore.logout('/completed?' + new URLSearchParams(queryParams).toString())
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Fallback: force navigation
+    window.location.href = '/completed?' + new URLSearchParams(queryParams).toString()
   } finally {
     isSubmitting.value = false
   }
