@@ -16,3 +16,180 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* =====================================================
+   CONTRAST MODES
+   ===================================================== */
+
+/* White on Black Mode */
+:root.contrast-white-on-black,
+:root.contrast-white-on-black body,
+:root.contrast-white-on-black #app {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black * {
+  border-color: #444444 !important;
+}
+
+:root.contrast-white-on-black .exam-header,
+:root.contrast-white-on-black .exam-footer,
+:root.contrast-white-on-black header,
+:root.contrast-white-on-black footer,
+:root.contrast-white-on-black nav,
+:root.contrast-white-on-black .card,
+:root.contrast-white-on-black .panel,
+:root.contrast-white-on-black .modal,
+:root.contrast-white-on-black .options-modal,
+:root.contrast-white-on-black .options-list,
+:root.contrast-white-on-black .option-item,
+:root.contrast-white-on-black .sidebar,
+:root.contrast-white-on-black .content,
+:root.contrast-white-on-black .question-card,
+:root.contrast-white-on-black .passage-content,
+:root.contrast-white-on-black .question-content,
+:root.contrast-white-on-black input,
+:root.contrast-white-on-black textarea,
+:root.contrast-white-on-black select,
+:root.contrast-white-on-black button:not(.submission-btn),
+:root.contrast-white-on-black .btn:not(.btn-primary),
+:root.contrast-white-on-black div,
+:root.contrast-white-on-black section,
+:root.contrast-white-on-black article,
+:root.contrast-white-on-black aside {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black a {
+  color: #66b3ff !important;
+}
+
+:root.contrast-white-on-black .icon,
+:root.contrast-white-on-black svg {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black input,
+:root.contrast-white-on-black textarea,
+:root.contrast-white-on-black select {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+:root.contrast-white-on-black input::placeholder,
+:root.contrast-white-on-black textarea::placeholder {
+  color: #888888 !important;
+}
+
+/* Yellow on Black Mode */
+:root.contrast-yellow-on-black,
+:root.contrast-yellow-on-black body,
+:root.contrast-yellow-on-black #app {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black * {
+  border-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .exam-header,
+:root.contrast-yellow-on-black .exam-footer,
+:root.contrast-yellow-on-black header,
+:root.contrast-yellow-on-black footer,
+:root.contrast-yellow-on-black nav,
+:root.contrast-yellow-on-black .card,
+:root.contrast-yellow-on-black .panel,
+:root.contrast-yellow-on-black .modal,
+:root.contrast-yellow-on-black .options-modal,
+:root.contrast-yellow-on-black .options-list,
+:root.contrast-yellow-on-black .option-item,
+:root.contrast-yellow-on-black .sidebar,
+:root.contrast-yellow-on-black .content,
+:root.contrast-yellow-on-black .question-card,
+:root.contrast-yellow-on-black .passage-content,
+:root.contrast-yellow-on-black .question-content,
+:root.contrast-yellow-on-black input,
+:root.contrast-yellow-on-black textarea,
+:root.contrast-yellow-on-black select,
+:root.contrast-yellow-on-black button:not(.submission-btn),
+:root.contrast-yellow-on-black .btn:not(.btn-primary),
+:root.contrast-yellow-on-black div,
+:root.contrast-yellow-on-black section,
+:root.contrast-yellow-on-black article,
+:root.contrast-yellow-on-black aside {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black a {
+  color: #ffff66 !important;
+}
+
+:root.contrast-yellow-on-black .icon,
+:root.contrast-yellow-on-black svg {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black input,
+:root.contrast-yellow-on-black textarea,
+:root.contrast-yellow-on-black select {
+  background-color: #1a1a00 !important;
+  color: #ffff00 !important;
+  border-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black input::placeholder,
+:root.contrast-yellow-on-black textarea::placeholder {
+  color: #999900 !important;
+}
+
+/* =====================================================
+   TEXT SIZE MODES
+   ===================================================== */
+
+:root.text-size-regular {
+  font-size: 16px;
+}
+
+:root.text-size-large {
+  font-size: 20px;
+}
+
+:root.text-size-extra-large {
+  font-size: 24px;
+}
+
+/* Apply text size to content areas only */
+:root.text-size-large .passage-content,
+:root.text-size-large .passage-content p,
+:root.text-size-large .question-content,
+:root.text-size-large .question-text,
+:root.text-size-large .questions-container,
+:root.text-size-large .questions-container p,
+:root.text-size-large .option-text,
+:root.text-size-large .instruction,
+:root.text-size-large .instructions,
+:root.text-size-large .answer-textarea,
+:root.text-size-large .gap-input,
+:root.text-size-large .part-label {
+  font-size: 20px !important;
+}
+
+:root.text-size-extra-large .passage-content,
+:root.text-size-extra-large .passage-content p,
+:root.text-size-extra-large .question-content,
+:root.text-size-extra-large .question-text,
+:root.text-size-extra-large .questions-container,
+:root.text-size-extra-large .questions-container p,
+:root.text-size-extra-large .option-text,
+:root.text-size-extra-large .instruction,
+:root.text-size-extra-large .instructions,
+:root.text-size-extra-large .answer-textarea,
+:root.text-size-extra-large .gap-input,
+:root.text-size-extra-large .part-label {
+  font-size: 24px !important;
+}

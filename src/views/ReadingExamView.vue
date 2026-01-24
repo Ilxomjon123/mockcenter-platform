@@ -245,13 +245,13 @@ const handleSubmit = (): void => {
 
 .reading-header {
   background: white;
-  padding: 12px 24px;
+  padding: 8px 24px;
   flex-shrink: 0;
 }
 
 .header-info {
   background: #f1f2ed;
-  padding: 16px 20px;
+  padding: 10px 16px;
   border-radius: 3px;
   border: 1px solid #d1d5db;
 }

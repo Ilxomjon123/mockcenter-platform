@@ -155,6 +155,11 @@ const isLastPart = computed(() => {
   return getCurrentIndex.value === partOrders.value.length - 1
 })
 
+// Check if we're in "parts only" mode (no individual questions, like Writing)
+const isPartsOnlyMode = computed(() => {
+  return Object.keys(props.partStats).length === 0
+})
+
 // Get all questions across all parts
 const allQuestions = computed(() => {
   const questions: number[] = []
@@ -164,23 +169,38 @@ const allQuestions = computed(() => {
   return questions
 })
 
-// Check if there's a previous question
+// Check if there's a previous question/part
 const hasPreviousQuestion = computed(() => {
+  if (isPartsOnlyMode.value) {
+    return getCurrentIndex.value > 0
+  }
   if (!props.currentQuestion) return allQuestions.value.length > 0
   const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
   return currentIndex > 0
 })
 
-// Check if there's a next question
+// Check if there's a next question/part
 const hasNextQuestion = computed(() => {
+  if (isPartsOnlyMode.value) {
+    return getCurrentIndex.value < partOrders.value.length - 1
+  }
   if (!props.currentQuestion) return allQuestions.value.length > 0
   const currentIndex = allQuestions.value.indexOf(props.currentQuestion)
   return currentIndex < allQuestions.value.length - 1
 })
 
-// Go to previous question
+// Go to previous question/part
 const goToPreviousQuestion = () => {
   if (!hasPreviousQuestion.value) return
+
+  // Parts only mode (Writing)
+  if (isPartsOnlyMode.value) {
+    const prevIndex = getCurrentIndex.value - 1
+    if (prevIndex >= 0) {
+      emit('changePage', partOrders.value[prevIndex])
+    }
+    return
+  }
 
   let targetQuestion: number | undefined
   if (!props.currentQuestion) {
@@ -205,9 +225,18 @@ const goToPreviousQuestion = () => {
   }
 }
 
-// Go to next question
+// Go to next question/part
 const goToNextQuestion = () => {
   if (!hasNextQuestion.value) return
+
+  // Parts only mode (Writing)
+  if (isPartsOnlyMode.value) {
+    const nextIndex = getCurrentIndex.value + 1
+    if (nextIndex < partOrders.value.length) {
+      emit('changePage', partOrders.value[nextIndex])
+    }
+    return
+  }
 
   let targetQuestion: number | undefined
   if (!props.currentQuestion) {
@@ -370,13 +399,6 @@ const goToNextQuestion = () => {
   box-shadow: none;
 }
 
-.float-btn.prev {
-  background: #4b5563;
-}
-
-.float-btn.prev:hover:not(:disabled) {
-  background: #374151;
-}
 
 .float-btn svg {
   width: 18px;

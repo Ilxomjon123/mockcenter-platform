@@ -45,6 +45,7 @@ const handleInput = (event: Event): void => {
   flex: 1;
   background: #fafafa;
   padding: 32px;
+  padding-bottom: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -75,5 +76,6 @@ const handleInput = (event: Event): void => {
   font-size: 14px;
   color: #6b7280;
   flex-shrink: 0;
+  padding-right: 100px;
 }
 </style>

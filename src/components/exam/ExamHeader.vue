@@ -34,6 +34,16 @@
           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
         />
       </svg>
+      <button class="options-btn" @click="isOptionsOpen = true" title="Options">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
       <button class="logout-btn" @click="handleLogout" title="Chiqish">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -46,10 +56,14 @@
       </button>
     </div>
   </header>
+
+  <OptionsModal :is-open="isOptionsOpen" @close="isOptionsOpen = false" />
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import OptionsModal from './OptionsModal.vue'
 
 interface Props {
   timer?: string
@@ -62,6 +76,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 const authStore = useAuthStore()
+const isOptionsOpen = ref(false)
 
 const handleLogout = () => {
   if (confirm('Rostdan ham chiqmoqchimisiz?')) {
@@ -149,6 +164,28 @@ const handleLogout = () => {
 }
 
 .icon:hover {
+  color: #374151;
+}
+
+.options-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.options-btn:hover {
+  background: #f3f4f6;
+}
+
+.options-btn:hover .icon {
   color: #374151;
 }
 
