@@ -47,6 +47,22 @@
           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
         />
       </svg>
+      <button class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+        <!-- Expand icon (enter fullscreen) -->
+        <svg v-if="!isFullscreen" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 8V4h-4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v4h4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 16v4h-4" />
+        </svg>
+        <!-- Compress icon (exit fullscreen) -->
+        <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v4H5" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4v4h4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20v-4H5" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 20v-4h4" />
+        </svg>
+      </button>
       <button class="options-btn" @click="isOptionsOpen = true" title="Options">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -91,7 +107,24 @@ withDefaults(defineProps<Props>(), {
 const authStore = useAuthStore()
 const isOptionsOpen = ref(false)
 const isOnline = ref(true)
+const isFullscreen = ref(false)
 let checkInterval: number | null = null
+
+const toggleFullscreen = async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen()
+    } else {
+      await document.exitFullscreen()
+    }
+  } catch (err) {
+    console.error('Fullscreen error:', err)
+  }
+}
+
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
 
 const checkInternetConnection = () => {
   return new Promise<void>((resolve) => {
@@ -132,6 +165,10 @@ onMounted(() => {
 
   window.addEventListener('online', handleOnlineChange)
   window.addEventListener('offline', handleOnlineChange)
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+
+  // Check initial fullscreen state
+  isFullscreen.value = !!document.fullscreenElement
 })
 
 onUnmounted(() => {
@@ -140,6 +177,7 @@ onUnmounted(() => {
   }
   window.removeEventListener('online', handleOnlineChange)
   window.removeEventListener('offline', handleOnlineChange)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
 })
 
 const handleLogout = () => {
@@ -364,6 +402,7 @@ const handleLogout = () => {
   margin: 0;
 }
 
+.fullscreen-btn,
 .options-btn,
 .logout-btn {
   background: none;
@@ -376,6 +415,19 @@ const handleLogout = () => {
   height: 36px;
   border-radius: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fullscreen-btn:hover {
+  background: #f3f4f6;
+}
+
+.fullscreen-btn:hover .icon {
+  color: #374151;
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.95);
+  background: #e5e7eb;
 }
 
 .options-btn:hover {
