@@ -13,12 +13,9 @@
     "windows": [
       {
         "title": "MockCenter IELTS",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 768,
-        "resizable": true,
-        "fullscreen": false,
+        "fullscreen": true,
+        "resizable": false,
+        "decorations": false,
         "center": true
       }
     ],
