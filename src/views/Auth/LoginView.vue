@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="box">
-      <h2>Kirish</h2>
+      <h2>Login</h2>
 
       <transition name="fade">
         <div v-if="authStore.errorMessage" class="alert error">
@@ -10,7 +10,7 @@
             type="button"
             class="close-btn"
             @click="authStore.clearError"
-            aria-label="Xabarni yopish"
+            aria-label="Close message"
           >
             ×
           </button>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Parol</label>
+          <label for="password">Password</label>
           <div class="password-input-wrapper">
             <input
               id="password"
@@ -52,7 +52,7 @@
               class="toggle-password"
               @click="showPassword = !showPassword"
               :disabled="authStore.isLoading"
-              :aria-label="showPassword ? 'Parolni yashirish' : 'Parolni ko\'rish'"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
             >
               <svg
                 v-if="!showPassword"
@@ -97,13 +97,13 @@
         >
           <span v-if="authStore.isLoading">
             <span class="spinner"></span>
-            Yuklanmoqda...
+            Loading...
           </span>
           <span v-else-if="authStore.isLoadingTest">
             <span class="spinner"></span>
-            Test yuklanmoqda...
+            Loading test...
           </span>
-          <span v-else>Kirish</span>
+          <span v-else>Login</span>
         </button>
       </form>
     </div>

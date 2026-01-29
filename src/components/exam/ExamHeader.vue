@@ -73,7 +73,7 @@
           />
         </svg>
       </button>
-      <button class="logout-btn" @click="handleLogout" title="Chiqish">
+      <button class="logout-btn" @click="handleLogout" title="Logout">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -87,12 +87,24 @@
   </header>
 
   <OptionsModal :is-open="isOptionsOpen" @close="isOptionsOpen = false" />
+
+  <ConfirmModal
+    :is-open="isLogoutModalOpen"
+    title="Logout"
+    message="Are you sure you want to logout?"
+    confirm-text="Yes, logout"
+    cancel-text="Cancel"
+    type="danger"
+    @confirm="confirmLogout"
+    @cancel="isLogoutModalOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 interface Props {
   timer?: string
@@ -106,6 +118,7 @@ withDefaults(defineProps<Props>(), {
 
 const authStore = useAuthStore()
 const isOptionsOpen = ref(false)
+const isLogoutModalOpen = ref(false)
 const isOnline = ref(true)
 const isFullscreen = ref(false)
 let checkInterval: number | null = null
@@ -181,9 +194,12 @@ onUnmounted(() => {
 })
 
 const handleLogout = () => {
-  if (confirm('Rostdan ham chiqmoqchimisiz?')) {
-    authStore.logout()
-  }
+  isLogoutModalOpen.value = true
+}
+
+const confirmLogout = () => {
+  isLogoutModalOpen.value = false
+  authStore.logout()
 }
 </script>
 

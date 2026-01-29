@@ -39,6 +39,13 @@
           <p>Your Speaking exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
           <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
         </div>
+
+        <button class="back-to-login-btn" @click="goToLogin">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          Back to Login
+        </button>
       </div>
     </div>
   </div>
@@ -47,8 +54,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const results = computed(() => ({
   listening_count: route.query.l_c || '0',
@@ -57,6 +66,10 @@ const results = computed(() => ({
   reading_score: route.query.r_s || '0',
   overall: route.query.o || '0',
 }))
+
+const goToLogin = () => {
+  authStore.logout()
+}
 </script>
 
 <style scoped>
@@ -185,6 +198,38 @@ const results = computed(() => ({
 }
 
 .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.back-to-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 32px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.back-to-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.back-to-login-btn:active {
+  transform: translateY(0);
+}
+
+.back-to-login-btn .btn-icon {
   width: 20px;
   height: 20px;
 }
