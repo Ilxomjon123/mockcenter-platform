@@ -141,29 +141,23 @@ const handleFullscreenChange = () => {
   isFullscreen.value = !!document.fullscreenElement
 }
 
-const checkInternetConnection = () => {
-  return new Promise<void>((resolve) => {
-    const img = new Image()
-    const timeout = setTimeout(() => {
-      img.src = ''
-      isOnline.value = false
-      resolve()
-    }, 5000)
+const checkInternetConnection = async () => {
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    img.onload = () => {
-      clearTimeout(timeout)
-      isOnline.value = true
-      resolve()
-    }
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/health`, {
+      method: 'HEAD',
+      signal: controller.signal,
+      cache: 'no-store'
+    })
 
-    img.onerror = () => {
-      clearTimeout(timeout)
-      isOnline.value = false
-      resolve()
-    }
-
-    img.src = `https://www.google.com/favicon.ico?_=${Date.now()}`
-  })
+    clearTimeout(timeoutId)
+    isOnline.value = response.ok
+  } catch {
+    // If fetch fails, try with navigator.onLine as fallback
+    isOnline.value = navigator.onLine
+  }
 }
 
 const handleOnlineChange = () => {
