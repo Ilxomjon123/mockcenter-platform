@@ -12,8 +12,7 @@
       <h2 class="modal-title">Reading Section Completed</h2>
 
       <p class="modal-description">
-        You have successfully completed the Reading section.
-        Click the button below to proceed to the Writing section.
+        {{ descriptionText }}
       </p>
 
       <div class="button-group">
@@ -24,8 +23,8 @@
           Back
         </button>
 
-        <button class="continue-button" @click="goToWriting">
-          Continue to Writing
+        <button class="continue-button" @click="goToNextSection">
+          {{ buttonText }}
           <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -39,6 +38,8 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReadingStore } from '@/stores/readingStore'
+import { useWritingStore } from '@/stores/writingStore'
+import { useExamNavigation } from '@/composables/useExamNavigation'
 
 defineProps<{
   isVisible: boolean
@@ -46,6 +47,8 @@ defineProps<{
 
 const router = useRouter()
 const readingStore = useReadingStore()
+const writingStore = useWritingStore()
+const { getNextSection } = useExamNavigation()
 const currentTime = ref(Date.now())
 let timerInterval: number | null = null
 
@@ -59,6 +62,20 @@ onUnmounted(() => {
   if (timerInterval) {
     clearInterval(timerInterval)
   }
+})
+
+const nextSection = computed(() => getNextSection('reading'))
+
+const buttonText = computed(() => {
+  if (nextSection.value === 'writing') return 'Continue to Writing'
+  return 'Go to Submission'
+})
+
+const descriptionText = computed(() => {
+  if (nextSection.value === 'writing') {
+    return 'You have successfully completed the Reading section. Click the button below to proceed to the Writing section.'
+  }
+  return 'You have successfully completed the Reading section. Click the button below to submit your exam.'
 })
 
 const showBackButton = computed(() => {
@@ -75,9 +92,14 @@ const goBack = () => {
   readingStore.setCompleted(false)
 }
 
-const goToWriting = () => {
+const goToNextSection = () => {
   readingStore.setFinalized(true)
-  router.push({ name: 'writing' })
+  if (nextSection.value === 'writing') {
+    writingStore.setStartTime(Date.now())
+    router.push({ name: 'writing' })
+  } else {
+    router.push({ name: 'submission' })
+  }
 }
 </script>
 

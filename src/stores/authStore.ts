@@ -41,6 +41,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
 
+  // Get first available section based on test data
+  const getFirstAvailableSection = async (): Promise<string> => {
+    const { useListeningStore } = await import('@/stores/listeningStore')
+    const { useReadingStore } = await import('@/stores/readingStore')
+    const { useWritingStore } = await import('@/stores/writingStore')
+
+    const listeningStore = useListeningStore()
+    const readingStore = useReadingStore()
+    const writingStore = useWritingStore()
+
+    if (listeningStore.test?.parts?.length) {
+      return '/listening'
+    }
+    if (readingStore.test?.parts?.length) {
+      return '/reading'
+    }
+    if (writingStore.test?.parts?.length) {
+      return '/writing'
+    }
+
+    return '/submission'
+  }
+
   // Fetch test data from API
   const fetchTestData = async () => {
     isLoadingTest.value = true
@@ -106,8 +129,11 @@ export const useAuthStore = defineStore('auth', () => {
         // Fetch test data after successful login
         await fetchTestData()
 
-        // Query parametrdan redirect manzilni olish
-        const redirectPath = (route.query.redirect as string) || '/listening'
+        // Get redirect path from query or first available section
+        let redirectPath = route.query.redirect as string
+        if (!redirectPath) {
+          redirectPath = await getFirstAvailableSection()
+        }
         await router.push(redirectPath)
 
         return { success: true }
@@ -247,5 +273,6 @@ export const useAuthStore = defineStore('auth', () => {
     clearError,
     checkAuth,
     fetchTestData,
+    getFirstAvailableSection,
   }
 })
