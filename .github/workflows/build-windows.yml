@@ -34,6 +34,7 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri build
         env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           TAURI_SIGNING_PRIVATE_KEY: ""
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
 
