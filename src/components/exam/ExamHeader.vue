@@ -47,7 +47,7 @@
           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
         />
       </svg>
-      <button class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+      <button v-if="!isRunningInTauri" class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
         <!-- Expand icon (enter fullscreen) -->
         <svg v-if="!isFullscreen" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4" />
@@ -73,7 +73,7 @@
           />
         </svg>
       </button>
-      <button class="logout-btn" @click="handleLogout" title="Logout">
+      <button v-if="!isRunningInTauri" class="logout-btn" @click="handleLogout" title="Logout">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -105,6 +105,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
+import { isTauri } from '@/composables/useTauri'
 
 interface Props {
   timer?: string
@@ -121,6 +122,7 @@ const isOptionsOpen = ref(false)
 const isLogoutModalOpen = ref(false)
 const isOnline = ref(true)
 const isFullscreen = ref(false)
+const isRunningInTauri = isTauri()
 let checkInterval: number | null = null
 
 const toggleFullscreen = async () => {

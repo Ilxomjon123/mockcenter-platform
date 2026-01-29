@@ -16,7 +16,13 @@
         "fullscreen": true,
         "resizable": false,
         "decorations": false,
-        "center": true
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": true,
+        "closable": false,
+        "minimizable": false,
+        "maximizable": false,
+        "visible": true
       }
     ],
     "security": {

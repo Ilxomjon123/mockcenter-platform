@@ -128,6 +128,9 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
+  // Allow going back from submission page to review
+  const isComingFromSubmission = from.name === 'submission'
+
   // Check if listening section is available
   if (to.name === 'listening' && isAuthenticated) {
     // If listening is not available, skip to next section
@@ -136,8 +139,8 @@ router.beforeEach(async (to, from, next) => {
       next({ name: nextSection })
       return
     }
-    // If listening is completed, go to next section
-    if (listeningStore.isCompleted) {
+    // If listening is completed and NOT coming from submission, go to next section
+    if (listeningStore.isCompleted && !isComingFromSubmission) {
       const nextSection = getNextAvailableSection('listening', listeningStore, readingStore, writingStore)
       next({ name: nextSection })
       return
@@ -152,18 +155,20 @@ router.beforeEach(async (to, from, next) => {
       next({ name: nextSection })
       return
     }
-    // Block access if reading is completed and time exceeded
-    const SIXTY_MINUTES = 60 * 60 * 1000
-    const now = Date.now()
-    const elapsed = now - (readingStore.startTime || now)
+    // Block access if reading is completed and time exceeded (unless coming from submission)
+    if (!isComingFromSubmission) {
+      const SIXTY_MINUTES = 60 * 60 * 1000
+      const now = Date.now()
+      const elapsed = now - (readingStore.startTime || now)
 
-    if (
-      readingStore.isFinalized ||
-      (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit))
-    ) {
-      const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore)
-      next({ name: nextSection })
-      return
+      if (
+        readingStore.isFinalized ||
+        (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit))
+      ) {
+        const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore)
+        next({ name: nextSection })
+        return
+      }
     }
   }
 

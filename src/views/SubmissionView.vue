@@ -23,7 +23,7 @@
 
         <!-- Progress Summary -->
         <div class="progress-summary">
-          <div class="progress-item">
+          <div v-if="hasListening" class="progress-item">
             <div class="progress-icon listening">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
@@ -40,10 +40,10 @@
                 listeningStatus.text
               }}</span>
             </div>
-            <span class="progress-count">{{ listeningAnsweredCount }}/40</span>
+            <span class="progress-count">{{ listeningAnsweredCount }}/{{ listeningTotalQuestions }}</span>
           </div>
 
-          <div class="progress-item">
+          <div v-if="hasReading" class="progress-item">
             <div class="progress-icon reading">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
@@ -60,10 +60,10 @@
                 readingStatus.text
               }}</span>
             </div>
-            <span class="progress-count">{{ readingAnsweredCount }}/40</span>
+            <span class="progress-count">{{ readingAnsweredCount }}/{{ readingTotalQuestions }}</span>
           </div>
 
-          <div class="progress-item">
+          <div v-if="hasWriting" class="progress-item">
             <div class="progress-icon writing">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
@@ -80,7 +80,7 @@
                 writingStatus.text
               }}</span>
             </div>
-            <span class="progress-count">{{ writingAnsweredCount }}/2</span>
+            <span class="progress-count">{{ writingAnsweredCount }}/{{ writingTotalQuestions }}</span>
           </div>
         </div>
 
@@ -122,6 +122,17 @@
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      :is-open="isConfirmModalOpen"
+      title="Submit Exam"
+      message="Are you sure you want to submit your exam? This action cannot be undone."
+      confirm-text="Yes, submit"
+      cancel-text="Cancel"
+      type="warning"
+      @confirm="confirmSubmit"
+      @cancel="isConfirmModalOpen = false"
+    />
   </div>
 </template>
 
@@ -132,7 +143,9 @@ import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useAuthStore } from '@/stores/authStore'
+import { QuestionType } from '@/types/test'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 const router = useRouter()
 const listeningStore = useListeningStore()
@@ -141,6 +154,67 @@ const writingStore = useWritingStore()
 const authStore = useAuthStore()
 
 const isSubmitting = ref(false)
+const isConfirmModalOpen = ref(false)
+
+// Check if sections are available
+const hasListening = computed(() => !!listeningStore.test?.parts?.length)
+const hasReading = computed(() => !!readingStore.test?.parts?.length)
+const hasWriting = computed(() => !!writingStore.test?.parts?.length)
+
+// Helper function to count questions in a part
+const countQuestionsInPart = (part: { content?: string | null; questions?: Array<{ type: string; content?: string | null; answers_count?: number; children?: Array<{ type: string; content?: string | null }> }> }): number => {
+  let count = 0
+
+  const countGapsAndMatches = (text: string | null | undefined): number => {
+    if (!text) return 0
+    const gaps = (text.match(/\[gap\]/g) || []).length
+    const matches = (text.match(/\[match\]/g) || []).length
+    return gaps + matches
+  }
+
+  // Count gaps in part content
+  count += countGapsAndMatches(part.content)
+
+  // Count questions
+  if (part.questions) {
+    for (const q of part.questions) {
+      if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN || q.type === QuestionType.YES_NO_NOT_GIVEN) {
+        count += 1
+      } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
+        count += q.answers_count || 1
+      }
+      count += countGapsAndMatches(q.content)
+
+      // Count children
+      if (q.children) {
+        for (const child of q.children) {
+          if (child.type === QuestionType.TRUE_FALSE_NOT_GIVEN || child.type === QuestionType.YES_NO_NOT_GIVEN) {
+            count += 1
+          }
+          count += countGapsAndMatches(child.content)
+        }
+      }
+    }
+  }
+
+  return count
+}
+
+// Calculate total questions for each section
+const listeningTotalQuestions = computed(() => {
+  if (!listeningStore.test?.parts) return 0
+  return listeningStore.test.parts.reduce((total, part) => total + countQuestionsInPart(part), 0)
+})
+
+const readingTotalQuestions = computed(() => {
+  if (!readingStore.test?.parts) return 0
+  return readingStore.test.parts.reduce((total, part) => total + countQuestionsInPart(part), 0)
+})
+
+const writingTotalQuestions = computed(() => {
+  if (!writingStore.test?.parts) return 0
+  return writingStore.test.parts.length
+})
 
 const listeningAnsweredCount = computed(() => {
   const answers = listeningStore.answers as Record<string, unknown>
@@ -154,10 +228,11 @@ const readingAnsweredCount = computed(() => {
 
 const writingAnsweredCount = computed(() => {
   const answers = writingStore.answers as Record<string, unknown>
-  return Object.keys(answers).filter((key) => answers[key]).length
+  return Object.keys(answers).filter((key) => answers[key] && String(answers[key]).trim()).length
 })
 
 const listeningStatus = computed(() => {
+  if (!hasListening.value) return { text: 'Not Available', class: 'not-started' }
   if (listeningStore.isCompleted) {
     return { text: 'Completed', class: 'completed' }
   }
@@ -168,6 +243,7 @@ const listeningStatus = computed(() => {
 })
 
 const readingStatus = computed(() => {
+  if (!hasReading.value) return { text: 'Not Available', class: 'not-started' }
   if (readingStore.isCompleted) {
     return { text: 'Completed', class: 'completed' }
   }
@@ -178,6 +254,7 @@ const readingStatus = computed(() => {
 })
 
 const writingStatus = computed(() => {
+  if (!hasWriting.value) return { text: 'Not Available', class: 'not-started' }
   if (writingStore.isCompleted) {
     return { text: 'Completed', class: 'completed' }
   }
@@ -188,25 +265,41 @@ const writingStatus = computed(() => {
 })
 
 const hasUnanswered = computed(() => {
-  return (
-    listeningAnsweredCount.value < 40 ||
-    readingAnsweredCount.value < 40 ||
-    writingAnsweredCount.value < 2
-  )
+  let unanswered = false
+
+  if (hasListening.value && listeningAnsweredCount.value < listeningTotalQuestions.value) {
+    unanswered = true
+  }
+  if (hasReading.value && readingAnsweredCount.value < readingTotalQuestions.value) {
+    unanswered = true
+  }
+  if (hasWriting.value && writingAnsweredCount.value < writingTotalQuestions.value) {
+    unanswered = true
+  }
+
+  return unanswered
 })
 
 const goBack = () => {
-  router.back()
+  // Navigate to last available section for review
+  if (writingStore.test?.parts?.length) {
+    router.push({ name: 'writing' })
+  } else if (readingStore.test?.parts?.length) {
+    router.push({ name: 'reading' })
+  } else if (listeningStore.test?.parts?.length) {
+    router.push({ name: 'listening' })
+  } else {
+    window.history.back()
+  }
 }
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
   if (isSubmitting.value) return
+  isConfirmModalOpen.value = true
+}
 
-  const confirmed = confirm(
-    'Are you sure you want to submit your exam? This action cannot be undone.'
-  )
-  if (!confirmed) return
-
+const confirmSubmit = async () => {
+  isConfirmModalOpen.value = false
   isSubmitting.value = true
 
   // Default values
