@@ -1,5 +1,29 @@
 <template>
   <div class="container">
+    <!-- Tauri Desktop Close Button -->
+    <button
+      v-if="isTauri"
+      class="close-app-btn"
+      @click="closeWindow"
+      aria-label="Close application"
+      title="Close"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
     <div class="box">
       <h2>Login</h2>
 
@@ -111,19 +135,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { invoke } from '@tauri-apps/api/core'
 
 const email = ref('')
 const password = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
+const isTauri = ref(false)
 
 const authStore = useAuthStore()
 
 const isFormValid = computed(() => {
   return email.value.length > 0 && password.value.length > 0
 })
+
+onMounted(() => {
+  // Check if running in Tauri
+  isTauri.value = '__TAURI__' in window
+})
+
+const closeWindow = async () => {
+  try {
+    // Call the exit_app command from Rust
+    await invoke('exit_app')
+  } catch (error) {
+    console.error('Failed to close window:', error)
+  }
+}
 
 const handleSubmit = async () => {
   if (!isFormValid.value) return
@@ -146,6 +186,38 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
   background: #f9fafb;
+  position: relative;
+}
+
+/* Tauri Desktop Close Button */
+.close-app-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1000;
+  color: #6b7280;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.close-app-btn:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+.close-app-btn:active {
+  transform: scale(0.95);
 }
 
 .box {
@@ -358,6 +430,13 @@ button[type='submit'].loading {
 
   h2 {
     font-size: 24px;
+  }
+
+  .close-app-btn {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
   }
 }
 </style>
