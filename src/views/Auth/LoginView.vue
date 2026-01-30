@@ -2,7 +2,7 @@
   <div class="container">
     <!-- Tauri Desktop Close Button -->
     <button
-      v-if="isTauri"
+      v-if="isTauri()"
       class="close-app-btn"
       @click="closeWindow"
       aria-label="Close application"
@@ -135,25 +135,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { invoke } from '@tauri-apps/api/core'
+import { useTauri } from '@/composables/useTauri'
 
 const email = ref('')
 const password = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
-const isTauri = ref(false)
 
 const authStore = useAuthStore()
+const { isTauri } = useTauri()
 
 const isFormValid = computed(() => {
   return email.value.length > 0 && password.value.length > 0
-})
-
-onMounted(() => {
-  // Check if running in Tauri
-  isTauri.value = '__TAURI__' in window
 })
 
 const closeWindow = async () => {
