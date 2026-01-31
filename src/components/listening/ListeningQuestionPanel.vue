@@ -61,14 +61,28 @@
       >
         <div class="color-options">
           <button
-            v-for="color in colors"
-            :key="color.name"
             class="color-btn"
-            :style="{ backgroundColor: color.value }"
-            :title="`Highlight ${color.name}`"
+            :style="{ backgroundColor: '#fef08a' }"
+            title="Highlight"
             @mousedown.prevent
-            @click="applyHighlight(color.value)"
-          ></button>
+            @click="applyHighlight('#fef08a')"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="color: #854d0e"
+            >
+              <path d="m9 11-6 6v3h9l3-3" />
+              <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+            </svg>
+          </button>
           <div class="divider"></div>
           <button
             class="clear-btn"
@@ -139,22 +153,6 @@ const { setupEventListeners: setupDragDropListeners } = useDragAndDrop({
   containerRef: questionsContainerRef,
 })
 
-// Highlight colors
-const colors = [
-  { name: 'yellow', value: '#fef08a' },
-  { name: 'green', value: '#bbf7d0' },
-  { name: 'pink', value: '#fbcfe8' },
-  { name: 'blue', value: '#bfdbfe' },
-  { name: 'orange', value: '#fed7aa' },
-  { name: 'purple', value: '#e9d5ff' },
-  { name: 'red', value: '#fecaca' },
-  { name: 'cyan', value: '#a5f3fc' },
-]
-
-// Highlight state
-const showToolbar = ref(false)
-const toolbarStyle = ref({ top: '0px', left: '0px' })
-
 // Restore question highlights from store
 const restoreQuestionHighlights = () => {
   const container = questionsContainerRef.value
@@ -215,6 +213,11 @@ const restoreQuestionHighlights = () => {
   }
 }
 
+// Highlight state
+const showToolbar = ref(false)
+const toolbarStyle = ref({ top: '0px', left: '0px' })
+let savedRange: Range | null = null
+
 const handleMouseUp = () => {
   const selection = window.getSelection()
   if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
@@ -223,17 +226,33 @@ const handleMouseUp = () => {
     // Check if selection is within questions container
     const container = questionsContainerRef.value
     if (container && container.contains(range.commonAncestorContainer)) {
-      // Don't apply highlight if selection is within an input or select
+      // Don't show toolbar if selection is within an input
       const ancestor = range.commonAncestorContainer
       const parentElement =
         ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : (ancestor as Element)
-      if (!parentElement?.closest('input, select, textarea')) {
-        // Automatically apply yellow highlight immediately, without showing toolbar
-        applyHighlight('#fef08a', range)
-        // Clear selection after highlighting
-        selection.removeAllRanges()
+      if (parentElement?.closest('input, select, textarea')) {
+        return
       }
+
+      // Save the range for later use
+      savedRange = range.cloneRange()
+
+      // Get selection position
+      const rect = range.getBoundingClientRect()
+      const toolbarHeight = 48 // Approximate toolbar height
+
+      // Position toolbar above the selection
+      toolbarStyle.value = {
+        top: `${rect.top + window.scrollY - toolbarHeight - 8}px`,
+        left: `${rect.left + rect.width / 2 + window.scrollX}px`,
+      }
+
+      showToolbar.value = true
     }
+  } else {
+    // Hide toolbar when selection is cleared
+    showToolbar.value = false
+    savedRange = null
   }
 }
 
@@ -278,24 +297,13 @@ const expandRangeToWords = (range: Range): Range => {
   return newRange
 }
 
-const applyHighlight = (color?: string, customRange?: Range) => {
-  const selection = window.getSelection()
-  if (!selection) return
+const applyHighlight = (color: string) => {
+  if (!savedRange) return
 
-  // Use provided range or get current selection range
-  let range: Range
-  if (customRange) {
-    range = customRange
-  } else {
-    if (selection.rangeCount === 0) return
-    range = selection.getRangeAt(0)
-  }
-
-  // Expand range to include full words
-  range = expandRangeToWords(range)
-
+  const range = expandRangeToWords(savedRange)
   const commonAncestor = range.commonAncestorContainer
 
+  // Check if selection is already within a highlight span
   let highlightNode: HTMLElement | null = null
   if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
     highlightNode = (commonAncestor as HTMLElement).closest('.question-highlight')
@@ -317,15 +325,16 @@ const applyHighlight = (color?: string, customRange?: Range) => {
       listeningStore.saveQuestionHtml(container.innerHTML)
     }
 
-    selection.removeAllRanges()
+    showToolbar.value = false
+    savedRange = null
+    window.getSelection()?.removeAllRanges()
     return
   }
 
   // Otherwise, apply new highlight
   const span = document.createElement('span')
   span.className = 'question-highlight'
-  // Use yellow as default color if not specified
-  span.style.backgroundColor = color || '#fef08a'
+  span.style.backgroundColor = color
   span.dataset.highlightId = Math.random().toString(36).substr(2, 9)
 
   try {
@@ -339,19 +348,19 @@ const applyHighlight = (color?: string, customRange?: Range) => {
       listeningStore.saveQuestionHtml(container.innerHTML)
     }
 
-    // Clear selection after highlighting
-    selection.removeAllRanges()
+    // Clear selection and hide toolbar
+    showToolbar.value = false
+    savedRange = null
+    window.getSelection()?.removeAllRanges()
   } catch (e) {
     console.error('Could not apply highlight:', e)
   }
 }
 
 const removeHighlight = () => {
-  const selection = window.getSelection()
-  if (!selection || selection.rangeCount === 0) return
+  if (!savedRange) return
 
-  const range = selection.getRangeAt(0)
-  const commonAncestor = range.commonAncestorContainer
+  const commonAncestor = savedRange.commonAncestorContainer
 
   let highlightNode: HTMLElement | null = null
   if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
@@ -374,7 +383,17 @@ const removeHighlight = () => {
     }
 
     showToolbar.value = false
-    selection.removeAllRanges()
+    savedRange = null
+    window.getSelection()?.removeAllRanges()
+  }
+}
+
+// Hide toolbar when clicking outside
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.highlight-toolbar') && !target.closest('.questions-container')) {
+    showToolbar.value = false
+    savedRange = null
   }
 }
 
@@ -397,6 +416,8 @@ onMounted(() => {
 
   // Add beforeunload listener
   window.addEventListener('beforeunload', handleBeforeUnload)
+  // Add click outside listener for toolbar
+  document.addEventListener('mousedown', handleClickOutside)
 })
 
 // Watch for part changes to restore highlights
@@ -410,6 +431,7 @@ watch(
 // Cleanup on unmount
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  document.removeEventListener('mousedown', handleClickOutside)
 })
 </script>
 
@@ -495,18 +517,22 @@ onUnmounted(() => {
 }
 
 .color-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .color-btn:hover {
   transform: scale(1.1);
   border-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .divider {
