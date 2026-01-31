@@ -22,7 +22,7 @@
         :style="{
           top: toolbarStyle.top,
           left: toolbarStyle.left,
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
         }"
       >
         <div class="color-options">
@@ -42,7 +42,21 @@
             @mousedown.prevent
             @click="removeHighlight"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
           </button>
         </div>
         <div class="toolbar-arrow"></div>
@@ -96,7 +110,11 @@ const restoreQuestionHighlights = () => {
       while ((node = treeWalker.nextNode())) {
         if (node.textContent && node.textContent.includes(highlightText)) {
           const parent = node.parentElement
-          if (parent && !parent.closest('.question-highlight') && !parent.closest('input, select, textarea')) {
+          if (
+            parent &&
+            !parent.closest('.question-highlight') &&
+            !parent.closest('input, select, textarea')
+          ) {
             const text = node.textContent
             const index = text.indexOf(highlightText)
             if (index !== -1) {
@@ -143,40 +161,104 @@ const handleMouseUp = () => {
   const selection = window.getSelection()
   if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
     const range = selection.getRangeAt(0)
-    const rect = range.getBoundingClientRect()
 
     // Check if selection is within questions container
     const container = questionsContainerRef.value
     if (container && container.contains(range.commonAncestorContainer)) {
-      // Don't show toolbar if selection is within an input or select
+      // Don't apply highlight if selection is within an input or select
       const ancestor = range.commonAncestorContainer
-      const parentElement = ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : ancestor as Element
-      if (parentElement?.closest('input, select, textarea')) {
-        showToolbar.value = false
-        return
+      const parentElement =
+        ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : (ancestor as Element)
+      if (!parentElement?.closest('input, select, textarea')) {
+        // Automatically apply yellow highlight immediately, without showing toolbar
+        applyHighlight('#fef08a', range)
+        // Clear selection after highlighting
+        selection.removeAllRanges()
       }
-
-      toolbarStyle.value = {
-        top: `${rect.top + window.scrollY - 45}px`,
-        left: `${rect.left + window.scrollX + rect.width / 2}px`,
-      }
-      showToolbar.value = true
-    } else {
-      showToolbar.value = false
     }
-  } else {
-    showToolbar.value = false
   }
 }
 
-const applyHighlight = (color: string) => {
-  const selection = window.getSelection()
-  if (!selection || selection.rangeCount === 0) return
+// Expand range to word boundaries
+const expandRangeToWords = (range: Range): Range => {
+  const newRange = range.cloneRange()
 
-  const range = selection.getRangeAt(0)
+  // Expand start to word boundary
+  const startNode = newRange.startContainer
+  if (startNode.nodeType === Node.TEXT_NODE) {
+    const text = startNode.textContent || ''
+    let startOffset = newRange.startOffset
+
+    // Move back to start of word
+    while (startOffset > 0 && /\w/.test(text[startOffset - 1])) {
+      startOffset--
+    }
+    newRange.setStart(startNode, startOffset)
+  }
+
+  // Expand end to word boundary
+  const endNode = newRange.endContainer
+  if (endNode.nodeType === Node.TEXT_NODE) {
+    const text = endNode.textContent || ''
+    let endOffset = newRange.endOffset
+
+    // Move forward to end of word
+    while (endOffset < text.length && /\w/.test(text[endOffset])) {
+      endOffset++
+    }
+    newRange.setEnd(endNode, endOffset)
+  }
+
+  return newRange
+}
+
+const applyHighlight = (color?: string, customRange?: Range) => {
+  const selection = window.getSelection()
+  if (!selection) return
+
+  // Use provided range or get current selection range
+  let range: Range
+  if (customRange) {
+    range = customRange
+  } else {
+    if (selection.rangeCount === 0) return
+    range = selection.getRangeAt(0)
+  }
+
+  // Expand range to include full words
+  range = expandRangeToWords(range)
+
+  const commonAncestor = range.commonAncestorContainer
+
+  if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+    highlightNode = (commonAncestor as HTMLElement).closest('.question-highlight')
+  } else {
+    highlightNode = (commonAncestor.parentElement as HTMLElement).closest('.question-highlight')
+  }
+
+  // If already highlighted, remove the highlight
+  if (highlightNode) {
+    const parent = highlightNode.parentNode
+    while (highlightNode.firstChild) {
+      parent?.insertBefore(highlightNode.firstChild, highlightNode)
+    }
+    parent?.removeChild(highlightNode)
+
+    // Save updated HTML to store
+    const container = questionsContainerRef.value
+    if (container) {
+      readingStore.saveQuestionHtml(container.innerHTML)
+    }
+
+    selection.removeAllRanges()
+    return
+  }
+
+  // Otherwise, apply new highlight
   const span = document.createElement('span')
   span.className = 'question-highlight'
-  span.style.backgroundColor = color
+  // Use yellow as default color if not specified
+  span.style.backgroundColor = color || '#fef08a'
   span.dataset.highlightId = Math.random().toString(36).substr(2, 9)
 
   try {
@@ -192,7 +274,6 @@ const applyHighlight = (color: string) => {
 
     // Clear selection after highlighting
     selection.removeAllRanges()
-    showToolbar.value = false
   } catch (e) {
     console.error('Could not apply highlight:', e)
   }
@@ -242,7 +323,7 @@ watch(
   () => readingStore.currentPart,
   () => {
     nextTick(restoreQuestionHighlights)
-  }
+  },
 )
 </script>
 
@@ -288,7 +369,9 @@ watch(
   padding: 6px;
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   pointer-events: auto;
 }
 

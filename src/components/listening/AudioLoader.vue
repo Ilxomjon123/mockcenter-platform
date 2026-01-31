@@ -136,7 +136,7 @@ const isVisible = computed(() => !props.isStarted && props.totalAudios > 0)
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(55, 65, 81, 0.9);
+  background: rgba(55, 65, 81);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -171,7 +171,7 @@ const isVisible = computed(() => !props.isStarted && props.totalAudios > 0)
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: #374151;
+  background: #19191a;
   color: #ffffff;
   border: none;
   border-radius: 6px;

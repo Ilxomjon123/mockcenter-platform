@@ -97,32 +97,100 @@ const handleMouseUp = () => {
   const selection = window.getSelection()
   if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
     const range = selection.getRangeAt(0)
-    const rect = range.getBoundingClientRect()
 
     // Check if selection is within passage-text
     const container = passageContainerRef.value?.querySelector('.passage-text')
     if (container && container.contains(range.commonAncestorContainer)) {
-      toolbarStyle.value = {
-        top: `${rect.top + window.scrollY - 45}px`,
-        left: `${rect.left + window.scrollX + rect.width / 2}px`,
-      }
-      showToolbar.value = true
-    } else {
-      showToolbar.value = false
+      // Automatically apply yellow highlight immediately, without showing toolbar
+      applyHighlight('#fef08a', range)
+      // Clear selection after highlighting
+      selection.removeAllRanges()
     }
-  } else {
-    showToolbar.value = false
   }
 }
 
-const applyHighlight = (color: string) => {
-  const selection = window.getSelection()
-  if (!selection || selection.rangeCount === 0) return
+// Expand range to word boundaries
+const expandRangeToWords = (range: Range): Range => {
+  const newRange = range.cloneRange()
 
-  const range = selection.getRangeAt(0)
+  // Expand start to word boundary
+  const startNode = newRange.startContainer
+  if (startNode.nodeType === Node.TEXT_NODE) {
+    const text = startNode.textContent || ''
+    let startOffset = newRange.startOffset
+
+    // Move back to start of word
+    while (startOffset > 0 && /\w/.test(text[startOffset - 1])) {
+      startOffset--
+    }
+    newRange.setStart(startNode, startOffset)
+  }
+
+  // Expand end to word boundary
+  const endNode = newRange.endContainer
+  if (endNode.nodeType === Node.TEXT_NODE) {
+    const text = endNode.textContent || ''
+    let endOffset = newRange.endOffset
+
+    // Move forward to end of word
+    while (endOffset < text.length && /\w/.test(text[endOffset])) {
+      endOffset++
+    }
+    newRange.setEnd(endNode, endOffset)
+  }
+
+  return newRange
+}
+
+const applyHighlight = (color?: string, customRange?: Range) => {
+  const selection = window.getSelection()
+  if (!selection) return
+
+  // Use provided range or get current selection range
+  let range: Range
+  if (customRange) {
+    range = customRange
+  } else {
+    if (selection.rangeCount === 0) return
+    range = selection.getRangeAt(0)
+  }
+
+  // Expand range to include full words
+  range = expandRangeToWords(range)
+
+  const commonAncestor = range.commonAncestorContainer
+
+  // Check if selection is already within a highlight span
+  let highlightNode: HTMLElement | null = null
+  if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+    highlightNode = (commonAncestor as HTMLElement).closest('.passage-highlight')
+  } else {
+    highlightNode = (commonAncestor.parentElement as HTMLElement).closest('.passage-highlight')
+  }
+
+  // If already highlighted, remove the highlight
+  if (highlightNode) {
+    const parent = highlightNode.parentNode
+    while (highlightNode.firstChild) {
+      parent?.insertBefore(highlightNode.firstChild, highlightNode)
+    }
+    parent?.removeChild(highlightNode)
+
+    // Save updated HTML to store
+    const container = passageContainerRef.value?.querySelector('.passage-text')
+    if (container) {
+      readingStore.savePassageHtml(container.innerHTML)
+    }
+
+    selection.removeAllRanges()
+    return
+  }
+
+  // Otherwise, apply new highlight
   const span = document.createElement('span')
   span.className = 'passage-highlight'
-  span.style.backgroundColor = color
+  // Use yellow as default color if not specified
+  span.style.backgroundColor = color || '#fef08a'
   span.dataset.highlightId = Math.random().toString(36).substr(2, 9)
 
   try {
@@ -138,7 +206,6 @@ const applyHighlight = (color: string) => {
 
     // Clear selection after highlighting
     selection.removeAllRanges()
-    showToolbar.value = false
   } catch (e) {
     console.error('Could not apply highlight:', e)
   }
