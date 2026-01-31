@@ -14,6 +14,7 @@ interface StoredListeningState {
   isCompleted: boolean
   isManualSubmit: boolean
   answers: Record<string | number, string | number>
+  questionHighlights: Record<number, string>
 }
 
 const storage = useLocalStorage<StoredListeningState>(STORAGE_KEY)
@@ -31,6 +32,7 @@ export const useListeningStore = defineStore('listening', {
       isCompleted: saved?.isCompleted ?? false,
       isManualSubmit: saved?.isManualSubmit ?? false,
       answers: saved?.answers ?? {},
+      questionHighlights: saved?.questionHighlights ?? {},
       test: undefined,
     }
   },
@@ -48,9 +50,7 @@ export const useListeningStore = defineStore('listening', {
       if (!part?.questions) return []
       // Get only top-level questions (those without parent_id)
       // Children come in each question's children array
-      return [...part.questions]
-        .filter((q) => !q.parent_id)
-        .sort((a, b) => a.order - b.order)
+      return [...part.questions].filter((q) => !q.parent_id).sort((a, b) => a.order - b.order)
     },
 
     questionIdsInPart(): number[] {
@@ -85,7 +85,10 @@ export const useListeningStore = defineStore('listening', {
       }
 
       const processQuestion = (q: QuestionRaw) => {
-        if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN || q.type === QuestionType.YES_NO_NOT_GIVEN) {
+        if (
+          q.type === QuestionType.TRUE_FALSE_NOT_GIVEN ||
+          q.type === QuestionType.YES_NO_NOT_GIVEN
+        ) {
           currentCounter += 1
         } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += q.answers_count || 1
@@ -127,6 +130,7 @@ export const useListeningStore = defineStore('listening', {
         isCompleted: this.isCompleted,
         isManualSubmit: this.isManualSubmit,
         answers: this.answers,
+        questionHighlights: this.questionHighlights,
       })
     },
 
@@ -170,6 +174,9 @@ export const useListeningStore = defineStore('listening', {
         }
         this.saveToStorage()
       }
+
+      // Initialize questionHighlights if not exists
+      if (!this.questionHighlights) this.questionHighlights = {}
     },
 
     setPart(part: number): void {
@@ -191,6 +198,11 @@ export const useListeningStore = defineStore('listening', {
       this.saveToStorage()
     },
 
+    saveQuestionHtml(html: string): void {
+      this.questionHighlights[this.currentPart] = html
+      this.saveToStorage()
+    },
+
     clearListening(): void {
       this.currentPart = 1
       this.currentQuestion = 1
@@ -200,6 +212,7 @@ export const useListeningStore = defineStore('listening', {
       this.isCompleted = false
       this.isManualSubmit = false
       this.answers = {}
+      this.questionHighlights = {}
       storage.remove()
     },
   },

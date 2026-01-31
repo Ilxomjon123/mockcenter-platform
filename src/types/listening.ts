@@ -10,4 +10,5 @@ export interface ListeningState {
   isManualSubmit: boolean
   answers: Record<string | number, string | number>
   test?: SectionWithPartsRaw
+  questionHighlights: Record<string | number, string>
 }
