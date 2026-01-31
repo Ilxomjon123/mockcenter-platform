@@ -40,6 +40,22 @@
 
       <p class="action-text">To continue, click Play.</p>
 
+      <!-- Speaker test section -->
+      <div class="speaker-test">
+        <p class="speaker-test-label">Test your speakers/headphones:</p>
+        <button class="test-button" @click="playTestSound" :disabled="isTestPlaying">
+          <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+            />
+          </svg>
+          {{ isTestPlaying ? 'Playing...' : 'Test Sound' }}
+        </button>
+        <div v-if="isTestPlaying" class="progress-bar">
+          <div class="progress-fill" :style="{ width: testProgress + '%' }"></div>
+        </div>
+      </div>
+
       <button class="play-button" @click="$emit('play')">
         <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z" />
@@ -51,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   isLoading: boolean
@@ -64,11 +80,101 @@ defineEmits<{
   play: []
 }>()
 
+const isTestPlaying = ref(false)
+const testProgress = ref(0)
+
 // Only show overlay if:
 // 1. User hasn't started yet (first time visit)
 // 2. There are audios to load (totalAudios > 0)
 // On refresh (hasStarted=true), never show loader
 const isVisible = computed(() => !props.isStarted && props.totalAudios > 0)
+
+// Play test sound - melodic sequence
+const playTestSound = () => {
+  if (isTestPlaying.value) return
+
+  isTestPlaying.value = true
+  testProgress.value = 0
+
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const duration = 3 // 3 seconds total
+
+    // Progress bar animation
+    const progressInterval = setInterval(() => {
+      testProgress.value += 2
+      if (testProgress.value >= 100) {
+        clearInterval(progressInterval)
+      }
+    }, duration * 10)
+
+    // Create master gain for overall volume control
+    const masterGain = audioContext.createGain()
+    masterGain.connect(audioContext.destination)
+    masterGain.gain.value = 0.3
+
+    // Melodic sequence: C5 - E5 - G5 - C6 (C major chord arpeggio)
+    const notes = [
+      { freq: 523.25, start: 0, duration: 0.6 }, // C5
+      { freq: 659.25, start: 0.6, duration: 0.6 }, // E5
+      { freq: 783.99, start: 1.2, duration: 0.6 }, // G5
+      { freq: 1046.5, start: 1.8, duration: 1.2 }, // C6 (longer)
+    ]
+
+    notes.forEach((note) => {
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(masterGain)
+
+      oscillator.frequency.value = note.freq
+      oscillator.type = 'sine'
+
+      const startTime = audioContext.currentTime + note.start
+      const endTime = startTime + note.duration
+
+      // Smooth envelope
+      gainNode.gain.setValueAtTime(0, startTime)
+      gainNode.gain.linearRampToValueAtTime(1, startTime + 0.05)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, endTime - 0.05)
+
+      oscillator.start(startTime)
+      oscillator.stop(endTime)
+    })
+
+    // Add subtle harmony
+    const harmonyOsc = audioContext.createOscillator()
+    const harmonyGain = audioContext.createGain()
+
+    harmonyOsc.connect(harmonyGain)
+    harmonyGain.connect(masterGain)
+
+    harmonyOsc.frequency.value = 261.63 // C4 (octave below)
+    harmonyOsc.type = 'triangle'
+
+    const harmonyStart = audioContext.currentTime
+    const harmonyEnd = harmonyStart + duration
+
+    harmonyGain.gain.setValueAtTime(0, harmonyStart)
+    harmonyGain.gain.linearRampToValueAtTime(0.3, harmonyStart + 0.1)
+    harmonyGain.gain.exponentialRampToValueAtTime(0.01, harmonyEnd - 0.2)
+
+    harmonyOsc.start(harmonyStart)
+    harmonyOsc.stop(harmonyEnd)
+
+    setTimeout(() => {
+      isTestPlaying.value = false
+      testProgress.value = 0
+      clearInterval(progressInterval)
+      audioContext.close()
+    }, duration * 1000)
+  } catch (error) {
+    console.error('Error playing test sound:', error)
+    isTestPlaying.value = false
+    testProgress.value = 0
+  }
+}
 </script>
 
 <style scoped>
@@ -163,7 +269,72 @@ const isVisible = computed(() => !props.isStarted && props.totalAudios > 0)
 .action-text {
   font-size: 14px;
   color: #ffffff;
-  margin: 0 0 16px 0;
+  margin: 0 0 24px 0;
+}
+
+/* Speaker test section */
+.speaker-test {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  min-width: 250px;
+}
+
+.speaker-test-label {
+  font-size: 13px;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+.test-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.test-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.volume-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  transition: width 0.1s linear;
+  border-radius: 2px;
 }
 
 .play-button {
