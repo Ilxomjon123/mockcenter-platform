@@ -190,7 +190,11 @@ const expandRangeToWords = (range: Range): Range => {
     let startOffset = newRange.startOffset
 
     // Move back to start of word
-    while (startOffset > 0 && /\w/.test(text[startOffset - 1])) {
+    while (
+      startOffset > 0 &&
+      text[startOffset - 1] !== undefined &&
+      /\w/.test(text[startOffset - 1]!)
+    ) {
       startOffset--
     }
     newRange.setStart(startNode, startOffset)
@@ -203,7 +207,11 @@ const expandRangeToWords = (range: Range): Range => {
     let endOffset = newRange.endOffset
 
     // Move forward to end of word
-    while (endOffset < text.length && /\w/.test(text[endOffset])) {
+    while (
+      endOffset < text.length &&
+      text[endOffset] !== undefined &&
+      /\w/.test(text[endOffset]!)
+    ) {
       endOffset++
     }
     newRange.setEnd(endNode, endOffset)
@@ -230,6 +238,7 @@ const applyHighlight = (color?: string, customRange?: Range) => {
 
   const commonAncestor = range.commonAncestorContainer
 
+  let highlightNode: HTMLElement | null = null
   if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
     highlightNode = (commonAncestor as HTMLElement).closest('.question-highlight')
   } else {
