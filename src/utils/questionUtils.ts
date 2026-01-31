@@ -45,7 +45,7 @@ export function autoResizeAllInputs(container: HTMLElement | null): void {
  */
 export function processQuestionText(
   text: string | null | unknown,
-  startCounter: number
+  startCounter: number,
 ): { html: string; nextCounter: number } {
   if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
 
@@ -73,16 +73,14 @@ export function processQuestionText(
 export function processDropdownText(
   text: string | null | unknown,
   startCounter: number,
-  options: unknown
+  options: unknown,
 ): { html: string; nextCounter: number } {
   if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
 
   // Build options HTML
   let optionsHtml = '<option value="">--</option>'
   if (Array.isArray(options)) {
-    optionsHtml += options
-      .map((opt) => `<option value="${opt}">${opt}</option>`)
-      .join('')
+    optionsHtml += options.map((opt) => `<option value="${opt}">${opt}</option>`).join('')
   } else if (options && typeof options === 'object') {
     optionsHtml += Object.entries(options as Record<string, string>)
       .map(([key, value]) => `<option value="${key}">${value}</option>`)
@@ -92,7 +90,7 @@ export function processDropdownText(
   let counter = startCounter
   const html = text.replace(/\[match\]/g, () => {
     counter++
-    return `<span class="dropdown-wrapper"><span class="dropdown-number">${counter}</span><select class="dropdown-select" data-gap="${counter}">${optionsHtml}</select></span>`
+    return `<span class="dropdown-wrapper"><select class="dropdown-select" data-gap="${counter}">${optionsHtml}</select></span>`
   })
 
   return { html, nextCounter: counter }
@@ -107,7 +105,7 @@ export function processDropdownText(
 export function restoreAnswersInContainer(
   container: HTMLElement | null,
   answers: Record<string | number, string | number>,
-  usedClass: string = 'used'
+  usedClass: string = 'used',
 ): void {
   if (!container) return
 
@@ -142,7 +140,7 @@ export function restoreAnswersInContainer(
       dropzone.classList.add('has-value')
 
       const usedOption = container.querySelector(
-        `.draggable-option[data-option-key="${savedValue}"]`
+        `.draggable-option[data-option-key="${savedValue}"]`,
       ) as HTMLElement
       if (usedOption) {
         usedOption.classList.add(usedClass)
