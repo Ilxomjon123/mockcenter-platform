@@ -6,6 +6,10 @@
         :value="modelValue"
         @input="handleInput"
         placeholder="Type your answer here..."
+        spellcheck="false"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
       />
     </div>
     <div class="word-count">Words: {{ wordCount }}</div>
@@ -58,6 +62,7 @@ const handleInput = (event: Event): void => {
   border-radius: 4px;
   margin-bottom: 8px;
   overflow: hidden;
+  max-height: 80%;
 }
 
 .answer-textarea {
@@ -76,6 +81,5 @@ const handleInput = (event: Event): void => {
   font-size: 14px;
   color: #6b7280;
   flex-shrink: 0;
-  padding-right: 100px;
 }
 </style>
