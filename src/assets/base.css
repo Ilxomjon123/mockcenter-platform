@@ -855,7 +855,18 @@ select {
 }
 
 /* Apply text size to content areas using CSS custom property */
-:root.text-size-large :is(.passage-content, .passage-content p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .instruction, .instructions, .answer-textarea, .gap-input, .part-label),
-:root.text-size-extra-large :is(.passage-content, .passage-content p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .instruction, .instructions, .answer-textarea, .gap-input, .part-label) {
+:root.text-size-large :is(.passage-content, .passage-content p, .passage-text, .passage-text p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .option-label, .option-item, .options-container, .instruction, .instructions, .answer-textarea, .gap-input, .part-label, .draggable-option, .match-dropzone),
+:root.text-size-extra-large :is(.passage-content, .passage-content p, .passage-text, .passage-text p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .option-label, .option-item, .options-container, .instruction, .instructions, .answer-textarea, .gap-input, .part-label, .draggable-option, .match-dropzone) {
   font-size: var(--text-content-size) !important;
+}
+
+/* Apply text size to modals */
+:root.text-size-large :is(.options-modal, .confirm-modal, .modal-content, .completed-modal) :is(.modal-title, .modal-message, .modal-description, .option-item, .option-item span, .submission-btn, .btn, .back-btn span, .info-box span),
+:root.text-size-extra-large :is(.options-modal, .confirm-modal, .modal-content, .completed-modal) :is(.modal-title, .modal-message, .modal-description, .option-item, .option-item span, .submission-btn, .btn, .back-btn span, .info-box span) {
+  font-size: var(--text-content-size) !important;
+}
+
+:root.text-size-large :is(.options-modal, .confirm-modal, .modal-content, .completed-modal) .modal-title,
+:root.text-size-extra-large :is(.options-modal, .confirm-modal, .modal-content, .completed-modal) .modal-title {
+  font-size: calc(var(--text-content-size) + 4px) !important;
 }
