@@ -70,7 +70,7 @@ export function processQuestionText(
     })
     .replace(MATCH_REGEX, () => {
       counter++
-      return `<span class="match-dropzone" draggable="true" data-match="${counter}" data-gap="${counter}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
+      return `<span class="match-dropzone" data-match="${counter}" data-gap="${counter}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
     })
 
   return { html, nextCounter: counter }

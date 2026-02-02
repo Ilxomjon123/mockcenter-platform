@@ -22,7 +22,7 @@ const formattedOptions = computed(() => {
   if (Array.isArray(options)) {
     return options
       .map((opt) => {
-        return `<span class="draggable-option" draggable="true" data-option-key="${opt}" data-option-value="${opt}">${opt}</span>`
+        return `<span class="draggable-option" data-option-key="${opt}" data-option-value="${opt}">${opt}</span>`
       })
       .join('')
   }
@@ -31,7 +31,7 @@ const formattedOptions = computed(() => {
     return Object.entries(options as Record<string, string>)
       .map(
         ([key, value]) =>
-          `<span class="draggable-option" draggable="true" data-option-key="${key}" data-option-value="${value}">${value}</span>`
+          `<span class="draggable-option" data-option-key="${key}" data-option-value="${value}">${value}</span>`
       )
       .join('')
   }

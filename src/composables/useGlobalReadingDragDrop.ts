@@ -5,8 +5,9 @@ import { useReadingStore } from '@/stores/readingStore'
 const draggedOption = ref<HTMLElement | null>(null)
 const sourceDropzone = ref<HTMLElement | null>(null)
 const draggedValue = ref<string | null>(null)
-const touchClone = ref<HTMLElement | null>(null)
+const dragClone = ref<HTMLElement | null>(null)
 const currentDropzone = ref<HTMLElement | null>(null)
+const isDragging = ref(false)
 
 export function useGlobalReadingDragDrop() {
   const readingStore = useReadingStore()
@@ -29,7 +30,7 @@ export function useGlobalReadingDragDrop() {
     clone.style.position = 'fixed'
     clone.style.pointerEvents = 'none'
     clone.style.zIndex = '10000'
-    clone.style.transform = 'rotate(3deg) scale(1.05)'
+    clone.style.transform = 'translate(-50%, -50%) rotate(3deg) scale(1.05)'
     clone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)'
     clone.style.opacity = '0.95'
     clone.style.padding = '6px 14px'
@@ -38,6 +39,7 @@ export function useGlobalReadingDragDrop() {
     clone.style.border = '1px solid #3b82f6'
     clone.style.fontSize = '13px'
     clone.style.color = '#374151'
+    clone.style.whiteSpace = 'nowrap'
     document.body.appendChild(clone)
     return clone
   }
@@ -84,109 +86,112 @@ export function useGlobalReadingDragDrop() {
     }
   }
 
-  // ============ MOUSE DRAG EVENTS ============
+  // ============ MOUSE EVENTS (Tauri-compatible) ============
 
-  const handleDragStart = (e: DragEvent) => {
+  const handleMouseDown = (e: MouseEvent) => {
     const target = e.target as HTMLElement
 
-    // Check if dragging from an option
-    if (target.classList.contains('draggable-option')) {
-      draggedOption.value = target
-      target.classList.add('dragging')
-      draggedValue.value = target.dataset.optionKey || ''
+    // Check if clicking on an option
+    const option = target.closest('.draggable-option') as HTMLElement
+    if (option && !option.classList.contains('used')) {
+      e.preventDefault()
+      isDragging.value = true
+      draggedOption.value = option
+      draggedValue.value = option.dataset.optionKey || ''
       sourceDropzone.value = null
+      option.classList.add('dragging')
 
-      e.dataTransfer?.setData('text/plain', draggedValue.value)
-
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = 'move'
-        const dragImage = target.cloneNode(true) as HTMLElement
-        dragImage.style.transform = 'rotate(3deg)'
-        dragImage.style.opacity = '0.9'
-        document.body.appendChild(dragImage)
-        e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
-        setTimeout(() => document.body.removeChild(dragImage), 0)
-      }
+      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value.style.left = `${e.clientX}px`
+      dragClone.value.style.top = `${e.clientY}px`
       return
     }
 
-    // Check if dragging from a dropzone with value
+    // Check if clicking on a dropzone with value
     const dropzone = target.closest('.match-dropzone') as HTMLElement
     if (dropzone && dropzone.classList.contains('has-value')) {
+      e.preventDefault()
       const valueEl = dropzone.querySelector('.match-value')
       draggedValue.value = valueEl?.textContent || ''
       if (!draggedValue.value) return
 
+      isDragging.value = true
       sourceDropzone.value = dropzone
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
 
-      e.dataTransfer?.setData('text/plain', draggedValue.value)
-
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = 'move'
-        const dragImage = document.createElement('span')
-        dragImage.textContent = draggedValue.value
-        dragImage.style.padding = '10px 20px'
-        dragImage.style.background = '#fff'
-        dragImage.style.border = '1px solid #3b82f6'
-        dragImage.style.borderRadius = '6px'
-        dragImage.style.position = 'absolute'
-        dragImage.style.top = '-1000px'
-        document.body.appendChild(dragImage)
-        e.dataTransfer.setDragImage(dragImage, dragImage.offsetWidth / 2, dragImage.offsetHeight / 2)
-        setTimeout(() => document.body.removeChild(dragImage), 0)
-      }
+      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value.style.left = `${e.clientX}px`
+      dragClone.value.style.top = `${e.clientY}px`
     }
   }
 
-  const handleDragEnd = (e: DragEvent) => {
-    const target = e.target as HTMLElement
-    target.classList.remove('dragging')
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.value || !dragClone.value) return
 
+    e.preventDefault()
+    dragClone.value.style.left = `${e.clientX}px`
+    dragClone.value.style.top = `${e.clientY}px`
+
+    // Hide clone temporarily to get element underneath
+    dragClone.value.style.display = 'none'
+    const elementUnder = document.elementFromPoint(e.clientX, e.clientY)
+    dragClone.value.style.display = ''
+
+    const dropzone = elementUnder?.closest('.match-dropzone') as HTMLElement
+
+    // Remove highlight from previous dropzone
+    if (currentDropzone.value && currentDropzone.value !== dropzone) {
+      currentDropzone.value.classList.remove('drag-over')
+    }
+
+    // Add highlight to current dropzone
+    if (dropzone && dropzone !== sourceDropzone.value) {
+      dropzone.classList.add('drag-over')
+      currentDropzone.value = dropzone
+    } else {
+      currentDropzone.value = null
+    }
+  }
+
+  const handleMouseUp = () => {
+    if (!isDragging.value) return
+
+    // Clean up dragging state
+    if (draggedOption.value) {
+      draggedOption.value.classList.remove('dragging')
+    }
     if (sourceDropzone.value) {
       sourceDropzone.value.classList.remove('dragging-from')
     }
 
+    // Remove drag clone
+    if (dragClone.value) {
+      dragClone.value.remove()
+      dragClone.value = null
+    }
+
+    // Handle drop if we're over a valid dropzone
+    if (currentDropzone.value && currentDropzone.value !== sourceDropzone.value) {
+      currentDropzone.value.classList.remove('drag-over')
+      currentDropzone.value.classList.add('drop-animation')
+      const dz = currentDropzone.value
+      setTimeout(() => dz.classList.remove('drop-animation'), 300)
+
+      handleDropOnZone(currentDropzone.value)
+    }
+
+    // Reset state
+    isDragging.value = false
     draggedOption.value = null
     sourceDropzone.value = null
     draggedValue.value = null
+    currentDropzone.value = null
 
+    // Clean up any remaining drag-over classes
     document.querySelectorAll('.match-dropzone.drag-over').forEach((el) => {
       el.classList.remove('drag-over')
     })
-  }
-
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault()
-    const target = e.target as HTMLElement
-    const dropzone = target.closest('.match-dropzone') as HTMLElement
-    if (dropzone && dropzone !== sourceDropzone.value) {
-      dropzone.classList.add('drag-over')
-    }
-  }
-
-  const handleDragLeave = (e: DragEvent) => {
-    const target = e.target as HTMLElement
-    const dropzone = target.closest('.match-dropzone') as HTMLElement
-    if (dropzone) {
-      dropzone.classList.remove('drag-over')
-    }
-  }
-
-  const handleDrop = (e: DragEvent) => {
-    e.preventDefault()
-    const target = e.target as HTMLElement
-    const dropzone = target.closest('.match-dropzone') as HTMLElement
-
-    if (!dropzone || (!draggedOption.value && !sourceDropzone.value)) return
-    if (dropzone === sourceDropzone.value) return
-
-    dropzone.classList.remove('drag-over')
-    dropzone.classList.add('drop-animation')
-    setTimeout(() => dropzone.classList.remove('drop-animation'), 300)
-
-    handleDropOnZone(dropzone)
   }
 
   // ============ TOUCH EVENTS ============
@@ -198,15 +203,16 @@ export function useGlobalReadingDragDrop() {
 
     // Check if touching an option
     const option = target.closest('.draggable-option') as HTMLElement
-    if (option) {
+    if (option && !option.classList.contains('used')) {
+      isDragging.value = true
       draggedOption.value = option
       draggedValue.value = option.dataset.optionKey || ''
       sourceDropzone.value = null
       option.classList.add('touch-dragging')
 
-      touchClone.value = createDragImage(draggedValue.value)
-      touchClone.value.style.left = `${touch.clientX - 60}px`
-      touchClone.value.style.top = `${touch.clientY - 20}px`
+      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value.style.left = `${touch.clientX}px`
+      dragClone.value.style.top = `${touch.clientY}px`
       return
     }
 
@@ -217,29 +223,30 @@ export function useGlobalReadingDragDrop() {
       draggedValue.value = valueEl?.textContent || ''
       if (!draggedValue.value) return
 
+      isDragging.value = true
       sourceDropzone.value = dropzone
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
 
-      touchClone.value = createDragImage(draggedValue.value)
-      touchClone.value.style.left = `${touch.clientX - 60}px`
-      touchClone.value.style.top = `${touch.clientY - 20}px`
+      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value.style.left = `${touch.clientX}px`
+      dragClone.value.style.top = `${touch.clientY}px`
     }
   }
 
   const handleTouchMove = (e: TouchEvent) => {
-    if ((!draggedOption.value && !sourceDropzone.value) || !touchClone.value) return
+    if (!isDragging.value || !dragClone.value) return
 
     e.preventDefault()
     const touch = e.touches[0]
     if (!touch) return
 
-    touchClone.value.style.left = `${touch.clientX - 60}px`
-    touchClone.value.style.top = `${touch.clientY - 20}px`
+    dragClone.value.style.left = `${touch.clientX}px`
+    dragClone.value.style.top = `${touch.clientY}px`
 
-    touchClone.value.style.display = 'none'
+    dragClone.value.style.display = 'none'
     const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY)
-    touchClone.value.style.display = ''
+    dragClone.value.style.display = ''
 
     const dropzone = elementUnder?.closest('.match-dropzone') as HTMLElement
 
@@ -256,7 +263,7 @@ export function useGlobalReadingDragDrop() {
   }
 
   const handleTouchEnd = () => {
-    if (!draggedOption.value && !sourceDropzone.value) return
+    if (!isDragging.value) return
 
     if (draggedOption.value) {
       draggedOption.value.classList.remove('touch-dragging')
@@ -265,9 +272,9 @@ export function useGlobalReadingDragDrop() {
       sourceDropzone.value.classList.remove('dragging-from')
     }
 
-    if (touchClone.value) {
-      touchClone.value.remove()
-      touchClone.value = null
+    if (dragClone.value) {
+      dragClone.value.remove()
+      dragClone.value = null
     }
 
     if (currentDropzone.value && currentDropzone.value !== sourceDropzone.value) {
@@ -279,6 +286,7 @@ export function useGlobalReadingDragDrop() {
       handleDropOnZone(currentDropzone.value)
     }
 
+    isDragging.value = false
     draggedOption.value = null
     sourceDropzone.value = null
     draggedValue.value = null
@@ -287,6 +295,9 @@ export function useGlobalReadingDragDrop() {
 
   // Handle click on dropzone to clear it
   const handleDropzoneClick = (e: Event) => {
+    // Don't trigger click if we just finished dragging
+    if (isDragging.value) return
+
     const target = e.target as HTMLElement
     const dropzone = target.closest('.match-dropzone') as HTMLElement
 
@@ -317,13 +328,15 @@ export function useGlobalReadingDragDrop() {
 
   // Setup global event listeners
   const setupGlobalListeners = () => {
-    document.addEventListener('dragstart', handleDragStart)
-    document.addEventListener('dragend', handleDragEnd)
-    document.addEventListener('dragover', handleDragOver)
-    document.addEventListener('dragleave', handleDragLeave)
-    document.addEventListener('drop', handleDrop)
+    // Mouse events (Tauri-compatible)
+    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    // Click to clear
     document.addEventListener('click', handleDropzoneClick)
 
+    // Touch events
     document.addEventListener('touchstart', handleTouchStart, { passive: true })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd)
@@ -331,11 +344,10 @@ export function useGlobalReadingDragDrop() {
 
   // Cleanup global event listeners
   const cleanupGlobalListeners = () => {
-    document.removeEventListener('dragstart', handleDragStart)
-    document.removeEventListener('dragend', handleDragEnd)
-    document.removeEventListener('dragover', handleDragOver)
-    document.removeEventListener('dragleave', handleDragLeave)
-    document.removeEventListener('drop', handleDrop)
+    document.removeEventListener('mousedown', handleMouseDown)
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+
     document.removeEventListener('click', handleDropzoneClick)
 
     document.removeEventListener('touchstart', handleTouchStart)
