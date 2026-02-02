@@ -333,6 +333,92 @@ select {
   background: #444444 !important;
 }
 
+/* Drag and drop elements for white-on-black */
+:root.contrast-white-on-black .draggable-option {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+:root.contrast-white-on-black .draggable-option:hover {
+  background: #2a2a2a !important;
+  border-color: #777777 !important;
+}
+
+:root.contrast-white-on-black .draggable-option.dragging,
+:root.contrast-white-on-black .draggable-option.touch-dragging {
+  background: #333333 !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .match-dropzone {
+  background: #1a1a1a !important;
+  border: 1px dashed #555555 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .match-dropzone:hover {
+  background: #2a2a2a !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .match-dropzone.drag-over {
+  background: #1a2744 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+:root.contrast-white-on-black .match-dropzone.has-value {
+  background: #2a2a2a !important;
+  border: 1px solid #555555 !important;
+}
+
+:root.contrast-white-on-black .match-dropzone.dragging-from {
+  background: #1a1a1a !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .match-number,
+:root.contrast-white-on-black .match-value {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .drag-ghost {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .gap-input {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+:root.contrast-white-on-black .gap-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+:root.contrast-white-on-black .gap-input::placeholder {
+  color: #888888 !important;
+}
+
+/* Text highlight styles for white-on-black */
+:root.contrast-white-on-black .passage-highlight {
+  background-color: #3b5998 !important;
+  color: #ffffff !important;
+  border-radius: 2px;
+  padding: 2px 4px;
+}
+
+:root.contrast-white-on-black .passage-text ::selection,
+:root.contrast-white-on-black ::selection {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
 /* Yellow on Black Mode */
 :root.contrast-yellow-on-black,
 :root.contrast-yellow-on-black body,
@@ -541,6 +627,215 @@ select {
 :root.contrast-yellow-on-black .resizable-divider:hover .divider-line,
 :root.contrast-yellow-on-black .resizable-divider.dragging .divider-line {
   background: #888800 !important;
+}
+
+/* Modals for yellow-on-black */
+:root.contrast-yellow-on-black .confirm-modal,
+:root.contrast-yellow-on-black .options-modal,
+:root.contrast-yellow-on-black .modal-content,
+:root.contrast-yellow-on-black .completed-modal {
+  background: #1a1a00 !important;
+  border: 2px solid #888800 !important;
+  box-shadow: 0 25px 50px -12px rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .modal-header {
+  background: #1a1a00 !important;
+  border-bottom-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .modal-title,
+:root.contrast-yellow-on-black .modal-message {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning,
+:root.contrast-yellow-on-black .modal-icon.danger,
+:root.contrast-yellow-on-black .modal-icon.info {
+  background: #2a2a00 !important;
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning svg,
+:root.contrast-yellow-on-black .modal-icon.danger svg,
+:root.contrast-yellow-on-black .modal-icon.info svg {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .btn-cancel {
+  background: #333300 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .btn-cancel:hover {
+  background: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .options-list {
+  border-color: #666600 !important;
+  background: #1a1a00 !important;
+}
+
+:root.contrast-yellow-on-black .option-item {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border-bottom-color: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .option-item:hover {
+  background: #2a2a00 !important;
+}
+
+:root.contrast-yellow-on-black .option-item.selected {
+  background: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .option-item svg {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .back-btn,
+:root.contrast-yellow-on-black .close-btn {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .back-btn:hover,
+:root.contrast-yellow-on-black .close-btn:hover {
+  background: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .close-btn svg {
+  color: #ffff00 !important;
+}
+
+/* Completed modal specific */
+:root.contrast-yellow-on-black .completed-content {
+  background: #1a1a00 !important;
+}
+
+:root.contrast-yellow-on-black .stat-card {
+  background: #2a2a00 !important;
+  border-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .stat-value,
+:root.contrast-yellow-on-black .stat-label {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .modal-description {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .back-button {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .back-button:hover {
+  background: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .continue-button {
+  background: #666600 !important;
+  color: #ffff00 !important;
+  border: 1px solid #888800 !important;
+}
+
+:root.contrast-yellow-on-black .continue-button:hover {
+  background: #777700 !important;
+}
+
+:root.contrast-yellow-on-black .icon-container svg circle {
+  fill: #666600 !important;
+}
+
+/* Drag and drop elements for yellow-on-black */
+:root.contrast-yellow-on-black .draggable-option {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .draggable-option:hover {
+  background: #2a2a00 !important;
+  border-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .draggable-option.dragging,
+:root.contrast-yellow-on-black .draggable-option.touch-dragging {
+  background: #333300 !important;
+  border-color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .match-dropzone {
+  background: #1a1a00 !important;
+  border: 1px dashed #666600 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .match-dropzone:hover {
+  background: #2a2a00 !important;
+  border-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .match-dropzone.drag-over {
+  background: #333300 !important;
+  border-color: #aaaa00 !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .match-dropzone.has-value {
+  background: #2a2a00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .match-dropzone.dragging-from {
+  background: #1a1a00 !important;
+  border-color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .match-number,
+:root.contrast-yellow-on-black .match-value {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .drag-ghost {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #888800 !important;
+  box-shadow: 0 8px 25px rgba(255, 255, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .gap-input {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .gap-input:focus {
+  border-color: #aaaa00 !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.15) !important;
+}
+
+:root.contrast-yellow-on-black .gap-input::placeholder {
+  color: #999900 !important;
+}
+
+/* Text highlight styles for yellow-on-black */
+:root.contrast-yellow-on-black .passage-highlight {
+  background-color: #665500 !important;
+  color: #ffff00 !important;
+  border-radius: 2px;
+  padding: 2px 4px;
+  border-bottom: 2px solid #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .passage-text ::selection,
+:root.contrast-yellow-on-black ::selection {
+  background: #666600 !important;
+  color: #ffff00 !important;
 }
 
 /* =====================================================

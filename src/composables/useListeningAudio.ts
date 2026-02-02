@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type Ref } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useAudioCache } from './useAudioCache'
 
@@ -118,6 +118,9 @@ export function useListeningAudio() {
     }
   }
 
+  // Track if all audios finished (for showing transfer time modal)
+  const allAudiosFinished = ref(false)
+
   // Handle audio ended - play next
   const onAudioEnded = () => {
     const nextIndex = currentAudioIndex.value + 1
@@ -127,7 +130,11 @@ export function useListeningAudio() {
       loadCurrentAudio()
     } else {
       isAllAudiosFinished = true
-      listeningStore.setCompleted(true)
+      // Don't set completed directly - show transfer time modal first
+      // Only set allAudiosFinished flag if not already in transfer time or completed
+      if (!listeningStore.isInTransferTime && !listeningStore.isCompleted) {
+        allAudiosFinished.value = true
+      }
     }
   }
 
@@ -153,6 +160,7 @@ export function useListeningAudio() {
     isStarted,
     loadedCount,
     totalAudios,
+    allAudiosFinished,
     startPlayback,
     onAudioCanPlay,
     onAudioTimeUpdate,

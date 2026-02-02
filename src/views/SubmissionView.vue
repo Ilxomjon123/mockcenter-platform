@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
@@ -148,6 +148,7 @@ import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 const router = useRouter()
+const route = useRoute()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
@@ -281,7 +282,26 @@ const hasUnanswered = computed(() => {
 })
 
 const goBack = () => {
-  // Navigate to last available section for review
+  // Check if we have a 'from' query param indicating which section user came from
+  const fromSection = route.query.from as string
+
+  if (fromSection) {
+    // Navigate back to the section user came from
+    if (fromSection === 'listening' && listeningStore.test?.parts?.length) {
+      router.push({ name: 'listening' })
+      return
+    }
+    if (fromSection === 'reading' && readingStore.test?.parts?.length) {
+      router.push({ name: 'reading' })
+      return
+    }
+    if (fromSection === 'writing' && writingStore.test?.parts?.length) {
+      router.push({ name: 'writing' })
+      return
+    }
+  }
+
+  // Fallback: Navigate to last available section for review
   if (writingStore.test?.parts?.length) {
     router.push({ name: 'writing' })
   } else if (readingStore.test?.parts?.length) {

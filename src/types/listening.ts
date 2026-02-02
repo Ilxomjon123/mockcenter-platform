@@ -8,6 +8,8 @@ export interface ListeningState {
   hasStarted: boolean
   isCompleted: boolean
   isManualSubmit: boolean
+  isInTransferTime: boolean
+  transferTimeEnd: number | null
   answers: Record<string | number, string | number>
   test?: SectionWithPartsRaw
   questionHighlights: Record<string | number, string>

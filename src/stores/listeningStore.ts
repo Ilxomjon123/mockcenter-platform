@@ -13,6 +13,8 @@ interface StoredListeningState {
   hasStarted: boolean
   isCompleted: boolean
   isManualSubmit: boolean
+  isInTransferTime: boolean
+  transferTimeEnd: number | null
   answers: Record<string | number, string | number>
   questionHighlights: Record<number, string>
 }
@@ -32,6 +34,8 @@ export const useListeningStore = defineStore('listening', {
       hasStarted: saved?.hasStarted ?? false,
       isCompleted: saved?.isCompleted ?? false,
       isManualSubmit: saved?.isManualSubmit ?? false,
+      isInTransferTime: saved?.isInTransferTime ?? false,
+      transferTimeEnd: saved?.transferTimeEnd ?? null,
       answers: saved?.answers ?? {},
       questionHighlights: saved?.questionHighlights ?? {},
       test: undefined,
@@ -139,6 +143,8 @@ export const useListeningStore = defineStore('listening', {
         hasStarted: this.hasStarted,
         isCompleted: this.isCompleted,
         isManualSubmit: this.isManualSubmit,
+        isInTransferTime: this.isInTransferTime,
+        transferTimeEnd: this.transferTimeEnd,
         answers: this.answers,
         questionHighlights: this.questionHighlights,
       })
@@ -213,6 +219,20 @@ export const useListeningStore = defineStore('listening', {
       this.saveToStorage()
     },
 
+    startTransferTime(): void {
+      this.isInTransferTime = true
+      // 2 minutes from now
+      this.transferTimeEnd = Date.now() + 2 * 60 * 1000
+      this.saveToStorage()
+    },
+
+    endTransferTime(): void {
+      this.isInTransferTime = false
+      this.transferTimeEnd = null
+      this.isCompleted = true
+      this.saveToStorage()
+    },
+
     clearListening(): void {
       this.currentPart = 1
       this.currentQuestion = 1
@@ -221,6 +241,8 @@ export const useListeningStore = defineStore('listening', {
       this.hasStarted = false
       this.isCompleted = false
       this.isManualSubmit = false
+      this.isInTransferTime = false
+      this.transferTimeEnd = null
       this.answers = {}
       this.questionHighlights = {}
       storage.remove()

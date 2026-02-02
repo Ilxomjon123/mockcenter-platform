@@ -8,6 +8,9 @@
     @play="startPlayback"
   />
 
+  <!-- Transfer time modal (shown when all audios finish) -->
+  <TransferTimeModal :is-visible="showTransferTimeModal" @start="handleStartTransferTime" />
+
   <!-- Listening completed modal -->
   <ListeningCompletedModal :is-visible="listeningStore.isCompleted" />
 
@@ -121,6 +124,7 @@ import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useQuestionProcessor } from '@/composables/useQuestionProcessor'
 import AudioLoader from './AudioLoader.vue'
 import ListeningCompletedModal from './ListeningCompletedModal.vue'
+import TransferTimeModal from './TransferTimeModal.vue'
 import { QuestionItem, ParentQuestion } from './questions'
 
 const listeningStore = useListeningStore()
@@ -135,6 +139,7 @@ const {
   isStarted,
   loadedCount,
   totalAudios,
+  allAudiosFinished,
   startPlayback,
   onAudioCanPlay,
   onAudioTimeUpdate,
@@ -142,6 +147,23 @@ const {
   onAudioPlay,
   onAudioPause,
 } = useListeningAudio()
+
+// Transfer time modal
+const showTransferTimeModal = ref(false)
+
+// Watch for all audios finished to show transfer time modal
+watch(allAudiosFinished, (finished) => {
+  if (finished && !listeningStore.isInTransferTime && !listeningStore.isCompleted) {
+    showTransferTimeModal.value = true
+  }
+})
+
+// Handle start transfer time
+const handleStartTransferTime = () => {
+  showTransferTimeModal.value = false
+  allAudiosFinished.value = false
+  listeningStore.startTransferTime()
+}
 
 // Question processor composable
 const { processedQuestions, restoreGapValues, setupInputListener } = useQuestionProcessor({

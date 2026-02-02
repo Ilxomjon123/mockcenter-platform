@@ -144,7 +144,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSettingsStore, type ContrastMode, type TextSize } from '@/stores/settingsStore'
 
 interface Props {
@@ -157,6 +157,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const route = useRoute()
 const settingsStore = useSettingsStore()
 
 type ViewType = 'main' | 'contrast' | 'textSize'
@@ -196,7 +197,9 @@ const goBack = () => {
 
 const goToSubmission = () => {
   close()
-  router.push('/submission')
+  // Pass current section as query param so we can return to it
+  const currentSection = route.name as string
+  router.push({ path: '/submission', query: { from: currentSection } })
 }
 
 const selectContrast = (value: ContrastMode) => {

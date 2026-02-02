@@ -1,6 +1,6 @@
 <template>
   <div class="exam-view">
-    <ExamHeader />
+    <ExamHeader :timer="transferTimer" :is-timer-low="isTransferTimerLow" />
 
     <div class="main-content">
       <ListeningQuestionPanel ref="questionPanelRef" />
@@ -21,15 +21,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
 import ListeningQuestionPanel from '@/components/listening/ListeningQuestionPanel.vue'
 import { useListeningStore } from '@/stores/listeningStore'
+import { useReadingStore } from '@/stores/readingStore'
+import { useWritingStore } from '@/stores/writingStore'
+import { useExamNavigation } from '@/composables/useExamNavigation'
 
+const router = useRouter()
 const listeningStore = useListeningStore()
+const readingStore = useReadingStore()
+const writingStore = useWritingStore()
+const { getNextSection } = useExamNavigation()
+
 const questionPanelRef = ref<InstanceType<typeof ListeningQuestionPanel> | null>(null)
 const currentQuestion = ref(0)
+
+// Transfer time timer
+const currentTime = ref(Date.now())
+let timerInterval: number | null = null
+
+const transferTimer = computed(() => {
+  if (!listeningStore.isInTransferTime || !listeningStore.transferTimeEnd) {
+    return ''
+  }
+
+  const remaining = Math.max(0, listeningStore.transferTimeEnd - currentTime.value)
+  const minutes = Math.floor(remaining / 60000)
+  const seconds = Math.floor((remaining % 60000) / 1000)
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+})
+
+const isTransferTimerLow = computed(() => {
+  if (!listeningStore.isInTransferTime || !listeningStore.transferTimeEnd) {
+    return false
+  }
+  const remaining = listeningStore.transferTimeEnd - currentTime.value
+  return remaining <= 30000 // 30 seconds
+})
+
+// Watch for transfer time end
+watch([() => listeningStore.isInTransferTime, currentTime], ([isInTransferTime]) => {
+  if (isInTransferTime && listeningStore.transferTimeEnd) {
+    if (currentTime.value >= listeningStore.transferTimeEnd) {
+      // Transfer time ended - complete listening and go to next section
+      listeningStore.endTransferTime()
+      goToNextSection()
+    }
+  }
+})
+
+const goToNextSection = () => {
+  const nextSection = getNextSection('listening')
+
+  if (nextSection === 'reading') {
+    readingStore.setStartTime(Date.now())
+    router.push({ name: 'reading' })
+  } else if (nextSection === 'writing') {
+    writingStore.setStartTime(Date.now())
+    router.push({ name: 'writing' })
+  } else {
+    router.push({ name: 'submission' })
+  }
+}
 
 // Handle focus/click on inputs to update footer
 const handleInputFocus = (e: Event) => {
@@ -69,11 +127,20 @@ const handleInputFocus = (e: Event) => {
 onMounted(() => {
   document.addEventListener('focusin', handleInputFocus)
   document.addEventListener('click', handleInputFocus)
+
+  // Start timer interval for transfer time
+  timerInterval = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
 })
 
 onUnmounted(() => {
   document.removeEventListener('focusin', handleInputFocus)
   document.removeEventListener('click', handleInputFocus)
+
+  if (timerInterval) {
+    clearInterval(timerInterval)
+  }
 })
 
 const handleQuestionChange = async (questionNumber: number): Promise<void> => {
