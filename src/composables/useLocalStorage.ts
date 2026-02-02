@@ -10,13 +10,17 @@ export interface StorageOptions<T> {
   deserializer?: (value: string) => T
 }
 
+// Debounce timers cache
+const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
 /**
- * Generic localStorage utility with type safety
+ * Generic localStorage utility with type safety and debounced saving
  * @param key - localStorage key
  * @param defaultValue - Optional default value if nothing is stored
- * @returns Object with load, save, and remove methods
+ * @param debounceMs - Debounce delay in milliseconds (default: 300)
+ * @returns Object with load, save, saveImmediate, and remove methods
  */
-export function useLocalStorage<T>(key: string, defaultValue?: T) {
+export function useLocalStorage<T>(key: string, defaultValue?: T, debounceMs: number = 300) {
   /**
    * Load value from localStorage
    * @returns The stored value or defaultValue if not found/error
@@ -34,10 +38,17 @@ export function useLocalStorage<T>(key: string, defaultValue?: T) {
   }
 
   /**
-   * Save value to localStorage
+   * Save value to localStorage immediately (no debounce)
    * @param value - Value to store
    */
-  const save = (value: T): void => {
+  const saveImmediate = (value: T): void => {
+    // Clear any pending debounced save
+    const existingTimer = debounceTimers.get(key)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+      debounceTimers.delete(key)
+    }
+
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch (error) {
@@ -46,9 +57,40 @@ export function useLocalStorage<T>(key: string, defaultValue?: T) {
   }
 
   /**
+   * Save value to localStorage with debounce
+   * @param value - Value to store
+   */
+  const save = (value: T): void => {
+    // Clear existing timer for this key
+    const existingTimer = debounceTimers.get(key)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+    }
+
+    // Set new debounced save
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(key, JSON.stringify(value))
+      } catch (error) {
+        console.error(`Error saving to localStorage (key: ${key}):`, error)
+      }
+      debounceTimers.delete(key)
+    }, debounceMs)
+
+    debounceTimers.set(key, timer)
+  }
+
+  /**
    * Remove value from localStorage
    */
   const remove = (): void => {
+    // Clear any pending save
+    const existingTimer = debounceTimers.get(key)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+      debounceTimers.delete(key)
+    }
+
     try {
       localStorage.removeItem(key)
     } catch (error) {
@@ -59,6 +101,7 @@ export function useLocalStorage<T>(key: string, defaultValue?: T) {
   return {
     load,
     save,
+    saveImmediate,
     remove,
   }
 }

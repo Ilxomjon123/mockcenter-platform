@@ -1,6 +1,18 @@
 /* Minimal base styles for the application */
 /* Note: Most styles are defined in App.vue and component-specific styles */
 
+/* CSS Custom Properties for theming */
+:root {
+  --color-primary: #3b82f6;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
+  --color-bg: #f8fafc;
+  --color-border: #e5e7eb;
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --scrollbar-width: 8px;
+}
+
 *,
 *::before,
 *::after {
@@ -28,7 +40,7 @@ html {
 
 /* Focus styles for accessibility */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -39,7 +51,7 @@ html {
 
 /* Selection color */
 ::selection {
-  background: #3b82f6;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -49,13 +61,13 @@ a,
 input,
 textarea,
 select {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal);
 }
 
 /* Improved scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
 }
 
 ::-webkit-scrollbar-track {
@@ -69,6 +81,12 @@ select {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* =====================================================
@@ -116,6 +134,34 @@ select {
   color: #ffffff !important;
 }
 
+/* Force white color on all text elements */
+:root.contrast-white-on-black span,
+:root.contrast-white-on-black p,
+:root.contrast-white-on-black label,
+:root.contrast-white-on-black h1,
+:root.contrast-white-on-black h2,
+:root.contrast-white-on-black h3,
+:root.contrast-white-on-black h4,
+:root.contrast-white-on-black h5,
+:root.contrast-white-on-black h6,
+:root.contrast-white-on-black li,
+:root.contrast-white-on-black td,
+:root.contrast-white-on-black th,
+:root.contrast-white-on-black .option-label,
+:root.contrast-white-on-black .option-text,
+:root.contrast-white-on-black .question-text,
+:root.contrast-white-on-black .part-label,
+:root.contrast-white-on-black .instruction,
+:root.contrast-white-on-black .header-info,
+:root.contrast-white-on-black .test-id,
+:root.contrast-white-on-black .timer-display,
+:root.contrast-white-on-black .word-count,
+:root.contrast-white-on-black .part-count,
+:root.contrast-white-on-black .question-number,
+:root.contrast-white-on-black .question-index {
+  color: #ffffff !important;
+}
+
 :root.contrast-white-on-black a {
   color: #66b3ff !important;
 }
@@ -136,6 +182,155 @@ select {
 :root.contrast-white-on-black input::placeholder,
 :root.contrast-white-on-black textarea::placeholder {
   color: #888888 !important;
+}
+
+/* Exam Footer specific styles for white-on-black */
+:root.contrast-white-on-black .exam-footer {
+  background-color: #000000 !important;
+}
+
+:root.contrast-white-on-black .question-index {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+:root.contrast-white-on-black .question-index:hover {
+  background: #2a2a2a !important;
+  border-color: #666666 !important;
+}
+
+:root.contrast-white-on-black .question-index.active {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .question-index.answered:not(.active) {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-color: #22c55e !important;
+}
+
+:root.contrast-white-on-black .part-count {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .part-label {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .part-label:hover {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .part-label.active {
+  background: #333333 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .float-btn:disabled {
+  background: #333333 !important;
+  color: #666666 !important;
+}
+
+/* Header info box */
+:root.contrast-white-on-black .header-info {
+  background: #1a1a1a !important;
+  border-color: #444444 !important;
+}
+
+/* Timer display */
+:root.contrast-white-on-black .timer-display {
+  background: #1a1a1a !important;
+  border-color: #444444 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .timer-display.timer-low {
+  background: #3a1a1a !important;
+  border-color: #aa4444 !important;
+  color: #ff6666 !important;
+}
+
+/* Option item (checkbox/radio containers) */
+:root.contrast-white-on-black .option-item {
+  background: #1a1a1a !important;
+  border-color: #444444 !important;
+}
+
+:root.contrast-white-on-black .option-item:hover {
+  background: #2a2a2a !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .option-item.selected {
+  background: #1a2744 !important;
+  border-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .option-indicator {
+  background: #1a1a1a !important;
+  border-color: #666666 !important;
+}
+
+:root.contrast-white-on-black .option-item.selected .option-indicator {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Resizable divider */
+:root.contrast-white-on-black .resizable-divider {
+  background: transparent !important;
+}
+
+:root.contrast-white-on-black .resizable-divider:hover {
+  background: #333333 !important;
+}
+
+:root.contrast-white-on-black .resizable-divider.dragging {
+  background: #444444 !important;
+}
+
+:root.contrast-white-on-black .divider-line {
+  background: #555555 !important;
+}
+
+:root.contrast-white-on-black .resizable-divider:hover .divider-line,
+:root.contrast-white-on-black .resizable-divider.dragging .divider-line {
+  background: #888888 !important;
+}
+
+/* Modals */
+:root.contrast-white-on-black .confirm-modal,
+:root.contrast-white-on-black .options-modal,
+:root.contrast-white-on-black .modal-content,
+:root.contrast-white-on-black .completed-modal {
+  background: #1a1a1a !important;
+  border: 2px solid #555555 !important;
+  box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .modal-title,
+:root.contrast-white-on-black .modal-message {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .modal-icon.warning,
+:root.contrast-white-on-black .modal-icon.danger,
+:root.contrast-white-on-black .modal-icon.info {
+  background: #2a2a2a !important;
+}
+
+:root.contrast-white-on-black .btn-cancel {
+  background: #333333 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .btn-cancel:hover {
+  background: #444444 !important;
 }
 
 /* Yellow on Black Mode */
@@ -179,6 +374,34 @@ select {
   color: #ffff00 !important;
 }
 
+/* Force yellow color on all text elements */
+:root.contrast-yellow-on-black span,
+:root.contrast-yellow-on-black p,
+:root.contrast-yellow-on-black label,
+:root.contrast-yellow-on-black h1,
+:root.contrast-yellow-on-black h2,
+:root.contrast-yellow-on-black h3,
+:root.contrast-yellow-on-black h4,
+:root.contrast-yellow-on-black h5,
+:root.contrast-yellow-on-black h6,
+:root.contrast-yellow-on-black li,
+:root.contrast-yellow-on-black td,
+:root.contrast-yellow-on-black th,
+:root.contrast-yellow-on-black .option-label,
+:root.contrast-yellow-on-black .option-text,
+:root.contrast-yellow-on-black .question-text,
+:root.contrast-yellow-on-black .part-label,
+:root.contrast-yellow-on-black .instruction,
+:root.contrast-yellow-on-black .header-info,
+:root.contrast-yellow-on-black .test-id,
+:root.contrast-yellow-on-black .timer-display,
+:root.contrast-yellow-on-black .word-count,
+:root.contrast-yellow-on-black .part-count,
+:root.contrast-yellow-on-black .question-number,
+:root.contrast-yellow-on-black .question-index {
+  color: #ffff00 !important;
+}
+
 :root.contrast-yellow-on-black a {
   color: #ffff66 !important;
 }
@@ -201,49 +424,143 @@ select {
   color: #999900 !important;
 }
 
+/* Exam Footer specific styles for yellow-on-black */
+:root.contrast-yellow-on-black .exam-footer {
+  background-color: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .question-index {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .question-index:hover {
+  background: #2a2a00 !important;
+  border-color: #666600 !important;
+}
+
+:root.contrast-yellow-on-black .question-index.active {
+  background: #666600 !important;
+  color: #ffff00 !important;
+  border-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .question-index.answered:not(.active) {
+  background: #336600 !important;
+  color: #ffff00 !important;
+  border-color: #448800 !important;
+}
+
+:root.contrast-yellow-on-black .part-count {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .part-label {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .part-label:hover {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .part-label.active {
+  background: #333300 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .float-btn:disabled {
+  background: #333300 !important;
+  color: #666600 !important;
+}
+
+/* Header info box */
+:root.contrast-yellow-on-black .header-info {
+  background: #1a1a00 !important;
+  border-color: #444400 !important;
+}
+
+/* Timer display */
+:root.contrast-yellow-on-black .timer-display {
+  background: #1a1a00 !important;
+  border-color: #444400 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .timer-display.timer-low {
+  background: #3a3a00 !important;
+  border-color: #aa8800 !important;
+  color: #ffaa00 !important;
+}
+
+/* Option item (checkbox/radio containers) */
+:root.contrast-yellow-on-black .option-item {
+  background: #1a1a00 !important;
+  border-color: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .option-item:hover {
+  background: #2a2a00 !important;
+  border-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .option-item.selected {
+  background: #333300 !important;
+  border-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .option-indicator {
+  background: #1a1a00 !important;
+  border-color: #666600 !important;
+}
+
+:root.contrast-yellow-on-black .option-item.selected .option-indicator {
+  background: #888800 !important;
+  border-color: #888800 !important;
+}
+
+/* Resizable divider */
+:root.contrast-yellow-on-black .resizable-divider {
+  background: transparent !important;
+}
+
+:root.contrast-yellow-on-black .resizable-divider:hover {
+  background: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .resizable-divider.dragging {
+  background: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .divider-line {
+  background: #555500 !important;
+}
+
+:root.contrast-yellow-on-black .resizable-divider:hover .divider-line,
+:root.contrast-yellow-on-black .resizable-divider.dragging .divider-line {
+  background: #888800 !important;
+}
+
 /* =====================================================
    TEXT SIZE MODES
    ===================================================== */
 
 :root.text-size-regular {
-  font-size: 16px;
+  --text-content-size: 16px;
 }
 
 :root.text-size-large {
-  font-size: 20px;
+  --text-content-size: 20px;
 }
 
 :root.text-size-extra-large {
-  font-size: 24px;
+  --text-content-size: 24px;
 }
 
-/* Apply text size to content areas only */
-:root.text-size-large .passage-content,
-:root.text-size-large .passage-content p,
-:root.text-size-large .question-content,
-:root.text-size-large .question-text,
-:root.text-size-large .questions-container,
-:root.text-size-large .questions-container p,
-:root.text-size-large .option-text,
-:root.text-size-large .instruction,
-:root.text-size-large .instructions,
-:root.text-size-large .answer-textarea,
-:root.text-size-large .gap-input,
-:root.text-size-large .part-label {
-  font-size: 20px !important;
-}
-
-:root.text-size-extra-large .passage-content,
-:root.text-size-extra-large .passage-content p,
-:root.text-size-extra-large .question-content,
-:root.text-size-extra-large .question-text,
-:root.text-size-extra-large .questions-container,
-:root.text-size-extra-large .questions-container p,
-:root.text-size-extra-large .option-text,
-:root.text-size-extra-large .instruction,
-:root.text-size-extra-large .instructions,
-:root.text-size-extra-large .answer-textarea,
-:root.text-size-extra-large .gap-input,
-:root.text-size-extra-large .part-label {
-  font-size: 24px !important;
+/* Apply text size to content areas using CSS custom property */
+:root.text-size-large :is(.passage-content, .passage-content p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .instruction, .instructions, .answer-textarea, .gap-input, .part-label),
+:root.text-size-extra-large :is(.passage-content, .passage-content p, .question-content, .question-text, .questions-container, .questions-container p, .option-text, .instruction, .instructions, .answer-textarea, .gap-input, .part-label) {
+  font-size: var(--text-content-size) !important;
 }

@@ -107,16 +107,27 @@ const partOrders = computed(() => {
   return Array.from({ length: props.totalPages }, (_, i) => i + 1)
 })
 
-// Get questions array for a part
-const getQuestionsForPart = (partOrder: number): number[] => {
-  const stats = props.partStats[partOrder]
-  if (!stats) return []
-
-  const questions: number[] = []
-  for (let i = stats.start; i <= stats.end; i++) {
-    questions.push(i)
+// Memoized questions cache per part - recomputed when partStats changes
+const questionsCache = computed(() => {
+  const cache: Record<number, number[]> = {}
+  for (const partOrder of partOrders.value) {
+    const stats = props.partStats[partOrder]
+    if (stats) {
+      const questions: number[] = []
+      for (let i = stats.start; i <= stats.end; i++) {
+        questions.push(i)
+      }
+      cache[partOrder] = questions
+    } else {
+      cache[partOrder] = []
+    }
   }
-  return questions
+  return cache
+})
+
+// Get questions array for a part (from cache)
+const getQuestionsForPart = (partOrder: number): number[] => {
+  return questionsCache.value[partOrder] || []
 }
 
 // Get total questions count for a part
@@ -126,17 +137,26 @@ const getTotalCount = (partOrder: number): number => {
   return stats.end - stats.start + 1
 }
 
-// Get answered questions count for a part
-const getAnsweredCount = (partOrder: number): number => {
-  const questions = getQuestionsForPart(partOrder)
-  let count = 0
-  for (const qNum of questions) {
-    const answer = props.answers[qNum]
-    if (answer !== undefined && answer !== '') {
-      count++
+// Memoized answered counts per part
+const answeredCounts = computed(() => {
+  const counts: Record<number, number> = {}
+  for (const partOrder of partOrders.value) {
+    const questions = questionsCache.value[partOrder] || []
+    let count = 0
+    for (let i = 0; i < questions.length; i++) {
+      const answer = props.answers[questions[i]!]
+      if (answer !== undefined && answer !== '') {
+        count++
+      }
     }
+    counts[partOrder] = count
   }
-  return count
+  return counts
+})
+
+// Get answered questions count for a part (from cache)
+const getAnsweredCount = (partOrder: number): number => {
+  return answeredCounts.value[partOrder] || 0
 }
 
 // Check if a question is answered
@@ -160,11 +180,15 @@ const isPartsOnlyMode = computed(() => {
   return Object.keys(props.partStats).length === 0
 })
 
-// Get all questions across all parts
+// Get all questions across all parts (using cached values)
 const allQuestions = computed(() => {
   const questions: number[] = []
+  const cache = questionsCache.value
   for (const partOrder of partOrders.value) {
-    questions.push(...getQuestionsForPart(partOrder))
+    const partQuestions = cache[partOrder]
+    if (partQuestions) {
+      questions.push(...partQuestions)
+    }
   }
   return questions
 })

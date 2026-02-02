@@ -17,7 +17,8 @@ interface StoredListeningState {
   questionHighlights: Record<number, string>
 }
 
-const storage = useLocalStorage<StoredListeningState>(STORAGE_KEY)
+// Use longer debounce for audio time to reduce writes
+const storage = useLocalStorage<StoredListeningState>(STORAGE_KEY, undefined, 500)
 
 export const useListeningStore = defineStore('listening', {
   state: (): ListeningState => {
@@ -77,43 +78,52 @@ export const useListeningStore = defineStore('listening', {
       const sortedParts = [...this.test.parts].sort((a, b) => a.order - b.order)
       let currentCounter = 1
 
+      // Pre-compiled regex for better performance
+      const gapRegex = /\[gap\]/g
+      const matchRegex = /\[match\]/g
+
       const countGapsAndMatches = (text: string | null | undefined): number => {
         if (!text) return 0
-        const gaps = (text.match(/\[gap\]/g) || []).length
-        const matches = (text.match(/\[match\]/g) || []).length
+        const gaps = text.match(gapRegex)?.length ?? 0
+        const matches = text.match(matchRegex)?.length ?? 0
         return gaps + matches
       }
 
-      const processQuestion = (q: QuestionRaw) => {
-        if (
-          q.type === QuestionType.TRUE_FALSE_NOT_GIVEN ||
-          q.type === QuestionType.YES_NO_NOT_GIVEN
-        ) {
+      const processQuestion = (q: QuestionRaw): void => {
+        const qType = q.type
+        if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
-        } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
+        } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += q.answers_count || 1
         }
         currentCounter += countGapsAndMatches(q.content)
 
-        if (q.children && q.children.length > 0) {
-          const sortedChildren = [...q.children].sort((a, b) => a.order - b.order)
-          sortedChildren.forEach(processQuestion)
+        const children = q.children
+        if (children && children.length > 0) {
+          const sortedChildren = [...children].sort((a, b) => a.order - b.order)
+          for (let i = 0; i < sortedChildren.length; i++) {
+            processQuestion(sortedChildren[i]!)
+          }
         }
       }
 
-      sortedParts.forEach((part) => {
+      for (let i = 0; i < sortedParts.length; i++) {
+        const part = sortedParts[i]!
         const start = currentCounter
         currentCounter += countGapsAndMatches(part.content)
 
-        if (part.questions) {
-          const sortedQuestions = [...part.questions]
+        const questions = part.questions
+        if (questions) {
+          const sortedQuestions = [...questions]
             .filter((q) => !q.parent_id)
             .sort((a, b) => a.order - b.order)
-          sortedQuestions.forEach(processQuestion)
+          for (let j = 0; j < sortedQuestions.length; j++) {
+            processQuestion(sortedQuestions[j]!)
+          }
         }
 
         stats[part.order] = { start, end: currentCounter - 1 }
-      })
+      }
 
       return stats
     },

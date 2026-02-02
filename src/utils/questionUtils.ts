@@ -2,27 +2,35 @@
  * Common utilities for processing IELTS exam questions (Listening and Reading)
  */
 
+// Pre-compiled regex patterns for better performance
+const GAP_REGEX = /\[gap\]/g
+const MATCH_REGEX = /\[match\]/g
+
+// Reusable span element for measuring text width
+let measureSpan: HTMLSpanElement | null = null
+
+const getMeasureSpan = (): HTMLSpanElement => {
+  if (!measureSpan) {
+    measureSpan = document.createElement('span')
+    measureSpan.style.cssText = 'visibility:hidden;position:absolute;white-space:pre'
+    document.body.appendChild(measureSpan)
+  }
+  return measureSpan
+}
+
 /**
  * Auto-resizes an input element based on its content
  * @param input The input element to resize
  */
 export function autoResizeInput(input: HTMLInputElement): void {
   const minWidth = 80
-  const padding = 20 // Account for padding
+  const padding = 20
 
-  // Create a temporary span to measure text width
-  const span = document.createElement('span')
-  span.style.visibility = 'hidden'
-  span.style.position = 'absolute'
-  span.style.whiteSpace = 'pre'
+  const span = getMeasureSpan()
   span.style.font = window.getComputedStyle(input).font
   span.textContent = input.value || input.placeholder || ''
 
-  document.body.appendChild(span)
   const textWidth = span.offsetWidth
-  document.body.removeChild(span)
-
-  // Set the width based on content, with min and max constraints
   const newWidth = Math.max(minWidth, textWidth + padding)
   input.style.width = `${newWidth}px`
 }
@@ -50,12 +58,17 @@ export function processQuestionText(
   if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
 
   let counter = startCounter
+
+  // Reset regex lastIndex for global patterns
+  GAP_REGEX.lastIndex = 0
+  MATCH_REGEX.lastIndex = 0
+
   const html = text
-    .replace(/\[gap\]/g, () => {
+    .replace(GAP_REGEX, () => {
       counter++
       return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}">`
     })
-    .replace(/\[match\]/g, () => {
+    .replace(MATCH_REGEX, () => {
       counter++
       return `<span class="match-dropzone" draggable="true" data-match="${counter}" data-gap="${counter}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
     })
@@ -77,18 +90,30 @@ export function processDropdownText(
 ): { html: string; nextCounter: number } {
   if (!text || typeof text !== 'string') return { html: '', nextCounter: startCounter }
 
-  // Build options HTML
+  // Build options HTML once
   let optionsHtml = '<option value="">--</option>'
   if (Array.isArray(options)) {
-    optionsHtml += options.map((opt) => `<option value="${opt}">${opt}</option>`).join('')
+    const optionParts: string[] = []
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i]
+      optionParts.push(`<option value="${opt}">${opt}</option>`)
+    }
+    optionsHtml += optionParts.join('')
   } else if (options && typeof options === 'object') {
-    optionsHtml += Object.entries(options as Record<string, string>)
-      .map(([key, value]) => `<option value="${key}">${value}</option>`)
-      .join('')
+    const entries = Object.entries(options as Record<string, string>)
+    const optionParts: string[] = []
+    for (let i = 0; i < entries.length; i++) {
+      const [key, value] = entries[i]!
+      optionParts.push(`<option value="${key}">${value}</option>`)
+    }
+    optionsHtml += optionParts.join('')
   }
 
   let counter = startCounter
-  const html = text.replace(/\[match\]/g, () => {
+  // Reset regex lastIndex
+  MATCH_REGEX.lastIndex = 0
+
+  const html = text.replace(MATCH_REGEX, () => {
     counter++
     return `<span class="dropdown-wrapper"><select class="dropdown-select" data-gap="${counter}">${optionsHtml}</select></span>`
   })
@@ -111,26 +136,30 @@ export function restoreAnswersInContainer(
 
   // Reset all options to visible
   const allOptions = container.querySelectorAll<HTMLElement>('.draggable-option')
-  allOptions.forEach((opt) => opt.classList.remove(usedClass))
+  for (let i = 0; i < allOptions.length; i++) {
+    allOptions[i]!.classList.remove(usedClass)
+  }
 
   // Restore gap inputs
   const inputs = container.querySelectorAll<HTMLInputElement>('.gap-input')
-  inputs.forEach((input) => {
+  for (let i = 0; i < inputs.length; i++) {
+    const input = inputs[i]!
     const gapNumber = input.dataset.gap
-    if (!gapNumber) return
+    if (!gapNumber) continue
 
     const gapId = parseInt(gapNumber, 10)
     const savedValue = answers[gapId]
     if (savedValue !== undefined) {
       input.value = String(savedValue)
     }
-  })
+  }
 
   // Restore match dropzones and hide used options
   const dropzones = container.querySelectorAll<HTMLElement>('.match-dropzone')
-  dropzones.forEach((dropzone) => {
+  for (let i = 0; i < dropzones.length; i++) {
+    const dropzone = dropzones[i]!
     const matchNumber = dropzone.dataset.match
-    if (!matchNumber) return
+    if (!matchNumber) continue
 
     const matchId = parseInt(matchNumber, 10)
     const savedValue = answers[matchId]
@@ -146,18 +175,19 @@ export function restoreAnswersInContainer(
         usedOption.classList.add(usedClass)
       }
     }
-  })
+  }
 
   // Restore dropdown selects
   const dropdowns = container.querySelectorAll<HTMLSelectElement>('.dropdown-select')
-  dropdowns.forEach((dropdown) => {
+  for (let i = 0; i < dropdowns.length; i++) {
+    const dropdown = dropdowns[i]!
     const gapNumber = dropdown.dataset.gap
-    if (!gapNumber) return
+    if (!gapNumber) continue
 
     const gapId = parseInt(gapNumber, 10)
     const savedValue = answers[gapId]
     if (savedValue !== undefined) {
       dropdown.value = String(savedValue)
     }
-  })
+  }
 }

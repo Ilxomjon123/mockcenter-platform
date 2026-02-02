@@ -4,7 +4,8 @@ import type { ExamTestRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_writing_state'
-const storage = useLocalStorage<WritingState>(STORAGE_KEY)
+// Writing has longer text content, use longer debounce
+const storage = useLocalStorage<WritingState>(STORAGE_KEY, undefined, 1000)
 
 export const useWritingStore = defineStore('writing', {
   state: (): WritingState => {

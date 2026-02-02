@@ -4,7 +4,7 @@ import { QuestionType, type ExamTestRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'ielts_reading_state'
-const storage = useLocalStorage<ReadingState>(STORAGE_KEY)
+const storage = useLocalStorage<ReadingState>(STORAGE_KEY, undefined, 500)
 
 export const useReadingStore = defineStore('reading', {
   state: (): ReadingState => {
@@ -58,36 +58,48 @@ export const useReadingStore = defineStore('reading', {
       const stats: Record<number, { start: number; end: number }> = {}
       let currentCounter = 1
 
+      // Pre-compiled regex for better performance
+      const gapRegex = /\[gap\]/g
+      const matchRegex = /\[match\]/g
+
       const countGapsAndMatches = (text: string | null | undefined): number => {
         if (!text) return 0
-        const gaps = (text.match(/\[gap\]/g) || []).length
-        const matches = (text.match(/\[match\]/g) || []).length
+        const gaps = text.match(gapRegex)?.length ?? 0
+        const matches = text.match(matchRegex)?.length ?? 0
         return gaps + matches
       }
 
-      const processNode = (q: RawQuestion | RawChild) => {
-        if (q.type === QuestionType.TRUE_FALSE_NOT_GIVEN || q.type === QuestionType.YES_NO_NOT_GIVEN) {
+      const processNode = (q: RawQuestion | RawChild): void => {
+        const qType = q.type
+        if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
-        } else if (q.type === QuestionType.MULTIPLE_CHOICE) {
+        } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += (q as RawQuestion).answers_count || 1
         }
         currentCounter += countGapsAndMatches(q.content)
 
         if ('children' in q && q.children) {
-          ;[...q.children].sort((a, b) => a.order - b.order).forEach(processNode)
+          const sortedChildren = [...q.children].sort((a, b) => a.order - b.order)
+          for (let i = 0; i < sortedChildren.length; i++) {
+            processNode(sortedChildren[i]!)
+          }
         }
       }
 
-      parts.forEach((part) => {
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]!
         const start = currentCounter
         currentCounter += countGapsAndMatches(part.content)
 
-        if (part.questions) {
-          const sortedQuestions = [...part.questions].sort((a, b) => a.order - b.order)
-          sortedQuestions.forEach(processNode)
+        const questions = part.questions
+        if (questions) {
+          const sortedQuestions = [...questions].sort((a, b) => a.order - b.order)
+          for (let j = 0; j < sortedQuestions.length; j++) {
+            processNode(sortedQuestions[j]!)
+          }
         }
         stats[part.order] = { start, end: currentCounter - 1 }
-      })
+      }
       this.partStats = stats
 
       // If currentPart doesn't exist in passages, set to first one

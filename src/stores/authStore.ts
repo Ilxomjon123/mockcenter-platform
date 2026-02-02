@@ -29,6 +29,29 @@ interface SubmitResponse {
   results: ExamResults
 }
 
+// Cached store imports to avoid repeated dynamic imports
+let cachedStores: {
+  useListeningStore: typeof import('@/stores/listeningStore').useListeningStore
+  useReadingStore: typeof import('@/stores/readingStore').useReadingStore
+  useWritingStore: typeof import('@/stores/writingStore').useWritingStore
+} | null = null
+
+const getStores = async () => {
+  if (!cachedStores) {
+    const [listeningModule, readingModule, writingModule] = await Promise.all([
+      import('@/stores/listeningStore'),
+      import('@/stores/readingStore'),
+      import('@/stores/writingStore'),
+    ])
+    cachedStores = {
+      useListeningStore: listeningModule.useListeningStore,
+      useReadingStore: readingModule.useReadingStore,
+      useWritingStore: writingModule.useWritingStore,
+    }
+  }
+  return cachedStores
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const route = useRoute()
@@ -43,13 +66,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Get first available section based on test data
   const getFirstAvailableSection = async (): Promise<string> => {
-    const { useListeningStore } = await import('@/stores/listeningStore')
-    const { useReadingStore } = await import('@/stores/readingStore')
-    const { useWritingStore } = await import('@/stores/writingStore')
-
-    const listeningStore = useListeningStore()
-    const readingStore = useReadingStore()
-    const writingStore = useWritingStore()
+    const stores = await getStores()
+    const listeningStore = stores.useListeningStore()
+    const readingStore = stores.useReadingStore()
+    const writingStore = stores.useWritingStore()
 
     if (listeningStore.test?.parts?.length) {
       return '/listening'
@@ -71,27 +91,20 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await get<TestDataResponse>('/api/exam/test')
 
       if (response?.data) {
-        // Import stores dynamically to avoid circular dependencies
-        const { useListeningStore } = await import('@/stores/listeningStore')
-        const { useReadingStore } = await import('@/stores/readingStore')
-        const { useWritingStore } = await import('@/stores/writingStore')
-
+        const stores = await getStores()
         const testData = response.data
 
         // Save data to respective stores
         if (testData.listening) {
-          const listeningStore = useListeningStore()
-          listeningStore.setTest(testData)
+          stores.useListeningStore().setTest(testData)
         }
 
         if (testData.reading) {
-          const readingStore = useReadingStore()
-          readingStore.setTest(testData)
+          stores.useReadingStore().setTest(testData)
         }
 
         if (testData.writing) {
-          const writingStore = useWritingStore()
-          writingStore.setTest(testData)
+          stores.useWritingStore().setTest(testData)
         }
 
         return { success: true }
@@ -157,17 +170,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async (redirectPath: string = '/login') => {
     // Clear all store data
-    const { useListeningStore } = await import('@/stores/listeningStore')
-    const { useReadingStore } = await import('@/stores/readingStore')
-    const { useWritingStore } = await import('@/stores/writingStore')
-
-    const listeningStore = useListeningStore()
-    const readingStore = useReadingStore()
-    const writingStore = useWritingStore()
-
-    listeningStore.clearListening()
-    readingStore.clearReading()
-    writingStore.clearWriting()
+    const stores = await getStores()
+    stores.useListeningStore().clearListening()
+    stores.useReadingStore().clearReading()
+    stores.useWritingStore().clearWriting()
 
     // Clear token
     token.value = ''
@@ -215,13 +221,10 @@ export const useAuthStore = defineStore('auth', () => {
   const submitExam = async () => {
     isLoading.value = true
     try {
-      const { useListeningStore } = await import('@/stores/listeningStore')
-      const { useReadingStore } = await import('@/stores/readingStore')
-      const { useWritingStore } = await import('@/stores/writingStore')
-
-      const listeningStore = useListeningStore()
-      const readingStore = useReadingStore()
-      const writingStore = useWritingStore()
+      const stores = await getStores()
+      const listeningStore = stores.useListeningStore()
+      const readingStore = stores.useReadingStore()
+      const writingStore = stores.useWritingStore()
 
       const payload = {
         listening_answers: listeningStore.answers,
