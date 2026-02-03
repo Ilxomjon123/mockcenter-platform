@@ -435,4 +435,200 @@ button[type='submit'].loading {
     height: 32px;
   }
 }
+
+/* =====================================================
+   WHITE ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-white-on-black .container {
+  background: #000000;
+}
+
+:root.contrast-white-on-black .close-app-btn {
+  background: #111111;
+  border-color: #444444;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .close-app-btn:hover {
+  background: #330000;
+  border-color: #660000;
+  color: #ff6666;
+}
+
+:root.contrast-white-on-black .box {
+  background: #000000;
+  border-color: #444444;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
+}
+
+:root.contrast-white-on-black h2 {
+  color: #ff6666;
+}
+
+:root.contrast-white-on-black label {
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black input {
+  background: #111111;
+  border-color: #444444;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black input::placeholder {
+  color: #888888;
+}
+
+:root.contrast-white-on-black input:focus {
+  border-color: #ff6666;
+  box-shadow: 0 0 0 3px rgba(255, 102, 102, 0.2);
+}
+
+:root.contrast-white-on-black input:disabled {
+  background-color: #1a1a1a;
+  opacity: 0.5;
+}
+
+:root.contrast-white-on-black .toggle-password {
+  color: #888888;
+}
+
+:root.contrast-white-on-black .toggle-password:hover:not(:disabled) {
+  color: #ffffff;
+  background: #222222;
+}
+
+:root.contrast-white-on-black button[type='submit'] {
+  background: #ffffff;
+  color: #000000;
+}
+
+:root.contrast-white-on-black button[type='submit']:hover:not(:disabled) {
+  background: #e5e5e5;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+:root.contrast-white-on-black button[type='submit']:disabled {
+  background: #444444;
+  color: #888888;
+}
+
+:root.contrast-white-on-black button[type='submit'].loading {
+  background: #666666;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .alert.error {
+  background: #330000;
+  color: #ff9999;
+  border-color: #660000;
+}
+
+:root.contrast-white-on-black .alert.success {
+  background: #003300;
+  color: #99ff99;
+  border-color: #006600;
+}
+
+:root.contrast-white-on-black .close-btn {
+  color: inherit;
+}
+
+/* =====================================================
+   YELLOW ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-yellow-on-black .container {
+  background: #000000;
+}
+
+:root.contrast-yellow-on-black .close-app-btn {
+  background: #111100;
+  border-color: #444400;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .close-app-btn:hover {
+  background: #330000;
+  border-color: #660000;
+  color: #ff6666;
+}
+
+:root.contrast-yellow-on-black .box {
+  background: #000000;
+  border-color: #444400;
+  box-shadow: 0 4px 20px rgba(255, 255, 0, 0.03);
+}
+
+:root.contrast-yellow-on-black h2 {
+  color: #ff6666;
+}
+
+:root.contrast-yellow-on-black label {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black input {
+  background: #111100;
+  border-color: #444400;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black input::placeholder {
+  color: #888800;
+}
+
+:root.contrast-yellow-on-black input:focus {
+  border-color: #ffff00;
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.15);
+}
+
+:root.contrast-yellow-on-black input:disabled {
+  background-color: #0a0a00;
+  opacity: 0.5;
+}
+
+:root.contrast-yellow-on-black .toggle-password {
+  color: #888800;
+}
+
+:root.contrast-yellow-on-black .toggle-password:hover:not(:disabled) {
+  color: #ffff00;
+  background: #222200;
+}
+
+:root.contrast-yellow-on-black button[type='submit'] {
+  background: #ffff00;
+  color: #000000;
+}
+
+:root.contrast-yellow-on-black button[type='submit']:hover:not(:disabled) {
+  background: #cccc00;
+  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.3);
+}
+
+:root.contrast-yellow-on-black button[type='submit']:disabled {
+  background: #444400;
+  color: #888800;
+}
+
+:root.contrast-yellow-on-black button[type='submit'].loading {
+  background: #666600;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .alert.error {
+  background: #330000;
+  color: #ff9999;
+  border-color: #660000;
+}
+
+:root.contrast-yellow-on-black .alert.success {
+  background: #003300;
+  color: #99ff99;
+  border-color: #006600;
+}
+
+:root.contrast-yellow-on-black .close-btn {
+  color: inherit;
+}
 </style>
