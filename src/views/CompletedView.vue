@@ -2,9 +2,9 @@
   <div class="completed-view">
     <div class="content-card">
       <!-- Success Icon -->
-      <div class="icon-container">
+      <div class="icon-container" style="background: transparent !important;">
         <div class="success-bg">
-          <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="background: transparent !important;">
             <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
@@ -12,18 +12,18 @@
 
       <h1 class="title">Test Successfully Submitted</h1>
 
-      <div class="message-section">
-        <div class="results-container">
+      <div class="message-section" style="background: transparent !important;">
+        <div class="results-container" style="background: transparent !important;">
           <div class="result-card">
             <div class="result-header">Listening</div>
-            <div class="result-body">
+            <div class="result-body" style="background: transparent !important;">
               <div class="score">{{ results.listening_score }}</div>
               <div class="details">{{ results.listening_count }} correct answers</div>
             </div>
           </div>
           <div class="result-card">
             <div class="result-header">Reading</div>
-            <div class="result-body">
+            <div class="result-body" style="background: transparent !important;">
               <div class="score">{{ results.reading_score }}</div>
               <div class="details">{{ results.reading_count }} correct answers</div>
             </div>
@@ -232,5 +232,148 @@ const goToLogin = () => {
 .back-to-login-btn .btn-icon {
   width: 20px;
   height: 20px;
+}
+</style>
+
+<style>
+/* =====================================================
+   CONTRAST MODE STYLES FOR COMPLETED VIEW
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black .completed-view {
+  background: #000000 !important;
+}
+
+:root.contrast-white-on-black .completed-view .content-card {
+  background: #0a0a0a !important;
+  border: 2px solid #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .completed-view .icon-container,
+:root.contrast-white-on-black .completed-view .success-bg,
+:root.contrast-white-on-black .completed-view .success-icon,
+:root.contrast-white-on-black .completed-view .message-section,
+:root.contrast-white-on-black .completed-view .results-container,
+:root.contrast-white-on-black .completed-view .result-body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:root.contrast-white-on-black .completed-view .success-bg {
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+:root.contrast-white-on-black .completed-view .title {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .completed-view .result-card {
+  background: #111111 !important;
+  border-color: #333333 !important;
+}
+
+:root.contrast-white-on-black .completed-view .result-header {
+  color: #aaaaaa !important;
+  background: #1a1a1a !important;
+  padding: 12px !important;
+  margin: -20px -12px 12px -12px !important;
+  border-radius: 14px 14px 0 0 !important;
+}
+
+:root.contrast-white-on-black .completed-view .result-body .score {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .completed-view .result-body .details {
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .completed-view .writing-notice {
+  background: #111111 !important;
+  color: #cccccc !important;
+  border-left-color: #555555 !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-box {
+  background: #0a1628 !important;
+  border-color: #1e4b8f !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-title {
+  color: #60a5fa !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-box p {
+  color: #cccccc !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black .completed-view {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .content-card {
+  background: #0a0a00 !important;
+  border: 2px solid #888800 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .icon-container,
+:root.contrast-yellow-on-black .completed-view .success-bg,
+:root.contrast-yellow-on-black .completed-view .success-icon,
+:root.contrast-yellow-on-black .completed-view .message-section,
+:root.contrast-yellow-on-black .completed-view .results-container,
+:root.contrast-yellow-on-black .completed-view .result-body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .success-bg {
+  background: #669900 !important;
+  box-shadow: 0 0 0 8px rgba(102, 153, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .title {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-card {
+  background: #111100 !important;
+  border-color: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-header {
+  color: #aaaa00 !important;
+  background: #1a1a00 !important;
+  padding: 12px !important;
+  margin: -20px -12px 12px -12px !important;
+  border-radius: 14px 14px 0 0 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-body .score {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-body .details {
+  color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .writing-notice {
+  background: #111100 !important;
+  color: #cccc00 !important;
+  border-left-color: #555500 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-box {
+  background: #0a1600 !important;
+  border-color: #445500 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-title {
+  color: #aaff00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-box p {
+  color: #cccc00 !important;
 }
 </style>

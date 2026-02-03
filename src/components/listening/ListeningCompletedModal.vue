@@ -2,11 +2,23 @@
   <div v-if="isVisible" class="modal-overlay">
     <div class="modal-content">
       <!-- Checkmark icon -->
-      <div class="icon-container">
-        <svg class="checkmark-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#10b981" />
-          <path d="M8 12l2.5 2.5L16 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <div class="icon-container" style="background: transparent !important">
+        <div class="success-bg">
+          <svg
+            class="checkmark-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6L9 17L4 12"
+              stroke="white"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
       </div>
 
       <h2 class="modal-title">Listening Section Completed</h2>
@@ -15,18 +27,40 @@
         {{ descriptionText }}
       </p>
 
-      <div class="button-group">
+      <div class="button-group" style="background: transparent !important">
         <button v-if="showBackButton" class="back-button" @click="goBack">
-          <svg class="arrow-icon back" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            class="arrow-icon back"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 12H5M12 19l-7-7 7-7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           Back
         </button>
 
         <button class="continue-button" @click="goToNextSection">
           {{ buttonText }}
-          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            class="arrow-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14M12 5l7 7-7 7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </button>
       </div>
@@ -50,7 +84,7 @@ const router = useRouter()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
-const { getNextSection, isLastSection } = useExamNavigation()
+const { getNextSection } = useExamNavigation()
 
 const showBackButton = computed(() => listeningStore.isManualSubmit)
 
@@ -114,12 +148,25 @@ const goToNextSection = () => {
 }
 
 .icon-container {
+  display: flex;
+  justify-content: center;
   margin-bottom: 24px;
 }
 
-.checkmark-icon {
+.success-bg {
   width: 80px;
   height: 80px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.15);
+}
+
+.checkmark-icon {
+  width: 40px;
+  height: 40px;
 }
 
 .modal-title {
@@ -187,5 +234,28 @@ const goToNextSection = () => {
 
 .arrow-icon.back {
   transform: scaleX(1);
+}
+</style>
+
+<style>
+/* Contrast mode overrides - unscoped to work with :root */
+:root.contrast-white-on-black .icon-container,
+:root.contrast-yellow-on-black .icon-container,
+:root.contrast-white-on-black .checkmark-icon,
+:root.contrast-yellow-on-black .checkmark-icon,
+:root.contrast-white-on-black .button-group,
+:root.contrast-yellow-on-black .button-group {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:root.contrast-white-on-black .success-bg {
+  background: #10b981 !important;
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .success-bg {
+  background: #669900 !important;
+  box-shadow: 0 0 0 8px rgba(102, 153, 0, 0.2) !important;
 }
 </style>

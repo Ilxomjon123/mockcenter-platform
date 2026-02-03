@@ -126,7 +126,7 @@ select {
 :root.contrast-white-on-black select,
 :root.contrast-white-on-black button:not(.submission-btn),
 :root.contrast-white-on-black .btn:not(.btn-primary),
-:root.contrast-white-on-black div,
+:root.contrast-white-on-black div:not(.icon-container):not(.button-group):not(.modal-actions):not(.modal-description),
 :root.contrast-white-on-black section,
 :root.contrast-white-on-black article,
 :root.contrast-white-on-black aside {
@@ -491,7 +491,7 @@ select {
 :root.contrast-yellow-on-black select,
 :root.contrast-yellow-on-black button:not(.submission-btn),
 :root.contrast-yellow-on-black .btn:not(.btn-primary),
-:root.contrast-yellow-on-black div,
+:root.contrast-yellow-on-black div:not(.icon-container):not(.button-group):not(.modal-actions):not(.modal-description),
 :root.contrast-yellow-on-black section,
 :root.contrast-yellow-on-black article,
 :root.contrast-yellow-on-black aside {
@@ -2018,6 +2018,15 @@ select {
   box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4) !important;
 }
 
+/* Modal Actions - remove extra spacing */
+:root.contrast-white-on-black .modal-actions,
+:root.contrast-white-on-black .confirm-modal .modal-actions {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
 /* Options Modal specific */
 :root.contrast-white-on-black .options-list {
   background: #0d0d0d !important;
@@ -2124,9 +2133,29 @@ select {
   color: inherit !important;
 }
 
-/* Button group */
+/* Button group - remove extra spacing */
 :root.contrast-white-on-black .button-group {
   gap: 12px;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* Icon container - remove black background */
+:root.contrast-white-on-black .icon-container,
+:root.contrast-white-on-black .icon-container svg,
+:root.contrast-white-on-black .success-icon,
+:root.contrast-white-on-black .checkmark-icon {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Modal description */
+:root.contrast-white-on-black .modal-description {
+  background: transparent !important;
 }
 
 /* Loader spinner */
@@ -2273,6 +2302,40 @@ select {
   color: #ffff00 !important;
   border: 1px solid #aa4400 !important;
   box-shadow: 0 4px 15px rgba(136, 51, 0, 0.4) !important;
+}
+
+/* Modal Actions - remove extra spacing */
+:root.contrast-yellow-on-black .modal-actions,
+:root.contrast-yellow-on-black .confirm-modal .modal-actions {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* Button group - remove extra spacing */
+:root.contrast-yellow-on-black .button-group {
+  gap: 12px;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* Icon container - remove black background */
+:root.contrast-yellow-on-black .icon-container,
+:root.contrast-yellow-on-black .icon-container svg,
+:root.contrast-yellow-on-black .success-icon,
+:root.contrast-yellow-on-black .checkmark-icon {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Modal description */
+:root.contrast-yellow-on-black .modal-description {
+  background: transparent !important;
 }
 
 /* Options Modal specific */
