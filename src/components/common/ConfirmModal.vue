@@ -278,4 +278,120 @@ const handleCancel = () => {
     transform: scale(0.95);
   }
 }
+
+/* =====================================================
+   WHITE ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-white-on-black .confirm-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:root.contrast-white-on-black .confirm-modal {
+  background: #000000;
+  border: 1px solid #444444;
+  box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.1);
+}
+
+:root.contrast-white-on-black .modal-icon.warning {
+  background: #332800;
+  border: 1px solid #665200;
+}
+
+:root.contrast-white-on-black .modal-icon.warning svg {
+  color: #fbbf24;
+}
+
+:root.contrast-white-on-black .modal-icon.danger {
+  background: #330000;
+  border: 1px solid #660000;
+}
+
+:root.contrast-white-on-black .modal-icon.danger svg {
+  color: #f87171;
+}
+
+:root.contrast-white-on-black .modal-icon.info {
+  background: #001433;
+  border: 1px solid #002966;
+}
+
+:root.contrast-white-on-black .modal-icon.info svg {
+  color: #60a5fa;
+}
+
+:root.contrast-white-on-black .modal-title {
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .modal-message {
+  color: #cccccc;
+}
+
+:root.contrast-white-on-black .btn-cancel {
+  background: #222222;
+  color: #ffffff;
+  border: 1px solid #444444;
+}
+
+:root.contrast-white-on-black .btn-cancel:hover {
+  background: #333333;
+}
+
+/* =====================================================
+   YELLOW ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-yellow-on-black .confirm-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+:root.contrast-yellow-on-black .confirm-modal {
+  background: #000000;
+  border: 1px solid #444400;
+  box-shadow: 0 25px 50px -12px rgba(255, 255, 0, 0.05);
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning {
+  background: #332800;
+  border: 1px solid #665200;
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning svg {
+  color: #ffcc00;
+}
+
+:root.contrast-yellow-on-black .modal-icon.danger {
+  background: #330000;
+  border: 1px solid #660000;
+}
+
+:root.contrast-yellow-on-black .modal-icon.danger svg {
+  color: #ff6666;
+}
+
+:root.contrast-yellow-on-black .modal-icon.info {
+  background: #001433;
+  border: 1px solid #002966;
+}
+
+:root.contrast-yellow-on-black .modal-icon.info svg {
+  color: #6699ff;
+}
+
+:root.contrast-yellow-on-black .modal-title {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .modal-message {
+  color: #cccc00;
+}
+
+:root.contrast-yellow-on-black .btn-cancel {
+  background: #222200;
+  color: #ffff00;
+  border: 1px solid #444400;
+}
+
+:root.contrast-yellow-on-black .btn-cancel:hover {
+  background: #333300;
+}
 </style>

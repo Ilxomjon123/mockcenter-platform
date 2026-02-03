@@ -628,4 +628,211 @@ const confirmSubmit = async () => {
     transform: rotate(360deg);
   }
 }
+
+/* =====================================================
+   WHITE ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-white-on-black .submission-view {
+  background: #000000;
+}
+
+:root.contrast-white-on-black .submission-card {
+  background: #000000;
+  border: 1px solid #444444;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
+}
+
+:root.contrast-white-on-black .card-header h1 {
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .header-icon {
+  color: #4ade80;
+}
+
+:root.contrast-white-on-black .description {
+  color: #cccccc;
+}
+
+:root.contrast-white-on-black .progress-item {
+  background: #111111;
+  border-color: #444444;
+}
+
+:root.contrast-white-on-black .progress-item:hover {
+  background: #1a1a1a;
+  border-color: #555555;
+}
+
+:root.contrast-white-on-black .progress-label {
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .progress-status.completed {
+  color: #4ade80;
+}
+
+:root.contrast-white-on-black .progress-status.in-progress {
+  color: #fbbf24;
+}
+
+:root.contrast-white-on-black .progress-status.not-started {
+  color: #888888;
+}
+
+:root.contrast-white-on-black .progress-count {
+  background: #333333;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .progress-icon.listening {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+}
+
+:root.contrast-white-on-black .progress-icon.reading {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+:root.contrast-white-on-black .progress-icon.writing {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+:root.contrast-white-on-black .warning-box {
+  background: #1a1a00;
+  border-color: #666600;
+}
+
+:root.contrast-white-on-black .warning-box svg {
+  color: #fbbf24;
+}
+
+:root.contrast-white-on-black .warning-box span {
+  color: #fef08a;
+}
+
+:root.contrast-white-on-black .btn-secondary {
+  background: #111111;
+  border-color: #444444;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .btn-secondary:hover {
+  background: #222222;
+  border-color: #555555;
+}
+
+:root.contrast-white-on-black .btn-primary {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+:root.contrast-white-on-black .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5);
+}
+
+/* =====================================================
+   YELLOW ON BLACK CONTRAST MODE
+   ===================================================== */
+:root.contrast-yellow-on-black .submission-view {
+  background: #000000;
+}
+
+:root.contrast-yellow-on-black .submission-card {
+  background: #000000;
+  border: 1px solid #444400;
+  box-shadow: 0 4px 20px rgba(255, 255, 0, 0.03);
+}
+
+:root.contrast-yellow-on-black .card-header h1 {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .header-icon {
+  color: #aaff00;
+}
+
+:root.contrast-yellow-on-black .description {
+  color: #cccc00;
+}
+
+:root.contrast-yellow-on-black .progress-item {
+  background: #111100;
+  border-color: #444400;
+}
+
+:root.contrast-yellow-on-black .progress-item:hover {
+  background: #1a1a00;
+  border-color: #555500;
+}
+
+:root.contrast-yellow-on-black .progress-label {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .progress-status.completed {
+  color: #aaff00;
+}
+
+:root.contrast-yellow-on-black .progress-status.in-progress {
+  color: #ffaa00;
+}
+
+:root.contrast-yellow-on-black .progress-status.not-started {
+  color: #888800;
+}
+
+:root.contrast-yellow-on-black .progress-count {
+  background: #333300;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .progress-icon.listening {
+  background: linear-gradient(135deg, #cc99ff 0%, #aa66ff 100%);
+}
+
+:root.contrast-yellow-on-black .progress-icon.reading {
+  background: linear-gradient(135deg, #6699ff 0%, #4477ff 100%);
+}
+
+:root.contrast-yellow-on-black .progress-icon.writing {
+  background: linear-gradient(135deg, #ffcc00 0%, #ffaa00 100%);
+}
+
+:root.contrast-yellow-on-black .warning-box {
+  background: #1a1a00;
+  border-color: #666600;
+}
+
+:root.contrast-yellow-on-black .warning-box svg {
+  color: #ffcc00;
+}
+
+:root.contrast-yellow-on-black .warning-box span {
+  color: #ffff66;
+}
+
+:root.contrast-yellow-on-black .btn-secondary {
+  background: #111100;
+  border-color: #444400;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .btn-secondary:hover {
+  background: #222200;
+  border-color: #555500;
+}
+
+:root.contrast-yellow-on-black .btn-secondary svg {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .btn-primary {
+  background: linear-gradient(135deg, #ff4444 0%, #dd2222 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+}
+
+:root.contrast-yellow-on-black .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(255, 68, 68, 0.5);
+}
 </style>
