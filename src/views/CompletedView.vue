@@ -35,7 +35,7 @@
         </p>
 
         <div class="info-box">
-          <h2 class="info-title">Speaking Exam Information:</h2>
+          <h3 class="info-title">Speaking Exam Information:</h3>
           <p>Your Speaking exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
           <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
         </div>

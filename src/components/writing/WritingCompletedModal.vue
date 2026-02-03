@@ -29,15 +29,9 @@
           Test will be submitted automatically in <strong>{{ countdown }}</strong> seconds.
         </p>
         <div class="info-box">
-          <p class="info-title">Speaking Exam Information:</p>
-          <p>
-            Your Speaking exam will be conducted either <strong>offline</strong> at our center or
-            via <strong>Zoom</strong>.
-          </p>
-          <p>
-            Please check your dashboard or wait for an administrator to contact you regarding your
-            speaking slot details.
-          </p>
+          <h3 class="info-title">Speaking Exam Information:</h3>
+          <p>Your Speaking exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
+          <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
         </div>
       </div>
 
@@ -260,15 +254,23 @@ const finishTest = async () => {
 .info-box {
   background: #f0f9ff;
   border: 1px solid #bae6fd;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
   margin-top: 20px;
+  text-align: left;
 }
 
 .info-title {
+  font-size: 18px;
   font-weight: 700;
   color: #0369a1;
-  margin-bottom: 8px;
+  margin: 0 0 12px 0;
+}
+
+.info-box p {
+  color: #334155;
+  margin: 8px 0;
+  line-height: 1.5;
 }
 
 .button-group {
@@ -368,5 +370,32 @@ const finishTest = async () => {
 :root.contrast-yellow-on-black .success-bg {
   background: #669900 !important;
   box-shadow: 0 0 0 8px rgba(102, 153, 0, 0.2) !important;
+}
+
+/* Info box contrast styles */
+:root.contrast-white-on-black .info-box {
+  background: #0a1628 !important;
+  border-color: #1e4b8f !important;
+}
+
+:root.contrast-white-on-black .info-title {
+  color: #60a5fa !important;
+}
+
+:root.contrast-white-on-black .info-box p {
+  color: #cccccc !important;
+}
+
+:root.contrast-yellow-on-black .info-box {
+  background: #0a1600 !important;
+  border-color: #445500 !important;
+}
+
+:root.contrast-yellow-on-black .info-title {
+  color: #aaff00 !important;
+}
+
+:root.contrast-yellow-on-black .info-box p {
+  color: #cccc00 !important;
 }
 </style>

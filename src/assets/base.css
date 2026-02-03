@@ -2844,6 +2844,7 @@ select {
 /* Floating navigation buttons */
 :root.contrast-white-on-black .floating-nav {
   gap: 12px !important;
+  background: transparent !important;
 }
 
 :root.contrast-white-on-black .float-btn {
