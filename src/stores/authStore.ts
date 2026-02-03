@@ -4,6 +4,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import axios from 'axios'
 import type { ExamTestRaw } from '@/types/test'
+import { useListeningStore } from '@/stores/listeningStore'
+import { useReadingStore } from '@/stores/readingStore'
+import { useWritingStore } from '@/stores/writingStore'
 
 interface LoginResponse {
   data: {
@@ -29,29 +32,6 @@ interface SubmitResponse {
   results: ExamResults
 }
 
-// Cached store imports to avoid repeated dynamic imports
-let cachedStores: {
-  useListeningStore: typeof import('@/stores/listeningStore').useListeningStore
-  useReadingStore: typeof import('@/stores/readingStore').useReadingStore
-  useWritingStore: typeof import('@/stores/writingStore').useWritingStore
-} | null = null
-
-const getStores = async () => {
-  if (!cachedStores) {
-    const [listeningModule, readingModule, writingModule] = await Promise.all([
-      import('@/stores/listeningStore'),
-      import('@/stores/readingStore'),
-      import('@/stores/writingStore'),
-    ])
-    cachedStores = {
-      useListeningStore: listeningModule.useListeningStore,
-      useReadingStore: readingModule.useReadingStore,
-      useWritingStore: writingModule.useWritingStore,
-    }
-  }
-  return cachedStores
-}
-
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const route = useRoute()
@@ -65,11 +45,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
 
   // Get first available section based on test data
-  const getFirstAvailableSection = async (): Promise<string> => {
-    const stores = await getStores()
-    const listeningStore = stores.useListeningStore()
-    const readingStore = stores.useReadingStore()
-    const writingStore = stores.useWritingStore()
+  const getFirstAvailableSection = (): string => {
+    const listeningStore = useListeningStore()
+    const readingStore = useReadingStore()
+    const writingStore = useWritingStore()
 
     if (listeningStore.test?.parts?.length) {
       return '/listening'
@@ -91,20 +70,19 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await get<TestDataResponse>('/api/exam/test')
 
       if (response?.data) {
-        const stores = await getStores()
         const testData = response.data
 
         // Save data to respective stores
         if (testData.listening) {
-          stores.useListeningStore().setTest(testData)
+          useListeningStore().setTest(testData)
         }
 
         if (testData.reading) {
-          stores.useReadingStore().setTest(testData)
+          useReadingStore().setTest(testData)
         }
 
         if (testData.writing) {
-          stores.useWritingStore().setTest(testData)
+          useWritingStore().setTest(testData)
         }
 
         return { success: true }
@@ -145,7 +123,7 @@ export const useAuthStore = defineStore('auth', () => {
         // Get redirect path from query or first available section
         let redirectPath = route.query.redirect as string
         if (!redirectPath) {
-          redirectPath = await getFirstAvailableSection()
+          redirectPath = getFirstAvailableSection()
         }
         await router.push(redirectPath)
 
@@ -170,10 +148,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async (redirectPath: string = '/login') => {
     // Clear all store data
-    const stores = await getStores()
-    stores.useListeningStore().clearListening()
-    stores.useReadingStore().clearReading()
-    stores.useWritingStore().clearWriting()
+    useListeningStore().clearListening()
+    useReadingStore().clearReading()
+    useWritingStore().clearWriting()
 
     // Clear token
     token.value = ''
@@ -221,10 +198,9 @@ export const useAuthStore = defineStore('auth', () => {
   const submitExam = async () => {
     isLoading.value = true
     try {
-      const stores = await getStores()
-      const listeningStore = stores.useListeningStore()
-      const readingStore = stores.useReadingStore()
-      const writingStore = stores.useWritingStore()
+      const listeningStore = useListeningStore()
+      const readingStore = useReadingStore()
+      const writingStore = useWritingStore()
 
       const payload = {
         listening_answers: listeningStore.answers,
