@@ -870,3 +870,1719 @@ select {
 :root.text-size-extra-large :is(.options-modal, .confirm-modal, .modal-content, .completed-modal) .modal-title {
   font-size: calc(var(--text-content-size) + 4px) !important;
 }
+
+/* =====================================================
+   SCROLLBAR STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black Scrollbar */
+:root.contrast-white-on-black ::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+}
+
+:root.contrast-white-on-black ::-webkit-scrollbar-thumb {
+  background: #555555 !important;
+  border-radius: 4px;
+}
+
+:root.contrast-white-on-black ::-webkit-scrollbar-thumb:hover {
+  background: #777777 !important;
+}
+
+:root.contrast-white-on-black * {
+  scrollbar-color: #555555 #1a1a1a !important;
+}
+
+/* Yellow on Black Scrollbar */
+:root.contrast-yellow-on-black ::-webkit-scrollbar-track {
+  background: #1a1a00 !important;
+}
+
+:root.contrast-yellow-on-black ::-webkit-scrollbar-thumb {
+  background: #666600 !important;
+  border-radius: 4px;
+}
+
+:root.contrast-yellow-on-black ::-webkit-scrollbar-thumb:hover {
+  background: #888800 !important;
+}
+
+:root.contrast-yellow-on-black * {
+  scrollbar-color: #666600 #1a1a00 !important;
+}
+
+/* =====================================================
+   BUTTON STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Primary buttons */
+:root.contrast-white-on-black .btn-primary,
+:root.contrast-white-on-black .submission-btn,
+:root.contrast-white-on-black .primary-btn,
+:root.contrast-white-on-black .start-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+:root.contrast-white-on-black .btn-primary:hover,
+:root.contrast-white-on-black .submission-btn:hover,
+:root.contrast-white-on-black .primary-btn:hover,
+:root.contrast-white-on-black .start-button:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+}
+
+:root.contrast-white-on-black .btn-primary:disabled,
+:root.contrast-white-on-black .submission-btn:disabled,
+:root.contrast-white-on-black .primary-btn:disabled {
+  background: #333333 !important;
+  color: #666666 !important;
+}
+
+/* White on Black - Secondary/Ghost buttons */
+:root.contrast-white-on-black .btn-secondary,
+:root.contrast-white-on-black .ghost-btn,
+:root.contrast-white-on-black .float-btn {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+:root.contrast-white-on-black .btn-secondary:hover,
+:root.contrast-white-on-black .ghost-btn:hover,
+:root.contrast-white-on-black .float-btn:hover {
+  background: #2a2a2a !important;
+  border-color: #777777 !important;
+}
+
+/* White on Black - Danger buttons */
+:root.contrast-white-on-black .btn-danger,
+:root.contrast-white-on-black .danger-btn {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+:root.contrast-white-on-black .btn-danger:hover,
+:root.contrast-white-on-black .danger-btn:hover {
+  background: #ef4444 !important;
+}
+
+/* Yellow on Black - Primary buttons */
+:root.contrast-yellow-on-black .btn-primary,
+:root.contrast-yellow-on-black .submission-btn,
+:root.contrast-yellow-on-black .primary-btn,
+:root.contrast-yellow-on-black .start-button {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .btn-primary:hover,
+:root.contrast-yellow-on-black .submission-btn:hover,
+:root.contrast-yellow-on-black .primary-btn:hover,
+:root.contrast-yellow-on-black .start-button:hover {
+  background: linear-gradient(135deg, #999900 0%, #777700 100%) !important;
+}
+
+:root.contrast-yellow-on-black .btn-primary:disabled,
+:root.contrast-yellow-on-black .submission-btn:disabled,
+:root.contrast-yellow-on-black .primary-btn:disabled {
+  background: #333300 !important;
+  color: #666600 !important;
+  border-color: #444400 !important;
+}
+
+/* Yellow on Black - Secondary/Ghost buttons */
+:root.contrast-yellow-on-black .btn-secondary,
+:root.contrast-yellow-on-black .ghost-btn,
+:root.contrast-yellow-on-black .float-btn {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .btn-secondary:hover,
+:root.contrast-yellow-on-black .ghost-btn:hover,
+:root.contrast-yellow-on-black .float-btn:hover {
+  background: #2a2a00 !important;
+  border-color: #888800 !important;
+}
+
+/* Yellow on Black - Danger buttons */
+:root.contrast-yellow-on-black .btn-danger,
+:root.contrast-yellow-on-black .danger-btn {
+  background: #883300 !important;
+  color: #ffff00 !important;
+  border: 1px solid #aa4400 !important;
+}
+
+:root.contrast-yellow-on-black .btn-danger:hover,
+:root.contrast-yellow-on-black .danger-btn:hover {
+  background: #994400 !important;
+}
+
+/* =====================================================
+   SUBMISSION PAGE STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Submission page */
+:root.contrast-white-on-black .submission-view,
+:root.contrast-white-on-black .submission-container {
+  background: #000000 !important;
+}
+
+:root.contrast-white-on-black .submission-header {
+  background: #000000 !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .submission-title {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .section-card,
+:root.contrast-white-on-black .summary-card {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .section-card:hover {
+  border-color: #555555 !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05) !important;
+}
+
+:root.contrast-white-on-black .section-title,
+:root.contrast-white-on-black .section-name {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .section-status,
+:root.contrast-white-on-black .section-info {
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .section-status.completed {
+  color: #22c55e !important;
+}
+
+:root.contrast-white-on-black .section-status.pending {
+  color: #f59e0b !important;
+}
+
+:root.contrast-white-on-black .progress-bar {
+  background: #2a2a2a !important;
+}
+
+:root.contrast-white-on-black .progress-fill {
+  background: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .progress-fill.complete {
+  background: #22c55e !important;
+}
+
+:root.contrast-white-on-black .answer-count {
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .submit-warning {
+  background: #3a2a1a !important;
+  border: 1px solid #aa6633 !important;
+  color: #ffaa66 !important;
+}
+
+:root.contrast-white-on-black .submit-warning svg {
+  color: #ffaa66 !important;
+}
+
+/* Yellow on Black - Submission page */
+:root.contrast-yellow-on-black .submission-view,
+:root.contrast-yellow-on-black .submission-container {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .submission-header {
+  background: #000000 !important;
+  border-bottom: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .submission-title {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .section-card,
+:root.contrast-yellow-on-black .summary-card {
+  background: #1a1a00 !important;
+  border: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .section-card:hover {
+  border-color: #555500 !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.05) !important;
+}
+
+:root.contrast-yellow-on-black .section-title,
+:root.contrast-yellow-on-black .section-name {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .section-status,
+:root.contrast-yellow-on-black .section-info {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .section-status.completed {
+  color: #88cc00 !important;
+}
+
+:root.contrast-yellow-on-black .section-status.pending {
+  color: #ffaa00 !important;
+}
+
+:root.contrast-yellow-on-black .progress-bar {
+  background: #2a2a00 !important;
+}
+
+:root.contrast-yellow-on-black .progress-fill {
+  background: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .progress-fill.complete {
+  background: #669900 !important;
+}
+
+:root.contrast-yellow-on-black .answer-count {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .submit-warning {
+  background: #2a2a00 !important;
+  border: 1px solid #886600 !important;
+  color: #ffcc00 !important;
+}
+
+:root.contrast-yellow-on-black .submit-warning svg {
+  color: #ffcc00 !important;
+}
+
+/* =====================================================
+   WRITING EXAM STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Writing */
+:root.contrast-white-on-black .writing-view,
+:root.contrast-white-on-black .writing-container {
+  background: #000000 !important;
+}
+
+:root.contrast-white-on-black .task-panel,
+:root.contrast-white-on-black .answer-panel {
+  background: #0a0a0a !important;
+  border-color: #333333 !important;
+}
+
+:root.contrast-white-on-black .task-content {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .answer-textarea {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .answer-textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+:root.contrast-white-on-black .word-counter {
+  background: #1a1a1a !important;
+  color: #aaaaaa !important;
+  border-top: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .word-counter.warning {
+  color: #f59e0b !important;
+}
+
+:root.contrast-white-on-black .word-counter.error {
+  color: #ef4444 !important;
+}
+
+:root.contrast-white-on-black .task-tabs {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .task-tab {
+  background: transparent !important;
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .task-tab:hover {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .task-tab.active {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+/* Yellow on Black - Writing */
+:root.contrast-yellow-on-black .writing-view,
+:root.contrast-yellow-on-black .writing-container {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .task-panel,
+:root.contrast-yellow-on-black .answer-panel {
+  background: #0a0a00 !important;
+  border-color: #333300 !important;
+}
+
+:root.contrast-yellow-on-black .task-content {
+  background: #1a1a00 !important;
+  border: 1px solid #333300 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .answer-textarea {
+  background: #0a0a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .answer-textarea:focus {
+  border-color: #888800 !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.15) !important;
+}
+
+:root.contrast-yellow-on-black .word-counter {
+  background: #1a1a00 !important;
+  color: #cccc00 !important;
+  border-top: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .word-counter.warning {
+  color: #ffaa00 !important;
+}
+
+:root.contrast-yellow-on-black .word-counter.error {
+  color: #ff6600 !important;
+}
+
+:root.contrast-yellow-on-black .task-tabs {
+  background: #1a1a00 !important;
+  border-bottom: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .task-tab {
+  background: transparent !important;
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .task-tab:hover {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .task-tab.active {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border-bottom: 2px solid #888800 !important;
+}
+
+/* =====================================================
+   AUDIO LOADER & LISTENING EXAM STYLES
+   ===================================================== */
+
+/* White on Black - Audio loader */
+:root.contrast-white-on-black .audio-loader,
+:root.contrast-white-on-black .loading-overlay {
+  background: #000000 !important;
+}
+
+:root.contrast-white-on-black .loading-content {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .loading-spinner {
+  border-color: #333333 !important;
+  border-top-color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .loading-text,
+:root.contrast-white-on-black .loading-progress {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .progress-track {
+  background: #2a2a2a !important;
+}
+
+:root.contrast-white-on-black .progress-bar-fill {
+  background: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .start-exam-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .start-exam-btn:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+}
+
+:root.contrast-white-on-black .start-exam-btn:disabled {
+  background: #333333 !important;
+  color: #666666 !important;
+}
+
+/* Yellow on Black - Audio loader */
+:root.contrast-yellow-on-black .audio-loader,
+:root.contrast-yellow-on-black .loading-overlay {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .loading-content {
+  background: #1a1a00 !important;
+  border: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .loading-spinner {
+  border-color: #333300 !important;
+  border-top-color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .loading-text,
+:root.contrast-yellow-on-black .loading-progress {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .progress-track {
+  background: #2a2a00 !important;
+}
+
+:root.contrast-yellow-on-black .progress-bar-fill {
+  background: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .start-exam-btn {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .start-exam-btn:hover {
+  background: linear-gradient(135deg, #999900 0%, #777700 100%) !important;
+}
+
+:root.contrast-yellow-on-black .start-exam-btn:disabled {
+  background: #333300 !important;
+  color: #666600 !important;
+}
+
+/* =====================================================
+   TABLE STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Tables */
+:root.contrast-white-on-black table {
+  background: #1a1a1a !important;
+  border-collapse: collapse;
+}
+
+:root.contrast-white-on-black th {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+}
+
+:root.contrast-white-on-black td {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black tr:nth-child(even) td {
+  background: #222222 !important;
+}
+
+:root.contrast-white-on-black tr:hover td {
+  background: #2a2a2a !important;
+}
+
+/* Yellow on Black - Tables */
+:root.contrast-yellow-on-black table {
+  background: #1a1a00 !important;
+  border-collapse: collapse;
+}
+
+:root.contrast-yellow-on-black th {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #444400 !important;
+}
+
+:root.contrast-yellow-on-black td {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black tr:nth-child(even) td {
+  background: #222200 !important;
+}
+
+:root.contrast-yellow-on-black tr:hover td {
+  background: #2a2a00 !important;
+}
+
+/* =====================================================
+   TRANSFER TIME MODAL STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Transfer Time Modal */
+:root.contrast-white-on-black .modal-overlay {
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+:root.contrast-white-on-black .info-box {
+  background: linear-gradient(135deg, #1a2744 0%, #0a1a2e 100%) !important;
+  border: 1px solid #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .info-box svg {
+  color: #60a5fa !important;
+}
+
+:root.contrast-white-on-black .info-box span {
+  color: #93c5fd !important;
+}
+
+:root.contrast-white-on-black .timer-icon circle {
+  fill: #3b82f6 !important;
+}
+
+/* Yellow on Black - Transfer Time Modal */
+:root.contrast-yellow-on-black .modal-overlay {
+  background: rgba(0, 0, 0, 0.9) !important;
+}
+
+:root.contrast-yellow-on-black .info-box {
+  background: linear-gradient(135deg, #2a2a00 0%, #1a1a00 100%) !important;
+  border: 1px solid #888800 !important;
+}
+
+:root.contrast-yellow-on-black .info-box svg {
+  color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .info-box span {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .timer-icon circle {
+  fill: #888800 !important;
+}
+
+/* =====================================================
+   TOOLTIP & DROPDOWN STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black .tooltip,
+:root.contrast-white-on-black .dropdown-menu {
+  background: #2a2a2a !important;
+  border: 1px solid #444444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .dropdown-item {
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .dropdown-item:hover {
+  background: #3a3a3a !important;
+}
+
+:root.contrast-white-on-black .dropdown-item.active {
+  background: #3b82f6 !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black .tooltip,
+:root.contrast-yellow-on-black .dropdown-menu {
+  background: #2a2a00 !important;
+  border: 1px solid #666600 !important;
+  color: #ffff00 !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .dropdown-item {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .dropdown-item:hover {
+  background: #3a3a00 !important;
+}
+
+:root.contrast-yellow-on-black .dropdown-item.active {
+  background: #666600 !important;
+}
+
+/* =====================================================
+   BADGES & CHIPS STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black .badge,
+:root.contrast-white-on-black .chip,
+:root.contrast-white-on-black .tag {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+}
+
+:root.contrast-white-on-black .badge.success,
+:root.contrast-white-on-black .chip.success {
+  background: #14532d !important;
+  color: #22c55e !important;
+  border-color: #22c55e !important;
+}
+
+:root.contrast-white-on-black .badge.warning,
+:root.contrast-white-on-black .chip.warning {
+  background: #422006 !important;
+  color: #f59e0b !important;
+  border-color: #f59e0b !important;
+}
+
+:root.contrast-white-on-black .badge.error,
+:root.contrast-white-on-black .chip.error {
+  background: #450a0a !important;
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+:root.contrast-white-on-black .badge.info,
+:root.contrast-white-on-black .chip.info {
+  background: #1e3a5f !important;
+  color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black .badge,
+:root.contrast-yellow-on-black .chip,
+:root.contrast-yellow-on-black .tag {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border: 1px solid #666600 !important;
+}
+
+:root.contrast-yellow-on-black .badge.success,
+:root.contrast-yellow-on-black .chip.success {
+  background: #1a3300 !important;
+  color: #88cc00 !important;
+  border-color: #669900 !important;
+}
+
+:root.contrast-yellow-on-black .badge.warning,
+:root.contrast-yellow-on-black .chip.warning {
+  background: #332200 !important;
+  color: #ffaa00 !important;
+  border-color: #886600 !important;
+}
+
+:root.contrast-yellow-on-black .badge.error,
+:root.contrast-yellow-on-black .chip.error {
+  background: #331100 !important;
+  color: #ff6600 !important;
+  border-color: #883300 !important;
+}
+
+:root.contrast-yellow-on-black .badge.info,
+:root.contrast-yellow-on-black .chip.info {
+  background: #333300 !important;
+  color: #ffff00 !important;
+  border-color: #888800 !important;
+}
+
+/* =====================================================
+   ALERT & NOTIFICATION STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black .alert,
+:root.contrast-white-on-black .notification {
+  background: #1a1a1a !important;
+  border: 1px solid #444444 !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .alert.success {
+  background: #052e16 !important;
+  border-color: #22c55e !important;
+  color: #86efac !important;
+}
+
+:root.contrast-white-on-black .alert.warning {
+  background: #431407 !important;
+  border-color: #f59e0b !important;
+  color: #fcd34d !important;
+}
+
+:root.contrast-white-on-black .alert.error {
+  background: #450a0a !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+:root.contrast-white-on-black .alert.info {
+  background: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+  color: #93c5fd !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black .alert,
+:root.contrast-yellow-on-black .notification {
+  background: #1a1a00 !important;
+  border: 1px solid #666600 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .alert.success {
+  background: #0a1a00 !important;
+  border-color: #669900 !important;
+  color: #aaff00 !important;
+}
+
+:root.contrast-yellow-on-black .alert.warning {
+  background: #1a1100 !important;
+  border-color: #886600 !important;
+  color: #ffcc00 !important;
+}
+
+:root.contrast-yellow-on-black .alert.error {
+  background: #1a0a00 !important;
+  border-color: #883300 !important;
+  color: #ff9900 !important;
+}
+
+:root.contrast-yellow-on-black .alert.info {
+  background: #1a1a00 !important;
+  border-color: #888800 !important;
+  color: #ffff00 !important;
+}
+
+/* =====================================================
+   CHECKBOX & RADIO STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black input[type="checkbox"],
+:root.contrast-white-on-black input[type="radio"] {
+  accent-color: #3b82f6;
+}
+
+:root.contrast-white-on-black input[type="checkbox"]:checked,
+:root.contrast-white-on-black input[type="radio"]:checked {
+  background-color: #3b82f6 !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black input[type="checkbox"],
+:root.contrast-yellow-on-black input[type="radio"] {
+  accent-color: #888800;
+}
+
+:root.contrast-yellow-on-black input[type="checkbox"]:checked,
+:root.contrast-yellow-on-black input[type="radio"]:checked {
+  background-color: #888800 !important;
+}
+
+/* =====================================================
+   NAVIGATION TAB STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black */
+:root.contrast-white-on-black .nav-tabs,
+:root.contrast-white-on-black .tab-list {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+:root.contrast-white-on-black .nav-tab,
+:root.contrast-white-on-black .tab-item {
+  background: transparent !important;
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .nav-tab:hover,
+:root.contrast-white-on-black .tab-item:hover {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .nav-tab.active,
+:root.contrast-white-on-black .tab-item.active {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+/* Yellow on Black */
+:root.contrast-yellow-on-black .nav-tabs,
+:root.contrast-yellow-on-black .tab-list {
+  background: #1a1a00 !important;
+  border-bottom: 1px solid #333300 !important;
+}
+
+:root.contrast-yellow-on-black .nav-tab,
+:root.contrast-yellow-on-black .tab-item {
+  background: transparent !important;
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .nav-tab:hover,
+:root.contrast-yellow-on-black .tab-item:hover {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .nav-tab.active,
+:root.contrast-yellow-on-black .tab-item.active {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border-bottom: 2px solid #888800 !important;
+}
+
+/* =====================================================
+   FOCUS STATES FOR CONTRAST MODES
+   ===================================================== */
+
+/* White on Black - Focus */
+:root.contrast-white-on-black :focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+:root.contrast-white-on-black button:focus-visible,
+:root.contrast-white-on-black a:focus-visible,
+:root.contrast-white-on-black input:focus-visible,
+:root.contrast-white-on-black textarea:focus-visible,
+:root.contrast-white-on-black select:focus-visible {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Yellow on Black - Focus */
+:root.contrast-yellow-on-black :focus-visible {
+  outline: 2px solid #aaaa00 !important;
+  outline-offset: 2px !important;
+}
+
+:root.contrast-yellow-on-black button:focus-visible,
+:root.contrast-yellow-on-black a:focus-visible,
+:root.contrast-yellow-on-black input:focus-visible,
+:root.contrast-yellow-on-black textarea:focus-visible,
+:root.contrast-yellow-on-black select:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.2) !important;
+}
+
+/* =====================================================
+   COMPREHENSIVE MODAL STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* ========== WHITE ON BLACK - MODALS ========== */
+
+/* Modal Overlay */
+:root.contrast-white-on-black .modal-overlay,
+:root.contrast-white-on-black .confirm-overlay,
+:root.contrast-white-on-black .options-overlay {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Modal Content Container */
+:root.contrast-white-on-black .modal-content,
+:root.contrast-white-on-black .confirm-modal,
+:root.contrast-white-on-black .options-modal {
+  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%) !important;
+  border: 2px solid #3b82f6 !important;
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 100px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Modal Header */
+:root.contrast-white-on-black .modal-header {
+  background: linear-gradient(180deg, #1f1f1f 0%, #1a1a1a 100%) !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+/* Modal Title */
+:root.contrast-white-on-black .modal-title {
+  color: #ffffff !important;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Description/Message */
+:root.contrast-white-on-black .modal-description,
+:root.contrast-white-on-black .modal-message,
+:root.contrast-white-on-black .modal-description p {
+  color: #cccccc !important;
+}
+
+/* Modal Icons */
+:root.contrast-white-on-black .icon-container svg circle,
+:root.contrast-white-on-black .checkmark-icon circle,
+:root.contrast-white-on-black .success-icon circle {
+  fill: #22c55e !important;
+  filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5));
+}
+
+:root.contrast-white-on-black .timer-icon circle {
+  fill: #3b82f6 !important;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+}
+
+:root.contrast-white-on-black .modal-icon.warning {
+  background: linear-gradient(135deg, #422006 0%, #361f04 100%) !important;
+  border: 1px solid #f59e0b !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2) !important;
+}
+
+:root.contrast-white-on-black .modal-icon.warning svg {
+  color: #fbbf24 !important;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+}
+
+:root.contrast-white-on-black .modal-icon.danger {
+  background: linear-gradient(135deg, #450a0a 0%, #3a0808 100%) !important;
+  border: 1px solid #dc2626 !important;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2) !important;
+}
+
+:root.contrast-white-on-black .modal-icon.danger svg {
+  color: #f87171 !important;
+  filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.5));
+}
+
+:root.contrast-white-on-black .modal-icon.info {
+  background: linear-gradient(135deg, #1e3a5f 0%, #172a45 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2) !important;
+}
+
+:root.contrast-white-on-black .modal-icon.info svg {
+  color: #60a5fa !important;
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.5));
+}
+
+/* Modal Buttons */
+:root.contrast-white-on-black .continue-button,
+:root.contrast-white-on-black .finish-button,
+:root.contrast-white-on-black .btn-confirm.info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow:
+    0 4px 15px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .continue-button:hover,
+:root.contrast-white-on-black .finish-button:hover,
+:root.contrast-white-on-black .btn-confirm.info:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+  box-shadow:
+    0 6px 20px rgba(59, 130, 246, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+:root.contrast-white-on-black .back-button,
+:root.contrast-white-on-black .btn-cancel {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+:root.contrast-white-on-black .back-button:hover,
+:root.contrast-white-on-black .btn-cancel:hover {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%) !important;
+  border-color: #555555 !important;
+  transform: translateY(-1px);
+}
+
+:root.contrast-white-on-black .btn-confirm.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4) !important;
+}
+
+:root.contrast-white-on-black .btn-confirm.danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4) !important;
+}
+
+/* Options Modal specific */
+:root.contrast-white-on-black .options-list {
+  background: #0d0d0d !important;
+  border: 1px solid #333333 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+:root.contrast-white-on-black .options-content .option-item {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #222222 !important;
+}
+
+:root.contrast-white-on-black .options-content .option-item:hover {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%) !important;
+}
+
+:root.contrast-white-on-black .options-content .option-item.selected {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, transparent 100%) !important;
+}
+
+:root.contrast-white-on-black .options-content .option-item svg {
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .options-content .option-item.selected svg {
+  color: #22c55e !important;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.5));
+}
+
+:root.contrast-white-on-black .options-content .option-item .arrow-icon {
+  color: #555555 !important;
+}
+
+:root.contrast-white-on-black .options-content .option-item:hover .arrow-icon {
+  color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .submission-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow:
+    0 4px 15px rgba(220, 38, 38, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .submission-btn:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+/* Info box in modals */
+:root.contrast-white-on-black .info-box {
+  background: linear-gradient(135deg, #1e3a5f 0%, #172a45 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
+}
+
+:root.contrast-white-on-black .info-box p,
+:root.contrast-white-on-black .info-box span {
+  color: #93c5fd !important;
+}
+
+:root.contrast-white-on-black .info-title {
+  color: #60a5fa !important;
+}
+
+:root.contrast-white-on-black .info-box svg {
+  color: #60a5fa !important;
+}
+
+/* Auto finish text */
+:root.contrast-white-on-black .auto-finish-text {
+  color: #f87171 !important;
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
+}
+
+:root.contrast-white-on-black .auto-finish-text strong {
+  color: #ef4444 !important;
+}
+
+/* Back/Close buttons */
+:root.contrast-white-on-black .back-btn {
+  color: #3b82f6 !important;
+}
+
+:root.contrast-white-on-black .back-btn:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+:root.contrast-white-on-black .close-btn {
+  color: #888888 !important;
+}
+
+:root.contrast-white-on-black .close-btn:hover {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .close-btn svg {
+  color: inherit !important;
+}
+
+/* Button group */
+:root.contrast-white-on-black .button-group {
+  gap: 12px;
+}
+
+/* Loader spinner */
+:root.contrast-white-on-black .loader {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-top-color: #ffffff !important;
+}
+
+/* ========== YELLOW ON BLACK - MODALS ========== */
+
+/* Modal Overlay */
+:root.contrast-yellow-on-black .modal-overlay,
+:root.contrast-yellow-on-black .confirm-overlay,
+:root.contrast-yellow-on-black .options-overlay {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Modal Content Container */
+:root.contrast-yellow-on-black .modal-content,
+:root.contrast-yellow-on-black .confirm-modal,
+:root.contrast-yellow-on-black .options-modal {
+  background: linear-gradient(145deg, #1a1a00 0%, #0d0d00 100%) !important;
+  border: 2px solid #888800 !important;
+  box-shadow:
+    0 0 0 1px rgba(136, 136, 0, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 100px rgba(255, 255, 0, 0.05) !important;
+}
+
+/* Modal Header */
+:root.contrast-yellow-on-black .modal-header {
+  background: linear-gradient(180deg, #1f1f00 0%, #1a1a00 100%) !important;
+  border-bottom: 1px solid #333300 !important;
+}
+
+/* Modal Title */
+:root.contrast-yellow-on-black .modal-title {
+  color: #ffff00 !important;
+  text-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
+}
+
+/* Modal Description/Message */
+:root.contrast-yellow-on-black .modal-description,
+:root.contrast-yellow-on-black .modal-message,
+:root.contrast-yellow-on-black .modal-description p {
+  color: #cccc00 !important;
+}
+
+/* Modal Icons */
+:root.contrast-yellow-on-black .icon-container svg circle,
+:root.contrast-yellow-on-black .checkmark-icon circle,
+:root.contrast-yellow-on-black .success-icon circle {
+  fill: #669900 !important;
+  filter: drop-shadow(0 0 10px rgba(102, 153, 0, 0.5));
+}
+
+:root.contrast-yellow-on-black .timer-icon circle {
+  fill: #888800 !important;
+  filter: drop-shadow(0 0 10px rgba(136, 136, 0, 0.5));
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning {
+  background: linear-gradient(135deg, #332200 0%, #2a1a00 100%) !important;
+  border: 1px solid #886600 !important;
+  box-shadow: 0 0 20px rgba(136, 102, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .modal-icon.warning svg {
+  color: #ffaa00 !important;
+  filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.5));
+}
+
+:root.contrast-yellow-on-black .modal-icon.danger {
+  background: linear-gradient(135deg, #331100 0%, #2a0d00 100%) !important;
+  border: 1px solid #883300 !important;
+  box-shadow: 0 0 20px rgba(136, 51, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .modal-icon.danger svg {
+  color: #ff6600 !important;
+  filter: drop-shadow(0 0 8px rgba(255, 102, 0, 0.5));
+}
+
+:root.contrast-yellow-on-black .modal-icon.info {
+  background: linear-gradient(135deg, #333300 0%, #2a2a00 100%) !important;
+  border: 1px solid #888800 !important;
+  box-shadow: 0 0 20px rgba(136, 136, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .modal-icon.info svg {
+  color: #aaaa00 !important;
+  filter: drop-shadow(0 0 8px rgba(170, 170, 0, 0.5));
+}
+
+/* Modal Buttons */
+:root.contrast-yellow-on-black .continue-button,
+:root.contrast-yellow-on-black .finish-button,
+:root.contrast-yellow-on-black .btn-confirm.info {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aaaa00 !important;
+  box-shadow:
+    0 4px 15px rgba(136, 136, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .continue-button:hover,
+:root.contrast-yellow-on-black .finish-button:hover,
+:root.contrast-yellow-on-black .btn-confirm.info:hover {
+  background: linear-gradient(135deg, #999900 0%, #777700 100%) !important;
+  box-shadow:
+    0 6px 20px rgba(136, 136, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 0, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+:root.contrast-yellow-on-black .back-button,
+:root.contrast-yellow-on-black .btn-cancel {
+  background: linear-gradient(135deg, #2a2a00 0%, #1f1f00 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #444400 !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 0, 0.05) !important;
+}
+
+:root.contrast-yellow-on-black .back-button:hover,
+:root.contrast-yellow-on-black .btn-cancel:hover {
+  background: linear-gradient(135deg, #3a3a00 0%, #2a2a00 100%) !important;
+  border-color: #555500 !important;
+  transform: translateY(-1px);
+}
+
+:root.contrast-yellow-on-black .btn-confirm.warning {
+  background: linear-gradient(135deg, #886600 0%, #664400 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aa8800 !important;
+  box-shadow: 0 4px 15px rgba(136, 102, 0, 0.4) !important;
+}
+
+:root.contrast-yellow-on-black .btn-confirm.danger {
+  background: linear-gradient(135deg, #883300 0%, #662200 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aa4400 !important;
+  box-shadow: 0 4px 15px rgba(136, 51, 0, 0.4) !important;
+}
+
+/* Options Modal specific */
+:root.contrast-yellow-on-black .options-list {
+  background: #0d0d00 !important;
+  border: 1px solid #333300 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item {
+  background: transparent !important;
+  color: #ffff00 !important;
+  border-bottom: 1px solid #222200 !important;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item:hover {
+  background: linear-gradient(90deg, rgba(136, 136, 0, 0.15) 0%, transparent 100%) !important;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item.selected {
+  background: linear-gradient(90deg, rgba(102, 153, 0, 0.2) 0%, transparent 100%) !important;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item svg {
+  color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item.selected svg {
+  color: #88cc00 !important;
+  filter: drop-shadow(0 0 6px rgba(136, 204, 0, 0.5));
+}
+
+:root.contrast-yellow-on-black .options-content .option-item .arrow-icon {
+  color: #555500 !important;
+}
+
+:root.contrast-yellow-on-black .options-content .option-item:hover .arrow-icon {
+  color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .submission-btn {
+  background: linear-gradient(135deg, #883300 0%, #662200 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aa4400 !important;
+  box-shadow:
+    0 4px 15px rgba(136, 51, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .submission-btn:hover {
+  background: linear-gradient(135deg, #994400 0%, #773300 100%) !important;
+  box-shadow: 0 6px 20px rgba(136, 51, 0, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+/* Info box in modals */
+:root.contrast-yellow-on-black .info-box {
+  background: linear-gradient(135deg, #2a2a00 0%, #1f1f00 100%) !important;
+  border: 1px solid #666600 !important;
+  box-shadow: 0 4px 15px rgba(136, 136, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .info-box p,
+:root.contrast-yellow-on-black .info-box span {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .info-title {
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .info-box svg {
+  color: #aaaa00 !important;
+}
+
+/* Auto finish text */
+:root.contrast-yellow-on-black .auto-finish-text {
+  color: #ff9900 !important;
+  text-shadow: 0 0 10px rgba(255, 153, 0, 0.3);
+}
+
+:root.contrast-yellow-on-black .auto-finish-text strong {
+  color: #ffaa00 !important;
+}
+
+/* Back/Close buttons */
+:root.contrast-yellow-on-black .back-btn {
+  color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .back-btn:hover {
+  background: rgba(136, 136, 0, 0.15) !important;
+}
+
+:root.contrast-yellow-on-black .close-btn {
+  color: #888800 !important;
+}
+
+:root.contrast-yellow-on-black .close-btn:hover {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .close-btn svg {
+  color: inherit !important;
+}
+
+/* Loader spinner */
+:root.contrast-yellow-on-black .loader {
+  border-color: rgba(255, 255, 0, 0.3) !important;
+  border-top-color: #ffff00 !important;
+}
+
+/* Disabled button states */
+:root.contrast-yellow-on-black .finish-button:disabled,
+:root.contrast-yellow-on-black .continue-button:disabled {
+  background: #333300 !important;
+  color: #666600 !important;
+  border-color: #444400 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:root.contrast-white-on-black .finish-button:disabled,
+:root.contrast-white-on-black .continue-button:disabled {
+  background: #333333 !important;
+  color: #666666 !important;
+  border-color: #444444 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* =====================================================
+   COMPLETED VIEW STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* ========== WHITE ON BLACK - COMPLETED VIEW ========== */
+
+:root.contrast-white-on-black .completed-view {
+  background: linear-gradient(135deg, #0a0a0a 0%, #000000 50%, #0a0a0a 100%) !important;
+  min-height: 100vh;
+}
+
+:root.contrast-white-on-black .completed-view .content-card {
+  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%) !important;
+  border: 2px solid #3b82f6 !important;
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.2),
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 80px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+:root.contrast-white-on-black .completed-view .success-bg {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  box-shadow:
+    0 0 0 8px rgba(34, 197, 94, 0.2),
+    0 0 40px rgba(34, 197, 94, 0.4) !important;
+}
+
+:root.contrast-white-on-black .completed-view .success-icon path {
+  stroke: #ffffff !important;
+}
+
+:root.contrast-white-on-black .completed-view .title {
+  color: #ffffff !important;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+/* Result Cards */
+:root.contrast-white-on-black .completed-view .results-container {
+  gap: 16px;
+}
+
+:root.contrast-white-on-black .completed-view .result-card {
+  background: linear-gradient(145deg, #1f1f1f 0%, #151515 100%) !important;
+  border: 1px solid #333333 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root.contrast-white-on-black .completed-view .result-card:hover {
+  border-color: #3b82f6 !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-4px);
+}
+
+:root.contrast-white-on-black .completed-view .result-header {
+  color: #888888 !important;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 10px;
+  margin-bottom: 16px !important;
+}
+
+:root.contrast-white-on-black .completed-view .result-body .score {
+  color: #ffffff !important;
+  font-size: 42px !important;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+:root.contrast-white-on-black .completed-view .result-body .details {
+  color: #22c55e !important;
+  font-weight: 500;
+}
+
+/* Writing Notice */
+:root.contrast-white-on-black .completed-view .writing-notice {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%) !important;
+  border: none !important;
+  border-left: 4px solid #3b82f6 !important;
+  color: #cccccc !important;
+}
+
+/* Info Box */
+:root.contrast-white-on-black .completed-view .info-box {
+  background: linear-gradient(145deg, #1e3a5f 0%, #172a45 100%) !important;
+  border: 1px solid #3b82f6 !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15) !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-title {
+  color: #60a5fa !important;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+  padding-bottom: 12px;
+  margin-bottom: 16px !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-box p {
+  color: #93c5fd !important;
+}
+
+:root.contrast-white-on-black .completed-view .info-box strong {
+  color: #ffffff !important;
+}
+
+/* Back to Login Button */
+:root.contrast-white-on-black .completed-view .back-to-login-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow:
+    0 4px 20px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .completed-view .back-to-login-btn:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+  box-shadow:
+    0 8px 30px rgba(59, 130, 246, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-3px);
+}
+
+:root.contrast-white-on-black .completed-view .back-to-login-btn svg {
+  color: #ffffff !important;
+}
+
+/* ========== YELLOW ON BLACK - COMPLETED VIEW ========== */
+
+:root.contrast-yellow-on-black .completed-view {
+  background: linear-gradient(135deg, #0a0a00 0%, #000000 50%, #0a0a00 100%) !important;
+  min-height: 100vh;
+}
+
+:root.contrast-yellow-on-black .completed-view .content-card {
+  background: linear-gradient(145deg, #1a1a00 0%, #0d0d00 100%) !important;
+  border: 2px solid #888800 !important;
+  box-shadow:
+    0 0 0 1px rgba(136, 136, 0, 0.2),
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 80px rgba(255, 255, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 0, 0.05) !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .success-bg {
+  background: linear-gradient(135deg, #669900 0%, #558800 100%) !important;
+  box-shadow:
+    0 0 0 8px rgba(102, 153, 0, 0.2),
+    0 0 40px rgba(102, 153, 0, 0.4) !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .success-icon path {
+  stroke: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .title {
+  color: #ffff00 !important;
+  text-shadow: 0 0 30px rgba(255, 255, 0, 0.2);
+}
+
+/* Result Cards */
+:root.contrast-yellow-on-black .completed-view .results-container {
+  gap: 16px;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-card {
+  background: linear-gradient(145deg, #1f1f00 0%, #151500 100%) !important;
+  border: 1px solid #333300 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root.contrast-yellow-on-black .completed-view .result-card:hover {
+  border-color: #888800 !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(136, 136, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+  transform: translateY(-4px);
+}
+
+:root.contrast-yellow-on-black .completed-view .result-header {
+  color: #999900 !important;
+  border-bottom: 1px solid #2a2a00;
+  padding-bottom: 10px;
+  margin-bottom: 16px !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .result-body .score {
+  color: #ffff00 !important;
+  font-size: 42px !important;
+  text-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+:root.contrast-yellow-on-black .completed-view .result-body .details {
+  color: #88cc00 !important;
+  font-weight: 500;
+}
+
+/* Writing Notice */
+:root.contrast-yellow-on-black .completed-view .writing-notice {
+  background: linear-gradient(90deg, rgba(136, 136, 0, 0.15) 0%, transparent 100%) !important;
+  border: none !important;
+  border-left: 4px solid #888800 !important;
+  color: #cccc00 !important;
+}
+
+/* Info Box */
+:root.contrast-yellow-on-black .completed-view .info-box {
+  background: linear-gradient(145deg, #2a2a00 0%, #1f1f00 100%) !important;
+  border: 1px solid #666600 !important;
+  box-shadow: 0 4px 20px rgba(136, 136, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-title {
+  color: #ffff00 !important;
+  border-bottom: 1px solid rgba(136, 136, 0, 0.3);
+  padding-bottom: 12px;
+  margin-bottom: 16px !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-box p {
+  color: #cccc00 !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .info-box strong {
+  color: #ffff00 !important;
+}
+
+/* Back to Login Button */
+:root.contrast-yellow-on-black .completed-view .back-to-login-btn {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #aaaa00 !important;
+  box-shadow:
+    0 4px 20px rgba(136, 136, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .completed-view .back-to-login-btn:hover {
+  background: linear-gradient(135deg, #999900 0%, #777700 100%) !important;
+  box-shadow:
+    0 8px 30px rgba(136, 136, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 0, 0.2) !important;
+  transform: translateY(-3px);
+}
+
+:root.contrast-yellow-on-black .completed-view .back-to-login-btn svg {
+  color: #ffff00 !important;
+}
