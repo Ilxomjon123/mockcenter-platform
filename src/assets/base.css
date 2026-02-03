@@ -406,14 +406,53 @@ select {
 }
 
 /* Text highlight styles for white-on-black */
-:root.contrast-white-on-black .passage-highlight {
-  background-color: #3b5998 !important;
+:root.contrast-white-on-black .passage-highlight,
+:root.contrast-white-on-black mark,
+:root.contrast-white-on-black .highlight {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%) !important;
   color: #ffffff !important;
-  border-radius: 2px;
-  padding: 2px 4px;
+  border-radius: 4px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+}
+
+/* Listening question highlight for white-on-black */
+:root.contrast-white-on-black .question-highlight {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%) !important;
+  color: #ffffff !important;
+  border-radius: 4px;
+  padding: 2px 6px !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+}
+
+/* Highlight toolbar for white-on-black */
+:root.contrast-white-on-black .highlight-toolbar {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+:root.contrast-white-on-black .highlight-toolbar .divider {
+  background: #444444 !important;
+}
+
+:root.contrast-white-on-black .highlight-toolbar .clear-btn {
+  color: #aaaaaa !important;
+}
+
+:root.contrast-white-on-black .highlight-toolbar .clear-btn:hover {
+  background: #2a2a2a !important;
+  color: #ff6666 !important;
 }
 
 :root.contrast-white-on-black .passage-text ::selection,
+:root.contrast-white-on-black .passage-content ::selection,
+:root.contrast-white-on-black .question-content ::selection,
+:root.contrast-white-on-black .questions-container ::selection,
 :root.contrast-white-on-black ::selection {
   background: #3b82f6 !important;
   color: #ffffff !important;
@@ -824,17 +863,55 @@ select {
 }
 
 /* Text highlight styles for yellow-on-black */
-:root.contrast-yellow-on-black .passage-highlight {
-  background-color: #665500 !important;
+:root.contrast-yellow-on-black .passage-highlight,
+:root.contrast-yellow-on-black mark,
+:root.contrast-yellow-on-black .highlight {
+  background: linear-gradient(135deg, #806600 0%, #aa8800 100%) !important;
   color: #ffff00 !important;
-  border-radius: 2px;
-  padding: 2px 4px;
-  border-bottom: 2px solid #aaaa00 !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 8px rgba(170, 136, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+/* Listening question highlight for yellow-on-black */
+:root.contrast-yellow-on-black .question-highlight {
+  background: linear-gradient(135deg, #806600 0%, #aa8800 100%) !important;
+  color: #ffff00 !important;
+  border-radius: 4px;
+  padding: 2px 6px !important;
+  box-shadow: 0 2px 8px rgba(170, 136, 0, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+/* Highlight toolbar for yellow-on-black */
+:root.contrast-yellow-on-black .highlight-toolbar {
+  background: #1a1a00 !important;
+  border: 1px solid #333300 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+:root.contrast-yellow-on-black .highlight-toolbar .divider {
+  background: #444400 !important;
+}
+
+:root.contrast-yellow-on-black .highlight-toolbar .clear-btn {
+  color: #aaaa00 !important;
+}
+
+:root.contrast-yellow-on-black .highlight-toolbar .clear-btn:hover {
+  background: #2a2a00 !important;
+  color: #ff9900 !important;
 }
 
 :root.contrast-yellow-on-black .passage-text ::selection,
+:root.contrast-yellow-on-black .passage-content ::selection,
+:root.contrast-yellow-on-black .question-content ::selection,
+:root.contrast-yellow-on-black .questions-container ::selection,
 :root.contrast-yellow-on-black ::selection {
-  background: #666600 !important;
+  background: #888800 !important;
   color: #ffff00 !important;
 }
 
@@ -2584,5 +2661,321 @@ select {
 }
 
 :root.contrast-yellow-on-black .completed-view .back-to-login-btn svg {
+  color: #ffff00 !important;
+}
+
+/* =====================================================
+   EXAM FOOTER COMPREHENSIVE STYLES FOR CONTRAST MODES
+   ===================================================== */
+
+/* ========== EXAM VIEW BACKGROUNDS FOR CONTRAST MODES ========== */
+
+:root.contrast-white-on-black .exam-view {
+  background: #000000 !important;
+}
+
+:root.contrast-white-on-black .main-content {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .exam-view {
+  background: #000000 !important;
+}
+
+:root.contrast-yellow-on-black .main-content {
+  background: #000000 !important;
+}
+
+/* ========== WHITE ON BLACK - EXAM FOOTER ========== */
+
+:root.contrast-white-on-black .exam-footer {
+  background: linear-gradient(180deg, #0d0d0d 0%, #000000 100%) !important;
+  border-top: 1px solid #333333 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Footer parts container */
+:root.contrast-white-on-black .footer-parts {
+  gap: 16px;
+}
+
+/* Part section */
+:root.contrast-white-on-black .part-section {
+  background: transparent !important;
+}
+
+/* Part label button */
+:root.contrast-white-on-black .part-label {
+  background: transparent !important;
+  color: #888888 !important;
+  border: none !important;
+  padding: 10px 16px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+:root.contrast-white-on-black .part-label:hover {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+:root.contrast-white-on-black .part-label.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Question indices container */
+:root.contrast-white-on-black .question-indices {
+  gap: 6px !important;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+/* Question index buttons */
+:root.contrast-white-on-black .question-index {
+  background: #1a1a1a !important;
+  color: #aaaaaa !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+:root.contrast-white-on-black .question-index:hover {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #555555 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+:root.contrast-white-on-black .question-index.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow:
+    0 4px 15px rgba(59, 130, 246, 0.5),
+    0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+:root.contrast-white-on-black .question-index.answered:not(.active) {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4) !important;
+}
+
+/* Part count badge */
+:root.contrast-white-on-black .part-count {
+  background: #1a1a1a !important;
+  color: #888888 !important;
+  border: 1px solid #333333 !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Floating navigation buttons */
+:root.contrast-white-on-black .floating-nav {
+  gap: 12px !important;
+}
+
+:root.contrast-white-on-black .float-btn {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+:root.contrast-white-on-black .float-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+  border-color: #3b82f6 !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .float-btn:disabled {
+  background: #1a1a1a !important;
+  color: #444444 !important;
+  border-color: #222222 !important;
+  box-shadow: none !important;
+}
+
+:root.contrast-white-on-black .float-btn svg {
+  color: inherit !important;
+}
+
+/* Submit button */
+:root.contrast-white-on-black .submit-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow:
+    0 4px 20px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+:root.contrast-white-on-black .submit-btn:hover {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+  box-shadow:
+    0 8px 30px rgba(34, 197, 94, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+:root.contrast-white-on-black .submit-btn svg {
+  color: #ffffff !important;
+}
+
+/* ========== YELLOW ON BLACK - EXAM FOOTER ========== */
+
+:root.contrast-yellow-on-black .exam-footer {
+  background: linear-gradient(180deg, #0d0d00 0%, #000000 100%) !important;
+  border-top: 1px solid #333300 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Footer parts container */
+:root.contrast-yellow-on-black .footer-parts {
+  gap: 16px;
+}
+
+/* Part section */
+:root.contrast-yellow-on-black .part-section {
+  background: transparent !important;
+}
+
+/* Part label button */
+:root.contrast-yellow-on-black .part-label {
+  background: transparent !important;
+  color: #888800 !important;
+  border: none !important;
+  padding: 10px 16px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+:root.contrast-yellow-on-black .part-label:hover {
+  background: #1a1a00 !important;
+  color: #ffff00 !important;
+}
+
+:root.contrast-yellow-on-black .part-label.active {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  box-shadow: 0 4px 15px rgba(136, 136, 0, 0.4) !important;
+}
+
+/* Question indices container */
+:root.contrast-yellow-on-black .question-indices {
+  gap: 6px !important;
+  padding: 4px;
+  background: rgba(255, 255, 0, 0.02);
+  border-radius: 10px;
+}
+
+/* Question index buttons */
+:root.contrast-yellow-on-black .question-index {
+  background: #1a1a00 !important;
+  color: #aaaa00 !important;
+  border: 1px solid #333300 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+:root.contrast-yellow-on-black .question-index:hover {
+  background: #2a2a00 !important;
+  color: #ffff00 !important;
+  border-color: #555500 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+:root.contrast-yellow-on-black .question-index.active {
+  background: linear-gradient(135deg, #888800 0%, #666600 100%) !important;
+  color: #ffff00 !important;
+  border-color: transparent !important;
+  box-shadow:
+    0 4px 15px rgba(136, 136, 0, 0.5),
+    0 0 0 2px rgba(136, 136, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .question-index.answered:not(.active) {
+  background: linear-gradient(135deg, #669900 0%, #558800 100%) !important;
+  color: #ffff00 !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 15px rgba(102, 153, 0, 0.4) !important;
+}
+
+/* Part count badge */
+:root.contrast-yellow-on-black .part-count {
+  background: #1a1a00 !important;
+  color: #999900 !important;
+  border: 1px solid #333300 !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Floating navigation buttons */
+:root.contrast-yellow-on-black .floating-nav {
+  gap: 12px !important;
+}
+
+:root.contrast-yellow-on-black .float-btn {
+  background: linear-gradient(135deg, #1a1a00 0%, #0d0d00 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #333300 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.05) !important;
+}
+
+:root.contrast-yellow-on-black .float-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2a2a00 0%, #1a1a00 100%) !important;
+  border-color: #888800 !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(136, 136, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .float-btn:disabled {
+  background: #1a1a00 !important;
+  color: #444400 !important;
+  border-color: #222200 !important;
+  box-shadow: none !important;
+}
+
+:root.contrast-yellow-on-black .float-btn svg {
+  color: inherit !important;
+}
+
+/* Submit button */
+:root.contrast-yellow-on-black .submit-btn {
+  background: linear-gradient(135deg, #669900 0%, #558800 100%) !important;
+  color: #ffff00 !important;
+  border: 1px solid #88aa00 !important;
+  box-shadow:
+    0 4px 20px rgba(102, 153, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 0, 0.1) !important;
+}
+
+:root.contrast-yellow-on-black .submit-btn:hover {
+  background: linear-gradient(135deg, #77aa00 0%, #669900 100%) !important;
+  box-shadow:
+    0 8px 30px rgba(102, 153, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 0, 0.2) !important;
+}
+
+:root.contrast-yellow-on-black .submit-btn svg {
   color: #ffff00 !important;
 }
