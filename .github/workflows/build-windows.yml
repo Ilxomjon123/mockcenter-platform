@@ -122,3 +122,93 @@ jobs:
           name: MockCenter-Linux-rpm
           path: src-tauri/target/release/bundle/rpm/*.rpm
           retention-days: 30
+
+  # Send all artifacts to Telegram
+  notify-telegram:
+    name: Send to Telegram
+    needs: build
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded files
+        run: find artifacts -type f -name "*" | head -20
+
+      - name: Send Windows EXE to Telegram
+        if: hashFiles('artifacts/MockCenter-Windows-exe/*.exe') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-Windows-exe -name "*.exe" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🪟 Windows Installer (.exe)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}
+          📅 $(date +'%Y-%m-%d %H:%M')" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send Windows MSI to Telegram
+        if: hashFiles('artifacts/MockCenter-Windows-msi/*.msi') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-Windows-msi -name "*.msi" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🪟 Windows Installer (.msi)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send macOS ARM DMG to Telegram
+        if: hashFiles('artifacts/MockCenter-macOS-ARM-dmg/*.dmg') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-macOS-ARM-dmg -name "*.dmg" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🍎 macOS Apple Silicon (.dmg)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send macOS Intel DMG to Telegram
+        if: hashFiles('artifacts/MockCenter-macOS-Intel-dmg/*.dmg') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-macOS-Intel-dmg -name "*.dmg" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🍎 macOS Intel (.dmg)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send Linux DEB to Telegram
+        if: hashFiles('artifacts/MockCenter-Linux-deb/*.deb') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-Linux-deb -name "*.deb" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🐧 Linux Debian/Ubuntu (.deb)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send Linux AppImage to Telegram
+        if: hashFiles('artifacts/MockCenter-Linux-AppImage/*.AppImage') != ''
+        run: |
+          FILE=$(find artifacts/MockCenter-Linux-AppImage -name "*.AppImage" | head -1)
+          curl -F document=@"$FILE" \
+               -F caption="🐧 Linux Universal (.AppImage)
+          📦 MockCenter Desktop
+          🔖 ${{ github.ref_name }}" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+
+      - name: Send completion message
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+               -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -d parse_mode="HTML" \
+               -d text="✅ <b>Build Complete!</b>
+
+          📦 <b>MockCenter Desktop</b>
+          🔖 Version: <code>${{ github.ref_name }}</code>
+          📝 Commit: <code>${{ github.sha }}</code>
+
+          🔗 <a href='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'>View Build Logs</a>"
