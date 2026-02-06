@@ -304,6 +304,7 @@ watch(
   padding: 32px;
   overflow-y: auto;
   flex: 1;
+  font-family: Arial, sans-serif;
 }
 
 .passage-title {
@@ -317,6 +318,7 @@ watch(
   font-size: 14px;
   line-height: 1.8;
   color: #374151;
+  font-family: Arial, sans-serif;
 }
 
 .passage-text :deep(p) {

@@ -121,6 +121,7 @@ const onToggle = (value: string) => {
 <style scoped>
 .question-content {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   line-height: 1.8;
   margin-bottom: 12px;
@@ -207,6 +208,7 @@ const onToggle = (value: string) => {
 
 .option-label {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   line-height: 1.4;
 }

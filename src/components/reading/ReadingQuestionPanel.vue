@@ -369,6 +369,8 @@ watch(
   flex: 1;
   overflow-y: auto;
   padding: 0;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
 }
 
 /* Global drag ghost style */

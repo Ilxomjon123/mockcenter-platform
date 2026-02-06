@@ -48,6 +48,7 @@ const formattedOptions = computed(() => {
 
 .options-title {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   font-weight: 600;
   color: #374151;
   margin-bottom: 12px;
@@ -55,6 +56,7 @@ const formattedOptions = computed(() => {
 
 .question-options {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   display: flex;
   flex-direction: column;

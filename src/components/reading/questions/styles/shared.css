@@ -5,6 +5,7 @@
   font-size: 14px;
   color: #374151;
   line-height: 1.8;
+  font-family: Arial, sans-serif;
 }
 
 .question-content img {
@@ -28,8 +29,11 @@
   margin: 0 4px;
   text-align: center;
   font-size: 14px;
+  font-family: Arial, sans-serif;
   outline: none;
-  transition: border-color 0.15s ease, width 0.1s ease;
+  transition:
+    border-color 0.15s ease,
+    width 0.1s ease;
   box-sizing: content-box;
 }
 
@@ -51,7 +55,8 @@
   margin: 4px 0;
   background: #ffffff;
   border: 1px solid #d1d5db;
-  font-size: 13px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   -webkit-touch-callout: none;
   touch-action: none;
@@ -97,7 +102,8 @@
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   vertical-align: middle;
-  font-size: 13px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   position: relative;
 }
 
@@ -137,9 +143,15 @@
 }
 
 @keyframes drop-bounce {
-  0% { transform: scale(1.05); }
-  50% { transform: scale(0.98); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .match-dropzone.remove-animation {
@@ -147,13 +159,21 @@
 }
 
 @keyframes shake-remove {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
 }
 
 .match-number {
-  font-size: 13px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   font-weight: 600;
   color: #374151;
 }
@@ -164,6 +184,7 @@
 
 .match-value {
   font-weight: 500;
+  font-family: Arial, sans-serif;
   color: #374151;
 }
 
@@ -173,7 +194,8 @@
   border-radius: 4px;
   background: #ffffff;
   border: 1px solid #3b82f6;
-  font-size: 13px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
@@ -188,7 +210,8 @@
 }
 
 .dropdown-number {
-  font-size: 13px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
   font-weight: 600;
   color: #374151;
 }
@@ -198,8 +221,11 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: #ffffff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
@@ -221,7 +247,7 @@
 }
 
 .dropdown-select:not(:placeholder-shown),
-.dropdown-select option:checked:not([value=""]) {
+.dropdown-select option:checked:not([value='']) {
   color: #1f2937;
   font-weight: 500;
 }
@@ -230,6 +256,6 @@
   padding: 8px 12px;
 }
 
-.dropdown-select option[value=""] {
+.dropdown-select option[value=''] {
   color: #9ca3af;
 }
