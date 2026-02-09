@@ -13,6 +13,8 @@ interface LoginResponse {
     access_token: string
   }
   message?: string
+  error?: string
+  details?: string
 }
 
 interface TestDataResponse {
@@ -40,6 +42,8 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || '')
   const isLoading = ref(false)
   const errorMessage = ref('')
+  const errorDetails = ref('')
+  const isPaymentError = ref(false)
   const isLoadingTest = ref(false)
 
   const isAuthenticated = computed(() => !!token.value)
@@ -87,10 +91,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         return { success: true }
       } else {
-        throw new Error('Test ma\'lumotlari topilmadi')
+        throw new Error('Test data not found')
       }
     } catch (error: unknown) {
-      let message = 'Test ma\'lumotlarini yuklashda xatolik'
+      let message = 'Error loading test data'
       if (axios.isAxiosError(error)) {
         message = error.response?.data?.message || error.message
       } else if (error instanceof Error) {
@@ -105,6 +109,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email: string, password: string) => {
     errorMessage.value = ''
+    errorDetails.value = ''
+    isPaymentError.value = false
     isLoading.value = true
 
     try {
@@ -129,18 +135,31 @@ export const useAuthStore = defineStore('auth', () => {
 
         return { success: true }
       } else {
-        errorMessage.value = response?.message || "Login yoki parol noto'g'ri"
+        errorMessage.value = response?.message || "Invalid email or password"
         return { success: false, message: errorMessage.value }
       }
     } catch (error: unknown) {
-      let message = 'Serverga ulanishda xatolik'
+      let message = 'Server connection error'
+      let details = ''
+      let isPayment = false
+
       if (axios.isAxiosError(error)) {
-        message = error.response?.data?.message || error.message
+        const responseData = error.response?.data
+        message = responseData?.message || error.message
+
+        // Check if this is a payment required error
+        if (responseData?.error === 'payment_required') {
+          isPayment = true
+          details = responseData?.details || ''
+        }
       } else if (error instanceof Error) {
         message = error.message
       }
+
       errorMessage.value = message
-      return { success: false, message }
+      errorDetails.value = details
+      isPaymentError.value = isPayment
+      return { success: false, message, isPaymentError: isPayment }
     } finally {
       isLoading.value = false
     }
@@ -213,10 +232,10 @@ export const useAuthStore = defineStore('auth', () => {
       if (response) {
         return { success: true, results: response.results }
       } else {
-        return { success: false, message: "Imtihonni topshirishda xatolik yuz berdi" }
+        return { success: false, message: "Error submitting the exam" }
       }
     } catch (error: unknown) {
-      let message = 'Serverga ulanishda xatolik'
+      let message = 'Server connection error'
       if (axios.isAxiosError(error)) {
         message = error.response?.data?.message || error.message
       }
@@ -228,6 +247,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearError = () => {
     errorMessage.value = ''
+    errorDetails.value = ''
+    isPaymentError.value = false
   }
 
   // Token validligini tekshirish
@@ -245,6 +266,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     isLoadingTest,
     errorMessage,
+    errorDetails,
+    isPaymentError,
     isAuthenticated,
     login,
     logout,

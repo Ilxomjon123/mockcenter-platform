@@ -45,12 +45,12 @@ export const useApi = () => {
   // Helper to extract error message from unknown error
   const getErrorMessage = (err: unknown): string => {
     if (axios.isAxiosError(err)) {
-      return err.response?.data?.message || err.message || 'Xatolik yuz berdi'
+      return err.response?.data?.message || err.message || 'An error occurred'
     }
     if (err instanceof Error) {
       return err.message
     }
-    return 'Xatolik yuz berdi'
+    return 'An error occurred'
   }
 
   // GET so'rovi
@@ -83,7 +83,7 @@ export const useApi = () => {
       return response.data
     } catch (err: unknown) {
       error.value = getErrorMessage(err)
-      return null
+      throw err // Re-throw to allow caller to handle
     } finally {
       isLoading.value = false
     }

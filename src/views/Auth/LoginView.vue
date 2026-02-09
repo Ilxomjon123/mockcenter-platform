@@ -28,7 +28,41 @@
       <h2>Login</h2>
 
       <transition name="fade">
-        <div v-if="authStore.errorMessage" class="alert error">
+        <div v-if="authStore.isPaymentError" class="alert payment-error">
+          <div class="payment-error-content">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="payment-icon"
+            >
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <div class="payment-error-text">
+              <strong>{{ authStore.errorMessage }}</strong>
+              <p v-if="authStore.errorDetails">{{ authStore.errorDetails }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="close-btn"
+            @click="authStore.clearError"
+            aria-label="Close message"
+          >
+            ×
+          </button>
+        </div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="authStore.errorMessage && !authStore.isPaymentError" class="alert error">
           <span>{{ authStore.errorMessage }}</span>
           <button
             type="button"
@@ -369,12 +403,57 @@ button[type='submit'].loading {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  position: relative;
 }
 
 .alert.error {
   background: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
+}
+
+.alert.payment-error {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.payment-error-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.payment-icon {
+  flex-shrink: 0;
+  color: #d97706;
+}
+
+.payment-error-text {
+  flex: 1;
+}
+
+.payment-error-text strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.payment-error-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #a16207;
+  line-height: 1.4;
+}
+
+.alert.payment-error .close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 .alert.success {
@@ -524,6 +603,20 @@ button[type='submit'].loading {
   border-color: #660000;
 }
 
+:root.contrast-white-on-black .alert.payment-error {
+  background: linear-gradient(135deg, #332200 0%, #443300 100%);
+  color: #ffcc66;
+  border-color: #996600;
+}
+
+:root.contrast-white-on-black .payment-icon {
+  color: #ffaa00;
+}
+
+:root.contrast-white-on-black .payment-error-text p {
+  color: #cc9933;
+}
+
 :root.contrast-white-on-black .alert.success {
   background: #003300;
   color: #99ff99;
@@ -620,6 +713,20 @@ button[type='submit'].loading {
   background: #330000;
   color: #ff9999;
   border-color: #660000;
+}
+
+:root.contrast-yellow-on-black .alert.payment-error {
+  background: linear-gradient(135deg, #332200 0%, #443300 100%);
+  color: #ffcc00;
+  border-color: #996600;
+}
+
+:root.contrast-yellow-on-black .payment-icon {
+  color: #ffaa00;
+}
+
+:root.contrast-yellow-on-black .payment-error-text p {
+  color: #cc9900;
 }
 
 :root.contrast-yellow-on-black .alert.success {
