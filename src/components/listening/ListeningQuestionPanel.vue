@@ -472,11 +472,23 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .listening-header {
+    padding: 8px 12px;
+  }
+}
+
 .header-info {
   background: #f1f2ed;
   padding: 10px 16px;
   border-radius: 3px;
   border: 1px solid #d1d5db;
+}
+
+@media (max-width: 640px) {
+  .header-info {
+    padding: 8px 12px;
+  }
 }
 
 .part-label {
@@ -487,16 +499,35 @@ onUnmounted(() => {
   margin-bottom: 4px;
 }
 
+@media (max-width: 640px) {
+  .part-label {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+}
+
 .instruction {
   font-size: 14px;
   color: #4b5563;
   margin: 0;
 }
 
+@media (max-width: 640px) {
+  .instruction {
+    font-size: 12px;
+  }
+}
+
 .questions-container {
   flex: 1;
   overflow-y: auto;
   padding: 0;
+}
+
+@media (max-width: 640px) {
+  .questions-container {
+    padding: 0 8px;
+  }
 }
 
 /* Global drag ghost style */

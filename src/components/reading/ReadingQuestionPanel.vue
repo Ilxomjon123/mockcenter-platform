@@ -365,12 +365,25 @@ watch(
   overflow: hidden;
 }
 
+@media (max-width: 640px) {
+  .question-panel {
+    width: 100% !important;
+  }
+}
+
 .questions-container {
   flex: 1;
   overflow-y: auto;
   padding: 0;
   font-family: Arial, sans-serif;
   font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .questions-container {
+    padding: 0 8px;
+    font-size: 13px;
+  }
 }
 
 /* Global drag ghost style */

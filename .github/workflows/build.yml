@@ -1,0 +1,350 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  # ============================================
+  # DESKTOP BUILDS (Windows, macOS, Linux)
+  # ============================================
+  build-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+            name: Windows
+          - platform: macos-latest
+            args: '--target aarch64-apple-darwin'
+            name: macOS-ARM
+          - platform: macos-latest
+            args: '--target x86_64-apple-darwin'
+            name: macOS-Intel
+          - platform: ubuntu-22.04
+            args: ''
+            name: Linux
+
+    runs-on: ${{ matrix.platform }}
+    name: Desktop (${{ matrix.name }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Tauri app
+        run: pnpm tauri build ${{ matrix.args }}
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          TAURI_SIGNING_PRIVATE_KEY: ''
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+
+      # Windows artifacts
+      - name: Upload Windows EXE
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Windows-exe
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 30
+
+      - name: Upload Windows MSI
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Windows-msi
+          path: src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 30
+
+      # macOS artifacts
+      - name: Upload macOS DMG (ARM)
+        if: matrix.platform == 'macos-latest' && contains(matrix.args, 'aarch64')
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-macOS-ARM-dmg
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+          retention-days: 30
+
+      - name: Upload macOS DMG (Intel)
+        if: matrix.platform == 'macos-latest' && contains(matrix.args, 'x86_64')
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-macOS-Intel-dmg
+          path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+          retention-days: 30
+
+      # Linux artifacts
+      - name: Upload Linux DEB
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Linux-deb
+          path: src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 30
+
+      - name: Upload Linux AppImage
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Linux-AppImage
+          path: src-tauri/target/release/bundle/appimage/*.AppImage
+          retention-days: 30
+
+      - name: Upload Linux RPM
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Linux-rpm
+          path: src-tauri/target/release/bundle/rpm/*.rpm
+          retention-days: 30
+
+  # ============================================
+  # ANDROID BUILD
+  # ============================================
+  build-android:
+    name: Mobile (Android)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Initialize Tauri Android
+        run: pnpm tauri android init
+
+      - name: Build Android APK
+        run: pnpm tauri android build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Android-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+          retention-days: 30
+
+      - name: Upload Android AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-Android-aab
+          path: src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ============================================
+  # iOS BUILD
+  # ============================================
+  build-ios:
+    name: Mobile (iOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Initialize Tauri iOS
+        run: pnpm tauri ios init
+
+      - name: Build iOS
+        run: pnpm tauri ios build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: MockCenter-iOS-app
+          path: src-tauri/gen/apple/build/**/*.app
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ============================================
+  # SEND ALL TO TELEGRAM
+  # ============================================
+  notify-telegram:
+    name: Send to Telegram
+    needs: [build-desktop, build-android, build-ios]
+    runs-on: ubuntu-latest
+    if: always() && (needs.build-desktop.result == 'success' || needs.build-android.result == 'success')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+        continue-on-error: true
+
+      - name: List downloaded files
+        run: find artifacts -type f 2>/dev/null | head -30 || echo "No artifacts found"
+
+      # Desktop artifacts
+      - name: Send Windows EXE to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-Windows-exe -name "*.exe" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🪟 Windows Installer (.exe)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      - name: Send macOS ARM DMG to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-macOS-ARM-dmg -name "*.dmg" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🍎 macOS Apple Silicon (.dmg)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      - name: Send macOS Intel DMG to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-macOS-Intel-dmg -name "*.dmg" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🍎 macOS Intel (.dmg)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      - name: Send Linux DEB to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-Linux-deb -name "*.deb" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🐧 Linux (.deb)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      - name: Send Linux AppImage to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-Linux-AppImage -name "*.AppImage" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🐧 Linux (.AppImage)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      # Mobile artifacts
+      - name: Send Android APK to Telegram
+        continue-on-error: true
+        run: |
+          FILE=$(find artifacts/MockCenter-Android-apk -name "*.apk" 2>/dev/null | head -1)
+          if [ -f "$FILE" ]; then
+            curl -F document=@"$FILE" \
+                 -F caption="🤖 Android (.apk)
+          📦 MockCenter
+          🔖 ${{ github.ref_name }}" \
+                 "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument?chat_id=${{ secrets.TELEGRAM_CHAT_ID }}"
+          fi
+
+      # Summary message
+      - name: Send completion message
+        run: |
+          DESKTOP_STATUS="${{ needs.build-desktop.result == 'success' && '✅' || '❌' }}"
+          ANDROID_STATUS="${{ needs.build-android.result == 'success' && '✅' || '❌' }}"
+          IOS_STATUS="${{ needs.build-ios.result == 'success' && '✅' || '⚠️' }}"
+
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+               -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -d parse_mode="HTML" \
+               -d text="🏁 <b>Build Complete!</b>
+
+          📦 <b>MockCenter</b>
+          🔖 Version: <code>${{ github.ref_name }}</code>
+
+          <b>Desktop:</b>
+          ${DESKTOP_STATUS} Windows, macOS, Linux
+
+          <b>Mobile:</b>
+          ${ANDROID_STATUS} Android
+          ${IOS_STATUS} iOS
+
+          🔗 <a href='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'>View Logs</a>"

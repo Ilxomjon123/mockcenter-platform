@@ -300,11 +300,23 @@ watch(
   overflow: hidden;
 }
 
+@media (max-width: 640px) {
+  .passage-panel {
+    width: 100% !important;
+  }
+}
+
 .passage-content {
   padding: 32px;
   overflow-y: auto;
   flex: 1;
   font-family: Arial, sans-serif;
+}
+
+@media (max-width: 640px) {
+  .passage-content {
+    padding: 16px;
+  }
 }
 
 .passage-title {

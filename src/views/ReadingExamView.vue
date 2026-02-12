@@ -11,13 +11,44 @@
         </div>
       </div>
 
+      <!-- Mobile Tab Switcher -->
+      <div class="mobile-tabs">
+        <button
+          class="mobile-tab"
+          :class="{ active: activeTab === 'passage' }"
+          @click="activeTab = 'passage'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          Passage
+        </button>
+        <button
+          class="mobile-tab"
+          :class="{ active: activeTab === 'questions' }"
+          @click="activeTab = 'questions'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+          Questions
+        </button>
+      </div>
+
       <!-- Panels container -->
       <div class="panels-container">
-        <ReadingPassagePanel :width="leftWidth" :passage="readingStore.currentPassage" />
+        <ReadingPassagePanel
+          :width="leftWidth"
+          :passage="readingStore.currentPassage"
+          :class="{ 'mobile-hidden': activeTab !== 'passage' }"
+        />
 
-        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
+        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" class="hide-mobile" />
 
-        <ReadingQuestionPanel />
+        <ReadingQuestionPanel :class="{ 'mobile-hidden': activeTab !== 'questions' }" />
       </div>
     </div>
 
@@ -53,6 +84,9 @@ const readingStore = useReadingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 const { setupGlobalListeners, cleanupGlobalListeners } = useGlobalReadingDragDrop()
 const currentQuestion = ref(0)
+
+// Mobile tab state
+const activeTab = ref<'passage' | 'questions'>('passage')
 
 // 60 minutes in milliseconds
 const SIXTY_MINUTES_MS = 60 * 60 * 1000
@@ -237,10 +271,17 @@ const handleSubmit = (): void => {
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 61px;
-  bottom: 72px;
+  top: var(--header-height, 61px);
+  bottom: var(--footer-height, 72px);
   left: 0;
   right: 0;
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    top: var(--header-height, 52px);
+    bottom: var(--footer-height, 120px);
+  }
 }
 
 .reading-header {
@@ -249,11 +290,23 @@ const handleSubmit = (): void => {
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .reading-header {
+    padding: 8px 12px;
+  }
+}
+
 .header-info {
   background: #f1f2ed;
   padding: 10px 16px;
   border-radius: 3px;
   border: 1px solid #d1d5db;
+}
+
+@media (max-width: 640px) {
+  .header-info {
+    padding: 8px 12px;
+  }
 }
 
 .part-label {
@@ -264,16 +317,102 @@ const handleSubmit = (): void => {
   margin-bottom: 4px;
 }
 
+@media (max-width: 640px) {
+  .part-label {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+}
+
 .instruction {
   font-size: 14px;
   color: #4b5563;
   margin: 0;
 }
 
+@media (max-width: 640px) {
+  .instruction {
+    font-size: 12px;
+  }
+}
+
+/* Mobile Tab Switcher */
+.mobile-tabs {
+  display: none;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .mobile-tabs {
+    display: flex;
+  }
+}
+
+.mobile-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-tab.active {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+
+.mobile-tab svg {
+  flex-shrink: 0;
+}
+
 .panels-container {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .panels-container {
+    flex-direction: column;
+  }
+}
+
+/* Hide panels on mobile based on active tab */
+@media (max-width: 640px) {
+  :deep(.passage-panel.mobile-hidden),
+  :deep(.question-panel.mobile-hidden) {
+    display: none;
+  }
+
+  :deep(.passage-panel:not(.mobile-hidden)),
+  :deep(.question-panel:not(.mobile-hidden)) {
+    width: 100% !important;
+    flex: 1;
+  }
+}
+
+/* Hide resizable divider on mobile */
+.hide-mobile {
+  display: flex;
+}
+
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 /* Make header sticky at top */

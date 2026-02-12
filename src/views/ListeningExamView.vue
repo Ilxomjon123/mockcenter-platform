@@ -201,8 +201,15 @@ const handleSubmit = (): void => {
   display: flex;
   overflow: hidden;
   /* Add margin to account for fixed header and footer */
-  margin-top: 61px;
-  margin-bottom: 72px;
+  margin-top: var(--header-height, 61px);
+  margin-bottom: var(--footer-height, 72px);
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    margin-top: var(--header-height, 52px);
+    margin-bottom: var(--footer-height, 120px);
+  }
 }
 
 /* Make header sticky at top */

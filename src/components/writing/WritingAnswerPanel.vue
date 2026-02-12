@@ -55,6 +55,13 @@ const handleInput = (event: Event): void => {
   overflow: hidden;
 }
 
+@media (max-width: 640px) {
+  .answer-panel {
+    padding: 12px;
+    padding-bottom: 8px;
+  }
+}
+
 .answer-area {
   flex: 1;
   background: white;
@@ -63,6 +70,13 @@ const handleInput = (event: Event): void => {
   margin-bottom: 8px;
   overflow: hidden;
   max-height: 80%;
+}
+
+@media (max-width: 640px) {
+  .answer-area {
+    max-height: none;
+    margin-bottom: 6px;
+  }
 }
 
 .answer-textarea {
@@ -76,10 +90,23 @@ const handleInput = (event: Event): void => {
   font-family: inherit;
 }
 
+@media (max-width: 640px) {
+  .answer-textarea {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
 .word-count {
   text-align: right;
   font-size: 14px;
   color: #6b7280;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .word-count {
+    font-size: 12px;
+  }
 }
 </style>

@@ -10,12 +10,45 @@
         </div>
       </div>
 
+      <!-- Mobile Tab Switcher -->
+      <div class="mobile-tabs">
+        <button
+          class="mobile-tab"
+          :class="{ active: activeTab === 'question' }"
+          @click="activeTab = 'question'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          Task
+        </button>
+        <button
+          class="mobile-tab"
+          :class="{ active: activeTab === 'answer' }"
+          @click="activeTab = 'answer'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          Answer
+        </button>
+      </div>
+
       <div class="panels-container">
-        <WritingQuestionPanel :page="writingStore.currentPage" :width="leftWidth" />
+        <WritingQuestionPanel
+          :page="writingStore.currentPage"
+          :width="leftWidth"
+          :class="{ 'mobile-hidden': activeTab !== 'question' }"
+        />
 
-        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" />
+        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" class="hide-mobile" />
 
-        <WritingAnswerPanel v-model="currentAnswer" />
+        <WritingAnswerPanel
+          v-model="currentAnswer"
+          :class="{ 'mobile-hidden': activeTab !== 'answer' }"
+        />
       </div>
     </div>
 
@@ -44,6 +77,9 @@ import WritingCompletedModal from '@/components/writing/WritingCompletedModal.vu
 
 const writingStore = useWritingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
+
+// Mobile tab state
+const activeTab = ref<'question' | 'answer'>('question')
 
 // 60 minutes in milliseconds
 const SIXTY_MINUTES_MS = 60 * 60 * 1000
@@ -150,10 +186,17 @@ const handleSubmit = (): void => {
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 61px;
-  bottom: 72px;
+  top: var(--header-height, 61px);
+  bottom: var(--footer-height, 72px);
   left: 0;
   right: 0;
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    top: var(--header-height, 52px);
+    bottom: var(--footer-height, 120px);
+  }
 }
 
 .writing-header {
@@ -162,11 +205,23 @@ const handleSubmit = (): void => {
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .writing-header {
+    padding: 8px 12px;
+  }
+}
+
 .header-info {
   background: #f1f2ed;
   padding: 10px 16px;
   border-radius: 3px;
   border: 1px solid #d1d5db;
+}
+
+@media (max-width: 640px) {
+  .header-info {
+    padding: 8px 12px;
+  }
 }
 
 .part-label {
@@ -177,16 +232,102 @@ const handleSubmit = (): void => {
   margin-bottom: 4px;
 }
 
+@media (max-width: 640px) {
+  .part-label {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+}
+
 .instruction {
   font-size: 14px;
   color: #4b5563;
   margin: 0;
 }
 
+@media (max-width: 640px) {
+  .instruction {
+    font-size: 12px;
+  }
+}
+
+/* Mobile Tab Switcher */
+.mobile-tabs {
+  display: none;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .mobile-tabs {
+    display: flex;
+  }
+}
+
+.mobile-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-tab.active {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+
+.mobile-tab svg {
+  flex-shrink: 0;
+}
+
 .panels-container {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .panels-container {
+    flex-direction: column;
+  }
+}
+
+/* Hide panels on mobile based on active tab */
+@media (max-width: 640px) {
+  :deep(.question-panel.mobile-hidden),
+  :deep(.answer-panel.mobile-hidden) {
+    display: none;
+  }
+
+  :deep(.question-panel:not(.mobile-hidden)),
+  :deep(.answer-panel:not(.mobile-hidden)) {
+    width: 100% !important;
+    flex: 1;
+  }
+}
+
+/* Hide resizable divider on mobile */
+.hide-mobile {
+  display: flex;
+}
+
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 /* Make header sticky at top */

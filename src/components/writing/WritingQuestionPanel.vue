@@ -32,10 +32,23 @@ const writingStore = useWritingStore()
   border-right: 1px solid #e5e7eb;
 }
 
+@media (max-width: 640px) {
+  .question-panel {
+    width: 100% !important;
+    border-right: none;
+  }
+}
+
 .question-content {
   padding: 32px;
   overflow-y: auto;
   flex: 1;
+}
+
+@media (max-width: 640px) {
+  .question-content {
+    padding: 16px;
+  }
 }
 
 .instructions :deep(img),
@@ -47,9 +60,25 @@ const writingStore = useWritingStore()
   margin: 16px 0;
 }
 
+@media (max-width: 640px) {
+  .instructions :deep(img),
+  .part-image {
+    height: auto;
+    max-height: 300px;
+    width: 100%;
+    margin: 12px 0;
+  }
+}
+
 .instructions {
   font-size: 16px;
   line-height: 1.6;
   color: #374151;
+}
+
+@media (max-width: 640px) {
+  .instructions {
+    font-size: 14px;
+  }
 }
 </style>

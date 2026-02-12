@@ -208,12 +208,26 @@ const confirmLogout = () => {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  height: var(--header-height, 61px);
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .exam-header {
+    padding: 8px 12px;
+  }
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .header-left {
+    gap: 10px;
+  }
 }
 
 .logo {
@@ -223,16 +237,34 @@ const confirmLogout = () => {
   letter-spacing: -0.5px;
 }
 
+@media (max-width: 640px) {
+  .logo {
+    font-size: 18px;
+  }
+}
+
 .test-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+@media (max-width: 640px) {
+  .test-info {
+    gap: 8px;
+  }
+}
+
 .test-id {
   color: #6b7280;
   font-size: 13px;
   font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .test-id {
+    display: none;
+  }
 }
 
 .timer-display {
@@ -251,6 +283,14 @@ const confirmLogout = () => {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+@media (max-width: 640px) {
+  .timer-display {
+    padding: 4px 10px;
+    font-size: 13px;
+    gap: 4px;
+  }
+}
+
 .timer-display.timer-low {
   color: #dc2626;
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
@@ -262,6 +302,13 @@ const confirmLogout = () => {
 .timer-icon {
   width: 16px;
   height: 16px;
+}
+
+@media (max-width: 640px) {
+  .timer-icon {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 @keyframes pulse-warning {
@@ -281,6 +328,12 @@ const confirmLogout = () => {
   gap: 8px;
 }
 
+@media (max-width: 640px) {
+  .header-right {
+    gap: 4px;
+  }
+}
+
 .icon {
   width: 20px;
   height: 20px;
@@ -288,8 +341,21 @@ const confirmLogout = () => {
   transition: color 0.2s ease;
 }
 
+@media (max-width: 640px) {
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .wifi-wrapper {
   position: relative;
+}
+
+@media (max-width: 640px) {
+  .wifi-wrapper {
+    display: none;
+  }
 }
 
 .wifi-status {
@@ -427,6 +493,16 @@ const confirmLogout = () => {
   height: 36px;
   border-radius: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 640px) {
+  .fullscreen-btn,
+  .options-btn,
+  .logout-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
 }
 
 .fullscreen-btn:hover {

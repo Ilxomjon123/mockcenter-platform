@@ -293,12 +293,24 @@ const goToNextQuestion = () => {
   background: white;
   border-top: 1px solid #e5e7eb;
   padding: 14px 24px;
-  height: 72px;
+  height: var(--footer-height, 72px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile footer styles */
+@media (max-width: 640px) {
+  .exam-footer {
+    padding: 8px 12px;
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+    min-height: var(--footer-height, 120px);
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .footer-parts {
@@ -308,6 +320,16 @@ const goToNextQuestion = () => {
   flex: 1;
   overflow-x: auto;
   padding: 2px 0;
+}
+
+@media (max-width: 640px) {
+  .footer-parts {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .footer-parts::-webkit-scrollbar {
@@ -321,6 +343,19 @@ const goToNextQuestion = () => {
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .part-section {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .part-section.active {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .part-label {
   padding: 8px 14px;
   font-size: 13px;
@@ -332,6 +367,13 @@ const goToNextQuestion = () => {
   border-radius: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .part-label {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 }
 
 .part-label:hover {
@@ -350,6 +392,14 @@ const goToNextQuestion = () => {
   gap: 5px;
 }
 
+@media (max-width: 640px) {
+  .question-indices {
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 100%;
+  }
+}
+
 .question-index {
   width: 30px;
   height: 30px;
@@ -365,6 +415,15 @@ const goToNextQuestion = () => {
   align-items: center;
   justify-content: center;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 640px) {
+  .question-index {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
 }
 
 .question-index:hover {
@@ -398,6 +457,14 @@ const goToNextQuestion = () => {
   border-radius: 6px;
 }
 
+@media (max-width: 640px) {
+  .part-count {
+    font-size: 10px;
+    padding: 2px 8px;
+    margin-left: 0;
+  }
+}
+
 /* Floating navigation buttons */
 .floating-nav {
   position: fixed;
@@ -407,6 +474,14 @@ const goToNextQuestion = () => {
   flex-direction: row;
   gap: 10px;
   z-index: 50;
+}
+
+@media (max-width: 640px) {
+  .floating-nav {
+    right: 12px;
+    bottom: calc(var(--footer-height, 120px) + 12px);
+    gap: 8px;
+  }
 }
 
 .float-btn {
@@ -424,6 +499,14 @@ const goToNextQuestion = () => {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+@media (max-width: 640px) {
+  .float-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
 }
 
 .float-btn:hover:not(:disabled) {
@@ -468,6 +551,17 @@ const goToNextQuestion = () => {
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .submit-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    position: absolute;
+    right: 12px;
+    top: 8px;
+  }
 }
 
 .submit-btn:hover {

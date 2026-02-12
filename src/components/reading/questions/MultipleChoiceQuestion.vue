@@ -127,10 +127,23 @@ const onToggle = (value: string) => {
   margin-bottom: 12px;
 }
 
+@media (max-width: 640px) {
+  .question-content {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+}
+
 .options-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .options-container {
+    gap: 6px;
+  }
 }
 
 .option-item {
@@ -143,6 +156,13 @@ const onToggle = (value: string) => {
   cursor: pointer;
   transition: all 0.15s ease;
   background: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .option-item {
+    padding: 12px;
+    gap: 10px;
+  }
 }
 
 .option-item:hover:not(.disabled) {

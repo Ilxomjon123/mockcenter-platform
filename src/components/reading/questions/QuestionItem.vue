@@ -101,6 +101,12 @@ const itemClass = computed(() => ({
   background: white;
 }
 
+@media (max-width: 640px) {
+  .question-item {
+    padding: 16px;
+  }
+}
+
 .question-item.question-parent {
   border-bottom: none;
   padding-bottom: 12px;
@@ -110,6 +116,13 @@ const itemClass = computed(() => ({
   padding-top: 16px;
   padding-left: 48px;
   border-bottom: 1px solid #f3f4f6;
+}
+
+@media (max-width: 640px) {
+  .question-item.question-child {
+    padding-left: 24px;
+    padding-top: 12px;
+  }
 }
 
 .question-item.question-child:last-child {
@@ -122,6 +135,13 @@ const itemClass = computed(() => ({
   color: #374151;
   margin: 0 0 12px 0;
   display: block;
+}
+
+@media (max-width: 640px) {
+  .question-text {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
 }
 
 .question-text.has-number {
