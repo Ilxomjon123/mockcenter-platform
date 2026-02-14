@@ -11,6 +11,7 @@ import { useWritingStore } from '@/stores/writingStore'
 interface LoginResponse {
   data: {
     access_token: string
+    number: string
   }
   message?: string
   error?: string
@@ -40,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
   const { post, get } = useApi()
 
   const token = ref(localStorage.getItem('token') || '')
+  const takerNumber = ref(localStorage.getItem('takerNumber') || '')
   const isLoading = ref(false)
   const errorMessage = ref('')
   const errorDetails = ref('')
@@ -107,7 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (number: string, password: string) => {
     errorMessage.value = ''
     errorDetails.value = ''
     isPaymentError.value = false
@@ -115,13 +117,15 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await post<LoginResponse>('/api/exam/login', {
-        email,
+        number,
         key: password,
       })
 
       if (response?.data?.access_token) {
         token.value = response.data.access_token
+        takerNumber.value = response.data.number
         localStorage.setItem('token', response.data.access_token)
+        localStorage.setItem('takerNumber', response.data.number)
 
         // Fetch test data after successful login
         await fetchTestData()
@@ -135,7 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         return { success: true }
       } else {
-        errorMessage.value = response?.message || "Invalid email or password"
+        errorMessage.value = response?.message || "Invalid number or password"
         return { success: false, message: errorMessage.value }
       }
     } catch (error: unknown) {
@@ -263,6 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     token,
+    takerNumber,
     isLoading,
     isLoadingTest,
     errorMessage,

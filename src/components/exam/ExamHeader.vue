@@ -3,7 +3,7 @@
     <div class="header-left">
       <div class="logo">IELTS</div>
       <div class="test-info">
-        <div class="test-id">Test taker ID</div>
+        <div class="test-id">Taker ID: {{ authStore.takerNumber }}</div>
         <div v-if="timer" class="timer-display" :class="{ 'timer-low': isTimerLow }">
           <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path

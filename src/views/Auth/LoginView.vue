@@ -83,12 +83,12 @@
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="number">Number</label>
           <input
-            id="email"
-            v-model.trim="email"
-            type="email"
-            placeholder="email@example.com"
+            id="number"
+            v-model.trim="number"
+            type="text"
+            placeholder="ABC123XYZ456"
             required
             :disabled="authStore.isLoading"
           />
@@ -174,7 +174,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
 
-const email = ref('')
+const number = ref('')
 const password = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
@@ -183,7 +183,7 @@ const authStore = useAuthStore()
 const { isTauri } = useTauri()
 
 const isFormValid = computed(() => {
-  return email.value.length > 0 && password.value.length > 0
+  return number.value.length > 0 && password.value.length > 0
 })
 
 const closeWindow = async () => {
@@ -200,7 +200,7 @@ const handleSubmit = async () => {
 
   successMessage.value = ''
 
-  const result = await authStore.login(email.value, password.value)
+  const result = await authStore.login(number.value, password.value)
 
   if (result.success) {
     successMessage.value = 'Successfully logged in!'
