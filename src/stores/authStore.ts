@@ -14,6 +14,7 @@ interface LoginResponse {
     number: string
     exam_datetime?: string
     speaking_datetime?: string
+    speaking_slot_time?: string
   }
   message?: string
   error?: string
@@ -139,11 +140,11 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.access_token
         takerNumber.value = response.data.number
         examDatetime.value = response.data.exam_datetime || ''
-        speakingDatetime.value = response.data.speaking_datetime || ''
+        speakingDatetime.value = response.data.speaking_slot_time || response.data.speaking_datetime || ''
         localStorage.setItem('token', response.data.access_token)
         localStorage.setItem('takerNumber', response.data.number)
         localStorage.setItem('examDatetime', response.data.exam_datetime || '')
-        localStorage.setItem('speakingDatetime', response.data.speaking_datetime || '')
+        localStorage.setItem('speakingDatetime', response.data.speaking_slot_time || response.data.speaking_datetime || '')
 
         // Fetch test data after successful login
         await fetchTestData()
