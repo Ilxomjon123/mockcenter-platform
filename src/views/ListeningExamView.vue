@@ -30,12 +30,22 @@ import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useExamNavigation } from '@/composables/useExamNavigation'
+import { useHealthCheck } from '@/composables/useHealthCheck'
 
 const router = useRouter()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
 const { getNextSection } = useExamNavigation()
+
+// Health check - send current section and timer to backend
+const getTimerSeconds = () => {
+  if (!listeningStore.isInTransferTime || !listeningStore.transferTimeEnd) {
+    return 0
+  }
+  return Math.max(0, Math.floor((listeningStore.transferTimeEnd - Date.now()) / 1000))
+}
+useHealthCheck('listening', getTimerSeconds)
 
 const questionPanelRef = ref<InstanceType<typeof ListeningQuestionPanel> | null>(null)
 const currentQuestion = ref(0)

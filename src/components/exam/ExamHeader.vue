@@ -106,6 +106,7 @@ import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import { isTauri } from '@/composables/useTauri'
+import { useConnectionStatus } from '@/composables/useHealthCheck'
 
 interface Props {
   timer?: string
@@ -120,10 +121,11 @@ withDefaults(defineProps<Props>(), {
 const authStore = useAuthStore()
 const isOptionsOpen = ref(false)
 const isLogoutModalOpen = ref(false)
-const isOnline = ref(true)
 const isFullscreen = ref(false)
 const isRunningInTauri = isTauri()
-let checkInterval: number | null = null
+
+// Use shared connection status from health check
+const { isOnline } = useConnectionStatus()
 
 const toggleFullscreen = async () => {
   try {
@@ -141,51 +143,13 @@ const handleFullscreenChange = () => {
   isFullscreen.value = !!document.fullscreenElement
 }
 
-const checkInternetConnection = async () => {
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/health`, {
-      method: 'HEAD',
-      signal: controller.signal,
-      cache: 'no-store'
-    })
-
-    clearTimeout(timeoutId)
-    isOnline.value = response.ok
-  } catch {
-    // If fetch fails, try with navigator.onLine as fallback
-    isOnline.value = navigator.onLine
-  }
-}
-
-const handleOnlineChange = () => {
-  if (navigator.onLine) {
-    checkInternetConnection()
-  } else {
-    isOnline.value = false
-  }
-}
-
 onMounted(() => {
-  checkInternetConnection()
-  checkInterval = window.setInterval(checkInternetConnection, 10000)
-
-  window.addEventListener('online', handleOnlineChange)
-  window.addEventListener('offline', handleOnlineChange)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
-
   // Check initial fullscreen state
   isFullscreen.value = !!document.fullscreenElement
 })
 
 onUnmounted(() => {
-  if (checkInterval) {
-    clearInterval(checkInterval)
-  }
-  window.removeEventListener('online', handleOnlineChange)
-  window.removeEventListener('offline', handleOnlineChange)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
 })
 

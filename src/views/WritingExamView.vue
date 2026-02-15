@@ -74,6 +74,7 @@ import WritingQuestionPanel from '@/components/writing/WritingQuestionPanel.vue'
 import WritingAnswerPanel from '@/components/writing/WritingAnswerPanel.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
 import WritingCompletedModal from '@/components/writing/WritingCompletedModal.vue'
+import { useHealthCheck } from '@/composables/useHealthCheck'
 
 const writingStore = useWritingStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
@@ -83,6 +84,14 @@ const activeTab = ref<'question' | 'answer'>('question')
 
 // 60 minutes in milliseconds
 const SIXTY_MINUTES_MS = 60 * 60 * 1000
+
+// Health check - send current section and timer to backend
+const getTimerSeconds = () => {
+  const start = writingStore.startTime || Date.now()
+  return Math.max(0, Math.floor((SIXTY_MINUTES_MS - (Date.now() - start)) / 1000))
+}
+useHealthCheck('writing', getTimerSeconds)
+
 let timerInterval: number | null = null
 const currentTime = ref(Date.now())
 
