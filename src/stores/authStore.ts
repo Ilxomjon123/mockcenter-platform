@@ -12,6 +12,8 @@ interface LoginResponse {
   data: {
     access_token: string
     number: string
+    exam_datetime?: string
+    speaking_datetime?: string
   }
   message?: string
   error?: string
@@ -42,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const token = ref(localStorage.getItem('token') || '')
   const takerNumber = ref(localStorage.getItem('takerNumber') || '')
+  const examDatetime = ref(localStorage.getItem('examDatetime') || '')
+  const speakingDatetime = ref(localStorage.getItem('speakingDatetime') || '')
   const isLoading = ref(false)
   const errorMessage = ref('')
   const errorDetails = ref('')
@@ -49,6 +53,16 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoadingTest = ref(false)
 
   const isAuthenticated = computed(() => !!token.value)
+
+  // Show speaking info only if speaking_datetime is after exam_datetime
+  const showSpeakingInfo = computed(() => {
+    if (!speakingDatetime.value || !examDatetime.value) {
+      return false
+    }
+    const examDate = new Date(examDatetime.value)
+    const speakingDate = new Date(speakingDatetime.value)
+    return speakingDate > examDate
+  })
 
   // Get first available section based on test data
   const getFirstAvailableSection = (): string => {
@@ -124,8 +138,12 @@ export const useAuthStore = defineStore('auth', () => {
       if (response?.data?.access_token) {
         token.value = response.data.access_token
         takerNumber.value = response.data.number
+        examDatetime.value = response.data.exam_datetime || ''
+        speakingDatetime.value = response.data.speaking_datetime || ''
         localStorage.setItem('token', response.data.access_token)
         localStorage.setItem('takerNumber', response.data.number)
+        localStorage.setItem('examDatetime', response.data.exam_datetime || '')
+        localStorage.setItem('speakingDatetime', response.data.speaking_datetime || '')
 
         // Fetch test data after successful login
         await fetchTestData()
@@ -268,6 +286,9 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     token,
     takerNumber,
+    examDatetime,
+    speakingDatetime,
+    showSpeakingInfo,
     isLoading,
     isLoadingTest,
     errorMessage,

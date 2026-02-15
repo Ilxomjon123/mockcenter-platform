@@ -13,30 +13,10 @@
       <h1 class="title">Test Successfully Submitted</h1>
 
       <div class="message-section" style="background: transparent !important;">
-        <div class="results-container" style="background: transparent !important;">
-          <div class="result-card">
-            <div class="result-header">Listening</div>
-            <div class="result-body" style="background: transparent !important;">
-              <div class="score">{{ results.listening_score }}</div>
-              <div class="details">{{ results.listening_count }} correct answers</div>
-            </div>
-          </div>
-          <div class="result-card">
-            <div class="result-header">Reading</div>
-            <div class="result-body" style="background: transparent !important;">
-              <div class="score">{{ results.reading_score }}</div>
-              <div class="details">{{ results.reading_count }} correct answers</div>
-            </div>
-          </div>
-        </div>
-
-        <p class="writing-notice">
-          Writing results will be announced shortly after review.
-        </p>
-
-        <div class="info-box">
+        <div v-if="authStore.showSpeakingInfo" class="info-box">
           <h3 class="info-title">Speaking Exam Information:</h3>
-          <p>Your Speaking exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
+          <p>Your Speaking exam is scheduled for <strong>{{ formattedSpeakingDate }}</strong>.</p>
+          <p>The exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
           <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
         </div>
 
@@ -53,19 +33,22 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
-const route = useRoute()
 const authStore = useAuthStore()
 
-const results = computed(() => ({
-  listening_count: route.query.l_c || '0',
-  reading_count: route.query.r_c || '0',
-  listening_score: route.query.l_s || '0',
-  reading_score: route.query.r_s || '0',
-  overall: route.query.o || '0',
-}))
+const formattedSpeakingDate = computed(() => {
+  if (!authStore.speakingDatetime) return ''
+  const date = new Date(authStore.speakingDatetime)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+})
 
 const goToLogin = () => {
   authStore.logout()
@@ -123,57 +106,6 @@ const goToLogin = () => {
 
 .message-section {
   margin-bottom: 0;
-}
-
-.results-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.result-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px 12px;
-  transition: transform 0.2s ease;
-}
-
-.result-card:hover {
-  transform: translateY(-2px);
-}
-
-.result-header {
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.result-body .score {
-  font-size: 36px;
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1;
-}
-
-.result-body .details {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 8px;
-}
-
-.writing-notice {
-  font-size: 16px;
-  color: #4b5563;
-  margin-bottom: 32px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border-left: 4px solid #9ca3af;
 }
 
 .info-box {
@@ -253,9 +185,7 @@ const goToLogin = () => {
 :root.contrast-white-on-black .completed-view .icon-container,
 :root.contrast-white-on-black .completed-view .success-bg,
 :root.contrast-white-on-black .completed-view .success-icon,
-:root.contrast-white-on-black .completed-view .message-section,
-:root.contrast-white-on-black .completed-view .results-container,
-:root.contrast-white-on-black .completed-view .result-body {
+:root.contrast-white-on-black .completed-view .message-section {
   background: transparent !important;
   background-color: transparent !important;
 }
@@ -266,33 +196,6 @@ const goToLogin = () => {
 
 :root.contrast-white-on-black .completed-view .title {
   color: #ffffff !important;
-}
-
-:root.contrast-white-on-black .completed-view .result-card {
-  background: #111111 !important;
-  border-color: #333333 !important;
-}
-
-:root.contrast-white-on-black .completed-view .result-header {
-  color: #aaaaaa !important;
-  background: #1a1a1a !important;
-  padding: 12px !important;
-  margin: -20px -12px 12px -12px !important;
-  border-radius: 14px 14px 0 0 !important;
-}
-
-:root.contrast-white-on-black .completed-view .result-body .score {
-  color: #ffffff !important;
-}
-
-:root.contrast-white-on-black .completed-view .result-body .details {
-  color: #aaaaaa !important;
-}
-
-:root.contrast-white-on-black .completed-view .writing-notice {
-  background: #111111 !important;
-  color: #cccccc !important;
-  border-left-color: #555555 !important;
 }
 
 :root.contrast-white-on-black .completed-view .info-box {
@@ -321,9 +224,7 @@ const goToLogin = () => {
 :root.contrast-yellow-on-black .completed-view .icon-container,
 :root.contrast-yellow-on-black .completed-view .success-bg,
 :root.contrast-yellow-on-black .completed-view .success-icon,
-:root.contrast-yellow-on-black .completed-view .message-section,
-:root.contrast-yellow-on-black .completed-view .results-container,
-:root.contrast-yellow-on-black .completed-view .result-body {
+:root.contrast-yellow-on-black .completed-view .message-section {
   background: transparent !important;
   background-color: transparent !important;
 }
@@ -335,33 +236,6 @@ const goToLogin = () => {
 
 :root.contrast-yellow-on-black .completed-view .title {
   color: #ffff00 !important;
-}
-
-:root.contrast-yellow-on-black .completed-view .result-card {
-  background: #111100 !important;
-  border-color: #333300 !important;
-}
-
-:root.contrast-yellow-on-black .completed-view .result-header {
-  color: #aaaa00 !important;
-  background: #1a1a00 !important;
-  padding: 12px !important;
-  margin: -20px -12px 12px -12px !important;
-  border-radius: 14px 14px 0 0 !important;
-}
-
-:root.contrast-yellow-on-black .completed-view .result-body .score {
-  color: #ffff00 !important;
-}
-
-:root.contrast-yellow-on-black .completed-view .result-body .details {
-  color: #aaaa00 !important;
-}
-
-:root.contrast-yellow-on-black .completed-view .writing-notice {
-  background: #111100 !important;
-  color: #cccc00 !important;
-  border-left-color: #555500 !important;
 }
 
 :root.contrast-yellow-on-black .completed-view .info-box {

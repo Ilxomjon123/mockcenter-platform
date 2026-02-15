@@ -28,9 +28,10 @@
         <p v-if="!writingStore.isManualSubmit && !isSubmitting" class="auto-finish-text">
           Test will be submitted automatically in <strong>{{ countdown }}</strong> seconds.
         </p>
-        <div class="info-box">
+        <div v-if="authStore.showSpeakingInfo" class="info-box">
           <h3 class="info-title">Speaking Exam Information:</h3>
-          <p>Your Speaking exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
+          <p>Your Speaking exam is scheduled for <strong>{{ formattedSpeakingDate }}</strong>.</p>
+          <p>The exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
           <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
         </div>
       </div>
@@ -150,6 +151,19 @@ const showBackButton = computed(() => {
   const hasTimeRemaining = currentTime.value - startTime < SIXTY_MINUTES_MS
 
   return hasTimeRemaining
+})
+
+const formattedSpeakingDate = computed(() => {
+  if (!authStore.speakingDatetime) return ''
+  const date = new Date(authStore.speakingDatetime)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 })
 
 const goBack = () => {
