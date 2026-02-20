@@ -178,7 +178,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
@@ -190,7 +190,6 @@ const showPassword = ref(false)
 const isTokenLogin = ref(false)
 
 const route = useRoute()
-const router = useRouter()
 const authStore = useAuthStore()
 const { isTauri } = useTauri()
 
@@ -198,8 +197,6 @@ onMounted(async () => {
   const tokenParam = route.query.token as string
   if (tokenParam) {
     isTokenLogin.value = true
-    // Remove token from URL to keep it clean
-    router.replace({ query: {} })
     await authStore.loginWithToken(tokenParam)
     isTokenLogin.value = false
   }

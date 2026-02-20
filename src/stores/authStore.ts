@@ -93,17 +93,23 @@ export const useAuthStore = defineStore('auth', () => {
       if (response?.data) {
         const testData = response.data
 
-        // Save data to respective stores
+        // Save data to respective stores, clear if section is null
         if (testData.listening) {
           useListeningStore().setTest(testData)
+        } else {
+          useListeningStore().test = undefined
         }
 
         if (testData.reading) {
           useReadingStore().setTest(testData)
+        } else {
+          useReadingStore().test = undefined
         }
 
         if (testData.writing) {
           useWritingStore().setTest(testData)
+        } else {
+          useWritingStore().test = undefined
         }
 
         return { success: true }

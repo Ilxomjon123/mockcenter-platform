@@ -122,7 +122,12 @@ router.beforeEach(async (to, from, next) => {
   const writingStore = useWritingStore()
 
   // If user is already logged in and trying to access login page or root
+  // Allow login page access when token query param is present (preview/re-login flow)
   if ((to.name === 'login' || to.path === '/') && isAuthenticated) {
+    if (to.name === 'login' && to.query.token) {
+      next()
+      return
+    }
     const firstSection = getFirstAvailableSection(listeningStore, readingStore, writingStore)
     next({ name: firstSection })
     return
