@@ -131,25 +131,21 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
 
     try {
-      // Temporarily set token to validate it
+      // Clear all old data first
+      useListeningStore().clearListening()
+      useReadingStore().clearReading()
+      useWritingStore().clearWriting()
+      localStorage.clear()
+      sessionStorage.clear()
+
+      // Set the new token
       token.value = tokenValue
       localStorage.setItem('token', tokenValue)
 
+      // Fetch test data (also validates the token)
       const result = await fetchTestData()
 
       if (result.success) {
-        // Token is valid — clear all old data first
-        useListeningStore().clearListening()
-        useReadingStore().clearReading()
-        useWritingStore().clearWriting()
-        localStorage.clear()
-        sessionStorage.clear()
-
-        // Now set the valid token and reload test data
-        token.value = tokenValue
-        localStorage.setItem('token', tokenValue)
-        await fetchTestData()
-
         const redirectPath = getFirstAvailableSection()
         await router.push(redirectPath)
         return { success: true }
