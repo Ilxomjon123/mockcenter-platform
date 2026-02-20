@@ -124,6 +124,44 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const loginWithToken = async (tokenValue: string) => {
+    errorMessage.value = ''
+    errorDetails.value = ''
+    isPaymentError.value = false
+    isLoading.value = true
+
+    try {
+      token.value = tokenValue
+      localStorage.setItem('token', tokenValue)
+
+      const result = await fetchTestData()
+
+      if (result.success) {
+        const redirectPath = getFirstAvailableSection()
+        await router.push(redirectPath)
+        return { success: true }
+      } else {
+        token.value = ''
+        localStorage.removeItem('token')
+        errorMessage.value = result.message || 'Invalid or expired token'
+        return { success: false, message: errorMessage.value }
+      }
+    } catch (error: unknown) {
+      token.value = ''
+      localStorage.removeItem('token')
+      let message = 'Invalid or expired token'
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message || message
+      } else if (error instanceof Error) {
+        message = error.message
+      }
+      errorMessage.value = message
+      return { success: false, message }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const login = async (number: string, password: string) => {
     errorMessage.value = ''
     errorDetails.value = ''
@@ -297,6 +335,7 @@ export const useAuthStore = defineStore('auth', () => {
     isPaymentError,
     isAuthenticated,
     login,
+    loginWithToken,
     logout,
     submitExam,
     clearError,

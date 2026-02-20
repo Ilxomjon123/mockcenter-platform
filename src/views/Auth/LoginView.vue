@@ -25,6 +25,13 @@
     </button>
 
     <div class="box">
+      <!-- Token auto-login loading state -->
+      <div v-if="isTokenLogin" class="token-login-loading">
+        <span class="spinner"></span>
+        <p>Logging in...</p>
+      </div>
+
+      <template v-else>
       <h2>Login</h2>
 
       <transition name="fade">
@@ -164,12 +171,14 @@
           <span v-else>Login</span>
         </button>
       </form>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
@@ -178,9 +187,23 @@ const number = ref('')
 const password = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
+const isTokenLogin = ref(false)
 
+const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const { isTauri } = useTauri()
+
+onMounted(async () => {
+  const tokenParam = route.query.token as string
+  if (tokenParam) {
+    isTokenLogin.value = true
+    // Remove token from URL to keep it clean
+    router.replace({ query: {} })
+    await authStore.loginWithToken(tokenParam)
+    isTokenLogin.value = false
+  }
+})
 
 const isFormValid = computed(() => {
   return number.value.length > 0 && password.value.length > 0
@@ -496,6 +519,21 @@ button[type='submit'].loading {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+.token-login-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 16px;
+}
+
+.token-login-loading p {
+  color: #374151;
+  font-size: 16px;
+  margin: 0;
 }
 
 @media (max-width: 640px) {
