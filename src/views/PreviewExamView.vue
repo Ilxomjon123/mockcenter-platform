@@ -117,13 +117,14 @@
 
   <!-- Listening Preview -->
   <div v-else-if="sectionType === 'listening'" class="exam-view">
-    <PreviewHeader />
+    <PreviewHeader v-if="listeningStore.hasStarted" />
 
-    <div class="main-content">
+    <div class="main-content" :class="{ 'no-header-footer': !listeningStore.hasStarted }">
       <ListeningQuestionPanel />
     </div>
 
     <ExamFooter
+      v-if="listeningStore.hasStarted"
       :current-page="listeningStore.currentPart"
       :current-question="currentQuestion"
       :total-pages="listeningStore.test?.parts?.length || 0"
@@ -412,10 +413,20 @@ onUnmounted(() => {
   right: 0;
 }
 
+.main-content.no-header-footer {
+  top: 0;
+  bottom: 0;
+}
+
 @media (max-width: 640px) {
   .main-content {
     top: var(--header-height, 52px);
     bottom: var(--footer-height, 120px);
+  }
+
+  .main-content.no-header-footer {
+    top: 0;
+    bottom: 0;
   }
 }
 
