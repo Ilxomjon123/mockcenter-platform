@@ -117,14 +117,13 @@
 
   <!-- Listening Preview -->
   <div v-else-if="sectionType === 'listening'" class="exam-view">
-    <PreviewHeader v-if="listeningStore.hasStarted" />
+    <PreviewHeader />
 
-    <div class="main-content" :class="{ 'no-header-footer': !listeningStore.hasStarted }">
+    <div class="main-content">
       <ListeningQuestionPanel />
     </div>
 
     <ExamFooter
-      v-if="listeningStore.hasStarted"
       :current-page="listeningStore.currentPart"
       :current-question="currentQuestion"
       :total-pages="listeningStore.test?.parts?.length || 0"
