@@ -171,13 +171,121 @@
           <span v-else>Login</span>
         </button>
       </form>
+
+      <!-- QR Scanner divider -->
+      <div class="qr-divider">
+        <span>or</span>
+      </div>
+
+      <!-- Scan QR Code button -->
+      <button
+        type="button"
+        class="qr-scan-btn"
+        @click="openScanner"
+        :disabled="authStore.isLoading"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+          <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+          <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+          <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+          <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+        </svg>
+        Scan QR Code
+      </button>
       </template>
     </div>
+
+    <!-- QR Scanner Overlay -->
+    <transition name="scanner-fade">
+      <div v-if="showScanner" class="scanner-overlay">
+        <!-- Header -->
+        <div class="scanner-header">
+          <button class="scanner-close-btn" @click="closeScanner">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <h3>Scan QR Code</h3>
+          <div style="width: 36px"></div>
+        </div>
+
+        <!-- Scanner body -->
+        <div class="scanner-body">
+          <!-- QR logging state -->
+          <div v-if="isQrLogging" class="scanner-logging">
+            <span class="spinner spinner-dark"></span>
+            <p>Logging in...</p>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="scannerError" class="scanner-error-state">
+            <p>{{ scannerError }}</p>
+            <button class="scanner-retry-btn" @click="closeScanner(); openScanner()">
+              Try Again
+            </button>
+          </div>
+
+          <!-- Scanner view -->
+          <template v-else>
+            <div id="qr-reader" class="qr-reader-container"></div>
+
+            <!-- Warning message -->
+            <transition name="fade">
+              <div v-if="scannerWarning" class="scanner-warning">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                {{ scannerWarning }}
+              </div>
+            </transition>
+          </template>
+        </div>
+
+        <!-- Footer instruction -->
+        <div class="scanner-footer">
+          <p>Point your camera at the QR code from your exam credentials</p>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { invoke } from '@tauri-apps/api/core'
@@ -188,6 +296,13 @@ const password = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
 const isTokenLogin = ref(false)
+
+// QR Scanner state
+const showScanner = ref(false)
+const scannerInstance = ref<any>(null)
+const scannerError = ref('')
+const scannerWarning = ref('')
+const isQrLogging = ref(false)
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -202,13 +317,16 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+  stopScanner()
+})
+
 const isFormValid = computed(() => {
   return number.value.length > 0 && password.value.length > 0
 })
 
 const closeWindow = async () => {
   try {
-    // Call the exit_app command from Rust
     await invoke('exit_app')
   } catch (error) {
     console.error('Failed to close window:', error)
@@ -224,7 +342,103 @@ const handleSubmit = async () => {
 
   if (result.success) {
     successMessage.value = 'Successfully logged in!'
-    // Router will automatically redirect
+  }
+}
+
+// QR Scanner functions
+const openScanner = async () => {
+  showScanner.value = true
+  scannerError.value = ''
+  scannerWarning.value = ''
+
+  // Wait for DOM to render
+  await new Promise((resolve) => setTimeout(resolve, 100))
+
+  try {
+    const { Html5Qrcode } = await import('html5-qrcode')
+    scannerInstance.value = new Html5Qrcode('qr-reader')
+
+    await scannerInstance.value.start(
+      { facingMode: 'environment' },
+      {
+        fps: 15,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const minDimension = Math.min(viewfinderWidth, viewfinderHeight)
+          const size = Math.floor(minDimension * 0.8)
+          return { width: size, height: size }
+        },
+        disableFlip: false,
+      },
+      onScanSuccess,
+      () => {},
+    )
+  } catch (err: any) {
+    console.error('Scanner error:', err)
+    if (err?.message?.includes('Permission') || err?.toString?.().includes('Permission')) {
+      scannerError.value = 'Camera permission denied. Please allow camera access.'
+    } else {
+      scannerError.value = 'Failed to start camera: ' + (err?.message || err)
+    }
+  }
+}
+
+const stopScanner = async () => {
+  if (scannerInstance.value) {
+    try {
+      await scannerInstance.value.stop()
+      scannerInstance.value.clear()
+    } catch {
+      // ignore
+    }
+    scannerInstance.value = null
+  }
+}
+
+const closeScanner = async () => {
+  await stopScanner()
+  showScanner.value = false
+  scannerWarning.value = ''
+  scannerError.value = ''
+}
+
+const parseQrCode = (text: string): { number: string; key: string } | null => {
+  if (!text.startsWith('mockcenter:')) return null
+  const parts = text.split(':')
+  if (parts.length !== 3) return null
+  const [, num, key] = parts
+  if (!num || !key) return null
+  return { number: num, key }
+}
+
+const onScanSuccess = async (decodedText: string) => {
+  if (isQrLogging.value) return
+
+  const credentials = parseQrCode(decodedText)
+
+  if (!credentials) {
+    scannerWarning.value = 'Invalid QR code. Please scan a valid exam login QR code.'
+    setTimeout(() => {
+      scannerWarning.value = ''
+    }, 3000)
+    return
+  }
+
+  // Valid QR - auto login
+  isQrLogging.value = true
+  scannerWarning.value = ''
+  await stopScanner()
+
+  number.value = credentials.number
+  password.value = credentials.key
+
+  const result = await authStore.login(credentials.number, credentials.key)
+
+  if (result.success) {
+    showScanner.value = false
+    successMessage.value = 'Successfully logged in!'
+  } else {
+    isQrLogging.value = false
+    showScanner.value = false
   }
 }
 </script>
@@ -533,6 +747,196 @@ button[type='submit'].loading {
   margin: 0;
 }
 
+/* QR Scanner Button & Divider */
+.qr-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.qr-divider::before,
+.qr-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.qr-scan-btn {
+  width: 100%;
+  padding: 12px 24px;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.qr-scan-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.qr-scan-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scanner Overlay */
+.scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.scanner-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.scanner-close-btn {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.scanner-close-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.scanner-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+
+.scanner-logging {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+}
+
+.scanner-logging p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.spinner-dark {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+}
+
+.scanner-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.scanner-error-state p {
+  color: #ef4444;
+  font-size: 14px;
+  margin: 0;
+}
+
+.scanner-retry-btn {
+  padding: 10px 24px;
+  background: #1f2937;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.scanner-retry-btn:hover {
+  background: #374151;
+}
+
+.scanner-warning {
+  position: absolute;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.scanner-footer {
+  padding: 16px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.scanner-footer p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.scanner-fade-enter-active {
+  transition: opacity 0.2s ease;
+}
+
+.scanner-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.scanner-fade-enter-from,
+.scanner-fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 640px) {
   .box {
     padding: 32px 24px;
@@ -662,6 +1066,55 @@ button[type='submit'].loading {
   color: inherit;
 }
 
+:root.contrast-white-on-black .qr-divider {
+  color: #888888;
+}
+
+:root.contrast-white-on-black .qr-divider::before,
+:root.contrast-white-on-black .qr-divider::after {
+  background: #444444;
+}
+
+:root.contrast-white-on-black .qr-scan-btn {
+  background: #111111;
+  color: #ffffff;
+  border-color: #444444;
+}
+
+:root.contrast-white-on-black .qr-scan-btn:hover:not(:disabled) {
+  background: #222222;
+  border-color: #666666;
+}
+
+:root.contrast-white-on-black .scanner-overlay {
+  background: #000000;
+}
+
+:root.contrast-white-on-black .scanner-header {
+  border-color: #444444;
+}
+
+:root.contrast-white-on-black .scanner-header h3 {
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .scanner-close-btn {
+  border-color: #444444;
+  color: #ffffff;
+}
+
+:root.contrast-white-on-black .scanner-close-btn:hover {
+  background: #222222;
+}
+
+:root.contrast-white-on-black .scanner-footer {
+  border-color: #444444;
+}
+
+:root.contrast-white-on-black .scanner-footer p {
+  color: #cccccc;
+}
+
 /* =====================================================
    YELLOW ON BLACK CONTRAST MODE
    ===================================================== */
@@ -772,5 +1225,83 @@ button[type='submit'].loading {
 
 :root.contrast-yellow-on-black .close-btn {
   color: inherit;
+}
+
+:root.contrast-yellow-on-black .qr-divider {
+  color: #888800;
+}
+
+:root.contrast-yellow-on-black .qr-divider::before,
+:root.contrast-yellow-on-black .qr-divider::after {
+  background: #444400;
+}
+
+:root.contrast-yellow-on-black .qr-scan-btn {
+  background: #111100;
+  color: #ffff00;
+  border-color: #444400;
+}
+
+:root.contrast-yellow-on-black .qr-scan-btn:hover:not(:disabled) {
+  background: #222200;
+  border-color: #666600;
+}
+
+:root.contrast-yellow-on-black .scanner-overlay {
+  background: #000000;
+}
+
+:root.contrast-yellow-on-black .scanner-header {
+  border-color: #444400;
+}
+
+:root.contrast-yellow-on-black .scanner-header h3 {
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .scanner-close-btn {
+  border-color: #444400;
+  color: #ffff00;
+}
+
+:root.contrast-yellow-on-black .scanner-close-btn:hover {
+  background: #222200;
+}
+
+:root.contrast-yellow-on-black .scanner-footer {
+  border-color: #444400;
+}
+
+:root.contrast-yellow-on-black .scanner-footer p {
+  color: #cccc00;
+}
+</style>
+
+<style>
+/* html5-qrcode overrides (must be unscoped) */
+.qr-reader-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#qr-reader {
+  border: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+#qr-reader__dashboard {
+  display: none !important;
+}
+
+#qr-reader__scan_region > br,
+#qr-reader__scan_region > img {
+  display: none !important;
 }
 </style>
