@@ -34,6 +34,24 @@
       <template v-else>
       <h2>Login</h2>
 
+      <!-- QR Code for website scanning -->
+      <div v-if="qrCodeDataUrl" class="qr-display">
+        <div class="qr-display-image">
+          <img :src="qrCodeDataUrl" alt="Login QR Code" />
+        </div>
+        <p class="qr-display-hint">Scan from your cabinet to login instantly</p>
+      </div>
+      <div v-else-if="isQrSessionLoading" class="qr-display">
+        <div class="qr-display-loading">
+          <span class="spinner"></span>
+        </div>
+      </div>
+
+      <!-- Divider between QR and form -->
+      <div v-if="qrCodeDataUrl || isQrSessionLoading" class="qr-divider">
+        <span>or enter manually</span>
+      </div>
+
       <transition name="fade">
         <div v-if="authStore.isPaymentError" class="alert payment-error">
           <div class="payment-error-content">
@@ -288,6 +306,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { useApi } from '@/composables/useApi'
 import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
 
@@ -304,9 +323,16 @@ const scannerError = ref('')
 const scannerWarning = ref('')
 const isQrLogging = ref(false)
 
+// QR Code display state (reverse flow)
+const qrSessionId = ref('')
+const qrCodeDataUrl = ref('')
+const isQrSessionLoading = ref(false)
+const qrPollingTimer = ref<ReturnType<typeof setInterval> | null>(null)
+
 const route = useRoute()
 const authStore = useAuthStore()
 const { isTauri } = useTauri()
+const { get, post } = useApi()
 
 onMounted(async () => {
   const tokenParam = route.query.token as string
@@ -314,11 +340,14 @@ onMounted(async () => {
     isTokenLogin.value = true
     await authStore.loginWithToken(tokenParam)
     isTokenLogin.value = false
+  } else {
+    await createQrSession()
   }
 })
 
 onUnmounted(() => {
   stopScanner()
+  stopQrPolling()
 })
 
 const isFormValid = computed(() => {
@@ -439,6 +468,65 @@ const onScanSuccess = async (decodedText: string) => {
   } else {
     isQrLogging.value = false
     showScanner.value = false
+  }
+}
+
+// QR Code display functions (reverse flow - exam shows QR, website scans)
+const createQrSession = async () => {
+  isQrSessionLoading.value = true
+  try {
+    const response = await post<{ session_id: string }>('/api/exam/qr-session')
+    if (response?.session_id) {
+      qrSessionId.value = response.session_id
+      const qrData = `mockcenter-session:${response.session_id}`
+      const QRCode = (await import('qrcode')).default
+      qrCodeDataUrl.value = await QRCode.toDataURL(qrData, {
+        width: 200,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+      })
+      startQrPolling()
+    }
+  } catch (err) {
+    console.error('Failed to create QR session:', err)
+  } finally {
+    isQrSessionLoading.value = false
+  }
+}
+
+const startQrPolling = () => {
+  stopQrPolling()
+  qrPollingTimer.value = setInterval(pollQrSession, 3000)
+}
+
+const stopQrPolling = () => {
+  if (qrPollingTimer.value) {
+    clearInterval(qrPollingTimer.value)
+    qrPollingTimer.value = null
+  }
+}
+
+const pollQrSession = async () => {
+  if (!qrSessionId.value || authStore.isLoading) return
+
+  try {
+    const response = await get<{ status: string; data?: any }>(
+      `/api/exam/qr-session/${qrSessionId.value}`,
+    )
+
+    if (response?.status === 'authenticated' && response.data) {
+      stopQrPolling()
+      // Auto-login with the received token
+      await authStore.loginWithToken(response.data.access_token)
+    } else if (response?.status === 'expired') {
+      stopQrPolling()
+      // Session expired, create a new one
+      await createQrSession()
+    }
+  } catch {
+    // Session expired (410) or network error - create new session
+    stopQrPolling()
+    await createQrSession()
   }
 }
 </script>
@@ -745,6 +833,43 @@ button[type='submit'].loading {
   color: #374151;
   font-size: 16px;
   margin: 0;
+}
+
+/* QR Code Display (reverse flow) */
+.qr-display {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.qr-display-image {
+  display: inline-block;
+  background: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.qr-display-image img {
+  width: 180px;
+  height: 180px;
+  display: block;
+}
+
+.qr-display-hint {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.qr-display-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 180px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
 }
 
 /* QR Scanner Button & Divider */
@@ -1066,6 +1191,19 @@ button[type='submit'].loading {
   color: inherit;
 }
 
+:root.contrast-white-on-black .qr-display-image {
+  background: #ffffff;
+  border-color: #444444;
+}
+
+:root.contrast-white-on-black .qr-display-hint {
+  color: #cccccc;
+}
+
+:root.contrast-white-on-black .qr-display-loading {
+  border-color: #444444;
+}
+
 :root.contrast-white-on-black .qr-divider {
   color: #888888;
 }
@@ -1225,6 +1363,19 @@ button[type='submit'].loading {
 
 :root.contrast-yellow-on-black .close-btn {
   color: inherit;
+}
+
+:root.contrast-yellow-on-black .qr-display-image {
+  background: #ffffff;
+  border-color: #444400;
+}
+
+:root.contrast-yellow-on-black .qr-display-hint {
+  color: #cccc00;
+}
+
+:root.contrast-yellow-on-black .qr-display-loading {
+  border-color: #444400;
 }
 
 :root.contrast-yellow-on-black .qr-divider {
