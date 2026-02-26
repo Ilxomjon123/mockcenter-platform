@@ -328,6 +328,8 @@ const qrSessionId = ref('')
 const qrCodeDataUrl = ref('')
 const isQrSessionLoading = ref(false)
 const qrPollingTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const qrRefreshTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const QR_SESSION_TTL = 4.5 * 60 * 1000 // Refresh 30s before 5min backend expiry
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -348,6 +350,10 @@ onMounted(async () => {
 onUnmounted(() => {
   stopScanner()
   stopQrPolling()
+  if (qrRefreshTimer.value) {
+    clearTimeout(qrRefreshTimer.value)
+    qrRefreshTimer.value = null
+  }
 })
 
 const isFormValid = computed(() => {
@@ -474,6 +480,12 @@ const onScanSuccess = async (decodedText: string) => {
 // QR Code display functions (reverse flow - exam shows QR, website scans)
 const createQrSession = async () => {
   isQrSessionLoading.value = true
+  stopQrPolling()
+  if (qrRefreshTimer.value) {
+    clearTimeout(qrRefreshTimer.value)
+    qrRefreshTimer.value = null
+  }
+
   try {
     const response = await post<{ session_id: string }>('/api/exam/qr-session')
     if (response?.session_id) {
@@ -486,6 +498,13 @@ const createQrSession = async () => {
         color: { dark: '#000000', light: '#ffffff' },
       })
       startQrPolling()
+
+      // Auto-refresh before expiry
+      qrRefreshTimer.value = setTimeout(() => {
+        if (!authStore.isAuthenticated) {
+          createQrSession()
+        }
+      }, QR_SESSION_TTL)
     }
   } catch (err) {
     console.error('Failed to create QR session:', err)
