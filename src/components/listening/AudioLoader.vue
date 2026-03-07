@@ -40,19 +40,51 @@
 
       <p class="action-text">To continue, click Play.</p>
 
-      <!-- Speaker test section -->
-      <div class="speaker-test">
-        <p class="speaker-test-label">Test your speakers/headphones:</p>
-        <button class="test-button" @click="playTestSound" :disabled="isTestPlaying">
-          <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+      <!-- Check sections -->
+      <div class="check-sections">
+        <!-- Speaker test section -->
+        <div class="speaker-test">
+          <p class="speaker-test-label">Test your speakers/headphones:</p>
+          <button class="test-button" @click="playTestSound" :disabled="isTestPlaying">
+            <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+              />
+            </svg>
+            {{ isTestPlaying ? 'Playing...' : 'Test Sound' }}
+          </button>
+          <div v-if="isTestPlaying" class="progress-bar">
+            <div class="progress-fill" :style="{ width: testProgress + '%' }"></div>
+          </div>
+        </div>
+
+        <!-- Keyboard test section -->
+        <div class="keyboard-test">
+          <p class="keyboard-test-label">Test your keyboard:</p>
+          <div class="keyboard-test-input-wrapper">
+            <input
+              ref="keyboardTestInput"
+              type="text"
+              class="keyboard-test-input"
+              :class="{ 'keyboard-verified': isKeyboardVerified }"
+              placeholder="Type here to test..."
+              v-model="keyboardTestValue"
+              autocomplete="off"
             />
-          </svg>
-          {{ isTestPlaying ? 'Playing...' : 'Test Sound' }}
-        </button>
-        <div v-if="isTestPlaying" class="progress-bar">
-          <div class="progress-fill" :style="{ width: testProgress + '%' }"></div>
+            <svg
+              v-if="isKeyboardVerified"
+              class="keyboard-check-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <p v-if="isKeyboardVerified" class="keyboard-success-text">Keyboard is working!</p>
         </div>
       </div>
 
@@ -82,6 +114,11 @@ defineEmits<{
 
 const isTestPlaying = ref(false)
 const testProgress = ref(0)
+
+// Keyboard test state
+const keyboardTestInput = ref<HTMLInputElement | null>(null)
+const keyboardTestValue = ref('')
+const isKeyboardVerified = computed(() => keyboardTestValue.value.length >= 3)
 
 // Only show overlay if:
 // 1. User hasn't started yet (first time visit)
@@ -272,13 +309,25 @@ const playTestSound = () => {
   margin: 0 0 24px 0;
 }
 
+/* Check sections wrapper */
+.check-sections {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .check-sections {
+    flex-direction: column;
+  }
+}
+
 /* Speaker test section */
 .speaker-test {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
   padding: 16px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -335,6 +384,73 @@ const playTestSound = () => {
   background: linear-gradient(90deg, #60a5fa, #3b82f6);
   transition: width 0.1s linear;
   border-radius: 2px;
+}
+
+/* Keyboard test section */
+.keyboard-test {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  min-width: 250px;
+}
+
+.keyboard-test-label {
+  font-size: 13px;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+.keyboard-test-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.keyboard-test-input {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.keyboard-test-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.keyboard-test-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.keyboard-test-input.keyboard-verified {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.keyboard-check-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #4ade80;
+}
+
+.keyboard-success-text {
+  font-size: 12px;
+  color: #4ade80;
+  margin: 0;
 }
 
 .play-button {
