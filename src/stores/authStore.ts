@@ -7,11 +7,13 @@ import type { ExamTestRaw } from '@/types/test'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
+import { useSpeakingStore } from '@/stores/speakingStore'
 
 interface LoginResponse {
   data: {
     access_token: string
     number: string
+    exam_type?: string
     exam_datetime?: string
     speaking_datetime?: string
     speaking_slot_time?: string
@@ -47,11 +49,13 @@ export const useAuthStore = defineStore('auth', () => {
   const takerNumber = ref(localStorage.getItem('takerNumber') || '')
   const examDatetime = ref(localStorage.getItem('examDatetime') || '')
   const speakingDatetime = ref(localStorage.getItem('speakingDatetime') || '')
+  const examType = ref(localStorage.getItem('examType') || '')
   const isLoading = ref(false)
   const errorMessage = ref('')
   const errorDetails = ref('')
   const isPaymentError = ref(false)
   const isLoadingTest = ref(false)
+  const testDataLoaded = ref(false)
 
   const isAuthenticated = computed(() => !!token.value)
 
@@ -67,6 +71,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Get first available section based on test data
   const getFirstAvailableSection = (): string => {
+    // CEFR exams go to section selection page
+    if (examType.value === 'cerf') {
+      return '/section-select'
+    }
+
     const listeningStore = useListeningStore()
     const readingStore = useReadingStore()
     const writingStore = useWritingStore()
@@ -112,6 +121,13 @@ export const useAuthStore = defineStore('auth', () => {
           useWritingStore().test = undefined
         }
 
+        if (testData.speaking) {
+          useSpeakingStore().setTest(testData)
+        } else {
+          useSpeakingStore().test = undefined
+        }
+
+        testDataLoaded.value = true
         return { success: true }
       } else {
         throw new Error('Test data not found')
@@ -141,6 +157,7 @@ export const useAuthStore = defineStore('auth', () => {
       useListeningStore().clearListening()
       useReadingStore().clearReading()
       useWritingStore().clearWriting()
+      useSpeakingStore().clearSpeaking()
       localStorage.clear()
       sessionStorage.clear()
 
@@ -198,6 +215,8 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('takerNumber', response.data.number)
         localStorage.setItem('examDatetime', response.data.exam_datetime || '')
         localStorage.setItem('speakingDatetime', response.data.speaking_slot_time || response.data.speaking_datetime || '')
+        examType.value = response.data.exam_type || ''
+        localStorage.setItem('examType', examType.value)
 
         // Fetch test data after successful login
         await fetchTestData()
@@ -246,9 +265,11 @@ export const useAuthStore = defineStore('auth', () => {
     useListeningStore().clearListening()
     useReadingStore().clearReading()
     useWritingStore().clearWriting()
+    useSpeakingStore().clearSpeaking()
 
-    // Clear token
+    // Clear token and flags
     token.value = ''
+    testDataLoaded.value = false
 
     // Clear all localStorage
     localStorage.clear()
@@ -342,6 +363,7 @@ export const useAuthStore = defineStore('auth', () => {
     takerNumber,
     examDatetime,
     speakingDatetime,
+    examType,
     showSpeakingInfo,
     isLoading,
     isLoadingTest,

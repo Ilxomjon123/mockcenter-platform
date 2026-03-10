@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
+import { useSpeakingStore } from '@/stores/speakingStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -16,6 +17,12 @@ const routes: RouteRecordRaw[] = [
     name: 'login',
     component: () => import('@/views/Auth/LoginView.vue'),
     meta: { requiresAuth: false },
+  },
+  {
+    path: '/section-select',
+    name: 'section-select',
+    component: () => import('@/views/SectionSelectView.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/reading',
@@ -33,6 +40,12 @@ const routes: RouteRecordRaw[] = [
     path: '/listening',
     name: 'listening',
     component: () => import('@/views/ListeningExamView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/speaking',
+    name: 'speaking',
+    component: () => import('@/views/SpeakingExamView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -67,12 +80,13 @@ const router = createRouter({
 
 // Helper to get next available section
 const getNextAvailableSection = (
-  currentSection: 'listening' | 'reading' | 'writing',
+  currentSection: 'listening' | 'reading' | 'writing' | 'speaking',
   listeningStore: ReturnType<typeof useListeningStore>,
   readingStore: ReturnType<typeof useReadingStore>,
-  writingStore: ReturnType<typeof useWritingStore>
+  writingStore: ReturnType<typeof useWritingStore>,
+  speakingStore: ReturnType<typeof useSpeakingStore>,
 ): string => {
-  const sections = ['listening', 'reading', 'writing'] as const
+  const sections = ['listening', 'reading', 'writing', 'speaking'] as const
   const currentIndex = sections.indexOf(currentSection)
 
   for (let i = currentIndex + 1; i < sections.length; i++) {
@@ -86,6 +100,9 @@ const getNextAvailableSection = (
     if (section === 'writing' && writingStore.test?.parts?.length) {
       return 'writing'
     }
+    if (section === 'speaking' && speakingStore.test?.parts?.length) {
+      return 'speaking'
+    }
   }
 
   return 'submission'
@@ -95,11 +112,19 @@ const getNextAvailableSection = (
 const getFirstAvailableSection = (
   listeningStore: ReturnType<typeof useListeningStore>,
   readingStore: ReturnType<typeof useReadingStore>,
-  writingStore: ReturnType<typeof useWritingStore>
+  writingStore: ReturnType<typeof useWritingStore>,
+  speakingStore: ReturnType<typeof useSpeakingStore>,
+  examType?: string,
 ): string => {
+  // CEFR exams go to section-select page
+  if (examType === 'cerf') {
+    return 'section-select'
+  }
+
   if (listeningStore.test?.parts?.length) return 'listening'
   if (readingStore.test?.parts?.length) return 'reading'
   if (writingStore.test?.parts?.length) return 'writing'
+  if (speakingStore.test?.parts?.length) return 'speaking'
   return 'submission'
 }
 
@@ -118,14 +143,15 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Fetch test data when authenticated and accessing exam pages
-  if (requiresAuth && isAuthenticated && !authStore.isLoadingTest) {
+  // Fetch test data when authenticated and not yet loaded (e.g. page refresh)
+  if (requiresAuth && isAuthenticated && !authStore.testDataLoaded && !authStore.isLoadingTest) {
     await authStore.fetchTestData()
   }
 
   const listeningStore = useListeningStore()
   const readingStore = useReadingStore()
   const writingStore = useWritingStore()
+  const speakingStore = useSpeakingStore()
 
   // If user is already logged in and trying to access login page or root
   // Allow login page access when token query param is present (preview/re-login flow)
@@ -134,7 +160,8 @@ router.beforeEach(async (to, from, next) => {
       next()
       return
     }
-    const firstSection = getFirstAvailableSection(listeningStore, readingStore, writingStore)
+    const examType = authStore.examType
+    const firstSection = getFirstAvailableSection(listeningStore, readingStore, writingStore, speakingStore, examType)
     next({ name: firstSection })
     return
   }
@@ -146,13 +173,13 @@ router.beforeEach(async (to, from, next) => {
   if (to.name === 'listening' && isAuthenticated) {
     // If listening is not available, skip to next section
     if (!listeningStore.test?.parts?.length) {
-      const nextSection = getNextAvailableSection('listening', listeningStore, readingStore, writingStore)
+      const nextSection = getNextAvailableSection('listening', listeningStore, readingStore, writingStore, speakingStore)
       next({ name: nextSection })
       return
     }
     // If listening is completed and NOT coming from submission, go to next section
     if (listeningStore.isCompleted && !isComingFromSubmission) {
-      const nextSection = getNextAvailableSection('listening', listeningStore, readingStore, writingStore)
+      const nextSection = getNextAvailableSection('listening', listeningStore, readingStore, writingStore, speakingStore)
       next({ name: nextSection })
       return
     }
@@ -162,7 +189,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.name === 'reading' && isAuthenticated) {
     // If reading is not available, skip to next section
     if (!readingStore.test?.parts?.length) {
-      const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore)
+      const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore, speakingStore)
       next({ name: nextSection })
       return
     }
@@ -176,7 +203,7 @@ router.beforeEach(async (to, from, next) => {
         readingStore.isFinalized ||
         (readingStore.isCompleted && (elapsed >= SIXTY_MINUTES || !readingStore.isManualSubmit))
       ) {
-        const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore)
+        const nextSection = getNextAvailableSection('reading', listeningStore, readingStore, writingStore, speakingStore)
         next({ name: nextSection })
         return
       }
@@ -185,8 +212,21 @@ router.beforeEach(async (to, from, next) => {
 
   // Check if writing section is available
   if (to.name === 'writing' && isAuthenticated) {
-    // If writing is not available, go to submission
+    // If writing is not available, skip to next section
     if (!writingStore.test?.parts?.length) {
+      const nextSection = getNextAvailableSection('writing', listeningStore, readingStore, writingStore, speakingStore)
+      next({ name: nextSection })
+      return
+    }
+  }
+
+  // Check if speaking section is available
+  if (to.name === 'speaking' && isAuthenticated) {
+    if (!speakingStore.test?.parts?.length) {
+      next({ name: 'submission' })
+      return
+    }
+    if (speakingStore.isCompleted && !isComingFromSubmission) {
       next({ name: 'submission' })
       return
     }

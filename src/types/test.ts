@@ -59,6 +59,7 @@ export interface SectionWithPartsRaw {
 
 export interface ExamTestRaw {
   id: number
+  exam_type?: string
   title: string
   listening_id?: number
   reading_id?: number
