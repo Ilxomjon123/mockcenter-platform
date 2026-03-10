@@ -23,58 +23,57 @@ export function useSpeakingTTS() {
     'microsoft ryan', 'microsoft guy',
   ]
 
-  /**
-   * Check if a voice is likely male based on name.
-   */
   function isMaleVoice(v: SpeechSynthesisVoice): boolean {
     const name = v.name.toLowerCase()
     return MALE_VOICE_NAMES.some((m) => name.includes(m))
   }
 
   /**
-   * Score a voice by quality. Higher = more natural sounding.
-   * Strongly prefers male voices.
+   * Score a voice by quality. Higher = more natural and expressive.
+   * Strongly prefers male voices with warm, soft tone.
    */
   function scoreVoice(v: SpeechSynthesisVoice): number {
     const name = v.name.toLowerCase()
     let score = 0
 
     // Male voice bonus (highest priority)
-    if (isMaleVoice(v)) score += 200
+    if (isMaleVoice(v)) score += 300
 
-    // Neural / Enhanced / Premium voices are the best quality
-    if (name.includes('neural')) score += 100
-    if (name.includes('enhanced')) score += 90
-    if (name.includes('premium')) score += 85
-    if (name.includes('natural')) score += 80
+    // Neural / Enhanced / Premium voices are the most natural and expressive
+    if (name.includes('neural')) score += 150
+    if (name.includes('enhanced')) score += 120
+    if (name.includes('premium')) score += 110
+    if (name.includes('natural')) score += 100
 
     // Microsoft Online voices (Edge) are very natural
-    if (name.includes('microsoft') && name.includes('online')) score += 75
+    if (name.includes('microsoft') && name.includes('online')) score += 90
 
     // Specific high-quality male voices
-    if (name.includes('daniel')) score += 70
-    if (name.includes('david')) score += 65
-    if (name.includes('james')) score += 60
-    if (name.includes('thomas')) score += 55
-    if (name.includes('google uk english male')) score += 70
-    if (name.includes('google us english')) score += 50
-    if (name.includes('microsoft mark')) score += 55
-    if (name.includes('microsoft david')) score += 55
-    if (name.includes('microsoft george')) score += 50
+    if (name.includes('daniel')) score += 80
+    if (name.includes('david')) score += 70
+    if (name.includes('james')) score += 65
+    if (name.includes('thomas')) score += 60
+    if (name.includes('google uk english male')) score += 80
+    if (name.includes('google us english')) score += 65
+    if (name.includes('microsoft mark')) score += 65
+    if (name.includes('microsoft david')) score += 65
+    if (name.includes('microsoft george')) score += 60
+    if (name.includes('microsoft ryan')) score += 60
+    if (name.includes('microsoft guy')) score += 60
 
     // Google voices on Chrome are good quality
-    if (name.includes('google')) score += 30
+    if (name.includes('google')) score += 40
 
     // Microsoft voices are generally decent
-    if (name.includes('microsoft')) score += 20
+    if (name.includes('microsoft')) score += 25
 
     // Remote/cloud voices are almost always higher quality than local
-    if (!v.localService) score += 15
+    if (!v.localService) score += 20
 
-    // Prefer en-GB for exams (clearer enunciation)
-    if (v.lang === 'en-GB') score += 10
-    if (v.lang === 'en-US') score += 8
-    if (v.lang === 'en-AU') score += 5
+    // Prefer en-GB for exams (clearer, warmer enunciation)
+    if (v.lang === 'en-GB') score += 12
+    if (v.lang === 'en-US') score += 10
+    if (v.lang === 'en-AU') score += 6
 
     return score
   }
@@ -120,10 +119,10 @@ export function useSpeakingTTS() {
         utterance.voice = voice
       }
 
-      // Natural male speech parameters
-      utterance.rate = 0.92
-      utterance.pitch = 0.95
-      utterance.volume = 1.0
+      // Natural, warm male speech — slightly varied to reduce robotic feel
+      utterance.rate = 0.95
+      utterance.pitch = 1.0
+      utterance.volume = 0.9
 
       utterance.onstart = () => {
         isSpeaking.value = true
