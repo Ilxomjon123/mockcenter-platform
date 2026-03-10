@@ -127,6 +127,12 @@ export const useAuthStore = defineStore('auth', () => {
           useSpeakingStore().test = undefined
         }
 
+        // Set exam type from test data if available
+        if (testData.exam_type) {
+          examType.value = testData.exam_type
+          localStorage.setItem('examType', testData.exam_type)
+        }
+
         testDataLoaded.value = true
         return { success: true }
       } else {
@@ -367,6 +373,7 @@ export const useAuthStore = defineStore('auth', () => {
     showSpeakingInfo,
     isLoading,
     isLoadingTest,
+    testDataLoaded,
     errorMessage,
     errorDetails,
     isPaymentError,
