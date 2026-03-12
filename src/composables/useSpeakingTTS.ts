@@ -132,19 +132,29 @@ export function useSpeakingTTS() {
   }
 
   /**
+   * Small delay helper.
+   */
+  function delay(ms: number): Promise<void> {
+    return new Promise((r) => setTimeout(r, ms))
+  }
+
+  /**
    * Speak text and return a promise that resolves when speech finishes.
    * Includes a safety timeout so the exam never hangs if TTS fails on mobile.
    */
-  function speak(text: string): Promise<void> {
+  async function speak(text: string): Promise<void> {
+    if (!isSupported.value) {
+      await delay(1000)
+      return
+    }
+
+    // Cancel any ongoing speech, then wait briefly.
+    // On mobile browsers, calling speak() immediately after cancel()
+    // causes the new utterance to be silently canceled too.
+    speechSynthesis.cancel()
+    await delay(100)
+
     return new Promise((resolve) => {
-      if (!isSupported.value) {
-        setTimeout(resolve, 1000)
-        return
-      }
-
-      // Cancel any ongoing speech
-      speechSynthesis.cancel()
-
       const utterance = new SpeechSynthesisUtterance(text)
       currentUtterance = utterance
 
@@ -160,26 +170,7 @@ export function useSpeakingTTS() {
 
       let settled = false
 
-      // Safety timeout: if TTS hangs (common on iOS Safari), resolve anyway
-      // so the exam flow continues. Max wait = 500ms per word + 3s base.
-      const wordCount = text.split(/\s+/).length
-      const timeoutMs = Math.max(5000, wordCount * 500 + 3000)
-      const safetyTimer = setTimeout(() => {
-        if (!settled) {
-          settled = true
-          speechSynthesis.cancel()
-          isSpeaking.value = false
-          currentUtterance = null
-          resolve()
-        }
-      }, timeoutMs)
-
-      utterance.onstart = () => {
-        isSpeaking.value = true
-        startIOSKeepAlive()
-      }
-
-      utterance.onend = () => {
+      function settle() {
         if (settled) return
         settled = true
         clearTimeout(safetyTimer)
@@ -188,33 +179,31 @@ export function useSpeakingTTS() {
         resolve()
       }
 
-      utterance.onerror = (event) => {
-        if (settled) return
-        settled = true
-        clearTimeout(safetyTimer)
-        isSpeaking.value = false
-        currentUtterance = null
-        if (event.error === 'canceled' || event.error === 'interrupted') {
-          resolve()
-        } else {
-          // On mobile, don't reject — just resolve so exam continues
-          resolve()
-        }
+      // Safety timeout: if TTS hangs (common on iOS Safari), resolve anyway
+      // so the exam flow continues. Max wait = 800ms per word + 4s base.
+      const wordCount = text.split(/\s+/).length
+      const timeoutMs = Math.max(6000, wordCount * 800 + 4000)
+      const safetyTimer = setTimeout(settle, timeoutMs)
+
+      utterance.onstart = () => {
+        isSpeaking.value = true
+        startIOSKeepAlive()
       }
+
+      utterance.onend = () => settle()
+
+      utterance.onerror = () => settle()
 
       speechSynthesis.speak(utterance)
 
-      // iOS Safari workaround: sometimes onstart/onend never fire.
-      // Check after 200ms if speech actually started.
+      // Mobile fallback: if after 3 seconds nothing happened (no onstart,
+      // no speaking, no pending), TTS is broken on this device — skip.
+      // 200ms was too aggressive and killed TTS on slower mobile engines.
       setTimeout(() => {
-        if (!settled && !speechSynthesis.speaking && !speechSynthesis.pending) {
-          settled = true
-          clearTimeout(safetyTimer)
-          isSpeaking.value = false
-          currentUtterance = null
-          resolve()
+        if (!settled && !isSpeaking.value && !speechSynthesis.speaking && !speechSynthesis.pending) {
+          settle()
         }
-      }, 200)
+      }, 3000)
     })
   }
 

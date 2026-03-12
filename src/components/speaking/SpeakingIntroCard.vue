@@ -20,7 +20,9 @@
   text-align: center;
   color: #fff;
   max-width: 640px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .intro-card__title {
@@ -44,6 +46,7 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
+  flex-wrap: wrap;
 }
 
 .intro-card__badge {
@@ -52,5 +55,60 @@
   border-radius: 8px;
   font-size: 32px;
   font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .intro-card {
+    padding: 36px 28px;
+    border-radius: 18px;
+  }
+
+  .intro-card__title {
+    font-size: 36px;
+    margin: 0 0 14px;
+  }
+
+  .intro-card__divider {
+    width: 160px;
+    margin: 0 auto 14px;
+  }
+
+  .intro-card__subtitle {
+    font-size: 30px;
+    gap: 10px;
+  }
+
+  .intro-card__badge {
+    font-size: 22px;
+    padding: 4px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .intro-card {
+    padding: 28px 20px;
+    border-radius: 14px;
+  }
+
+  .intro-card__title {
+    font-size: 28px;
+    margin: 0 0 12px;
+  }
+
+  .intro-card__divider {
+    width: 120px;
+    margin: 0 auto 12px;
+  }
+
+  .intro-card__subtitle {
+    font-size: 24px;
+    gap: 8px;
+  }
+
+  .intro-card__badge {
+    font-size: 18px;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
 }
 </style>
