@@ -168,12 +168,51 @@ export function useSpeakingFlow() {
   }
 
   /**
+   * Request a Wake Lock to prevent the screen from sleeping during the exam.
+   * Critical on mobile devices where the screen may turn off mid-exam.
+   */
+  let wakeLock: WakeLockSentinel | null = null
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen')
+        // Re-acquire if released (e.g., tab switch on mobile)
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null
+        })
+        document.addEventListener('visibilitychange', async () => {
+          if (document.visibilityState === 'visible' && !wakeLock) {
+            try {
+              wakeLock = await navigator.wakeLock.request('screen')
+            } catch {
+              // ignore
+            }
+          }
+        })
+      }
+    } catch {
+      // Wake Lock not supported or denied — non-critical
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      wakeLock.release()
+      wakeLock = null
+    }
+  }
+
+  /**
    * Start the speaking exam flow.
    * Resumes from saved state if the exam was in progress.
    */
   async function start() {
+    // Warm up AudioContext and TTS on user-initiated start (satisfies autoplay policy)
+    tts.warmUpAudio()
     await tts.ensureVoicesLoaded()
     await recorder.requestPermission()
+    await requestWakeLock()
 
     // Check for resumable state
     const savedPhase = store.phase as SpeakingPhase | undefined
@@ -688,6 +727,7 @@ export function useSpeakingFlow() {
     clearTimers()
     tts.stop()
     recorder.releaseStream()
+    releaseWakeLock()
   })
 
   return {

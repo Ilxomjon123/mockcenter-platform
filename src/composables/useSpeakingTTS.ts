@@ -99,10 +99,44 @@ export function useSpeakingTTS() {
   }
 
   /**
+   * Detect if running on iOS Safari
+   */
+  function isIOSSafari(): boolean {
+    const ua = navigator.userAgent
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  }
+
+  /**
+   * iOS Safari workaround: speechSynthesis stops working after ~15s without
+   * user interaction. We periodically poke it to keep the audio session alive.
+   */
+  let iosKeepAliveTimer: ReturnType<typeof setInterval> | null = null
+
+  function startIOSKeepAlive() {
+    if (!isIOSSafari() || iosKeepAliveTimer) return
+    iosKeepAliveTimer = setInterval(() => {
+      if (!isSpeaking.value) {
+        speechSynthesis.cancel()
+        const silent = new SpeechSynthesisUtterance('')
+        silent.volume = 0
+        speechSynthesis.speak(silent)
+      }
+    }, 10000)
+  }
+
+  function stopIOSKeepAlive() {
+    if (iosKeepAliveTimer) {
+      clearInterval(iosKeepAliveTimer)
+      iosKeepAliveTimer = null
+    }
+  }
+
+  /**
    * Speak text and return a promise that resolves when speech finishes.
+   * Includes a safety timeout so the exam never hangs if TTS fails on mobile.
    */
   function speak(text: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (!isSupported.value) {
         setTimeout(resolve, 1000)
         return
@@ -124,27 +158,63 @@ export function useSpeakingTTS() {
       utterance.pitch = 1.0
       utterance.volume = 0.9
 
+      let settled = false
+
+      // Safety timeout: if TTS hangs (common on iOS Safari), resolve anyway
+      // so the exam flow continues. Max wait = 500ms per word + 3s base.
+      const wordCount = text.split(/\s+/).length
+      const timeoutMs = Math.max(5000, wordCount * 500 + 3000)
+      const safetyTimer = setTimeout(() => {
+        if (!settled) {
+          settled = true
+          speechSynthesis.cancel()
+          isSpeaking.value = false
+          currentUtterance = null
+          resolve()
+        }
+      }, timeoutMs)
+
       utterance.onstart = () => {
         isSpeaking.value = true
+        startIOSKeepAlive()
       }
 
       utterance.onend = () => {
+        if (settled) return
+        settled = true
+        clearTimeout(safetyTimer)
         isSpeaking.value = false
         currentUtterance = null
         resolve()
       }
 
       utterance.onerror = (event) => {
+        if (settled) return
+        settled = true
+        clearTimeout(safetyTimer)
         isSpeaking.value = false
         currentUtterance = null
         if (event.error === 'canceled' || event.error === 'interrupted') {
           resolve()
         } else {
-          reject(new Error(`Speech synthesis error: ${event.error}`))
+          // On mobile, don't reject — just resolve so exam continues
+          resolve()
         }
       }
 
       speechSynthesis.speak(utterance)
+
+      // iOS Safari workaround: sometimes onstart/onend never fire.
+      // Check after 200ms if speech actually started.
+      setTimeout(() => {
+        if (!settled && !speechSynthesis.speaking && !speechSynthesis.pending) {
+          settled = true
+          clearTimeout(safetyTimer)
+          isSpeaking.value = false
+          currentUtterance = null
+          resolve()
+        }
+      }, 200)
     })
   }
 
@@ -155,6 +225,7 @@ export function useSpeakingTTS() {
     speechSynthesis.cancel()
     isSpeaking.value = false
     currentUtterance = null
+    stopIOSKeepAlive()
   }
 
   /**
@@ -180,12 +251,48 @@ export function useSpeakingTTS() {
   }
 
   /**
+   * Shared AudioContext — reused across all sound effects.
+   * Mobile browsers require user gesture to start AudioContext;
+   * creating a new one each time often fails silently on mobile.
+   */
+  let sharedAudioCtx: AudioContext | null = null
+
+  function getAudioContext(): AudioContext {
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioContext()
+    }
+    // Resume if suspended (mobile autoplay policy)
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume()
+    }
+    return sharedAudioCtx
+  }
+
+  /**
+   * Warm up AudioContext with a user gesture.
+   * Call this from a click/touch handler to unlock audio on mobile.
+   */
+  function warmUpAudio() {
+    try {
+      const ctx = getAudioContext()
+      // Play a silent buffer to unlock the audio context
+      const buffer = ctx.createBuffer(1, 1, 22050)
+      const source = ctx.createBufferSource()
+      source.buffer = buffer
+      source.connect(ctx.destination)
+      source.start(0)
+    } catch {
+      // ignore
+    }
+  }
+
+  /**
    * Play ascending "tiling" sound — signals recording START.
    */
   function playStartSound(): Promise<void> {
     return new Promise((resolve) => {
       try {
-        const ctx = new AudioContext()
+        const ctx = getAudioContext()
         const t = ctx.currentTime
 
         // Two ascending tones
@@ -213,9 +320,11 @@ export function useSpeakingTTS() {
         osc2.stop(t + 0.5)
 
         osc2.onended = () => {
-          ctx.close()
           resolve()
         }
+
+        // Safety timeout in case onended doesn't fire on some mobile browsers
+        setTimeout(resolve, 600)
       } catch {
         resolve()
       }
@@ -229,7 +338,7 @@ export function useSpeakingTTS() {
   function playStopSound(): Promise<void> {
     return new Promise((resolve) => {
       try {
-        const ctx = new AudioContext()
+        const ctx = getAudioContext()
         const t = ctx.currentTime
 
         // First bell strike — high note
@@ -283,9 +392,11 @@ export function useSpeakingTTS() {
         osc2h.stop(t + 0.6)
 
         osc2.onended = () => {
-          ctx.close()
           resolve()
         }
+
+        // Safety timeout in case onended doesn't fire on some mobile browsers
+        setTimeout(resolve, 1100)
       } catch {
         resolve()
       }
@@ -300,5 +411,6 @@ export function useSpeakingTTS() {
     playStartSound,
     playStopSound,
     ensureVoicesLoaded,
+    warmUpAudio,
   }
 }
