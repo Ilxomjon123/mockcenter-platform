@@ -208,8 +208,10 @@ export function useSpeakingFlow() {
    * Resumes from saved state if the exam was in progress.
    */
   async function start() {
-    // Warm up AudioContext and TTS on user-initiated start (satisfies autoplay policy)
+    // Warm up AudioContext and SpeechSynthesis on user-initiated start.
+    // Both require a user gesture (click/touch) to unlock on mobile browsers.
     tts.warmUpAudio()
+    await tts.warmUpTTS()
     await tts.ensureVoicesLoaded()
     await recorder.requestPermission()
     await requestWakeLock()

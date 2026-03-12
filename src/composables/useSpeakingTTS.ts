@@ -229,13 +229,65 @@ export function useSpeakingTTS() {
         return
       }
 
+      let resolved = false
       speechSynthesis.onvoiceschanged = () => {
+        if (resolved) return
+        resolved = true
         cachedVoice = null
         resolve()
       }
 
+      // On Android Chrome, onvoiceschanged may never fire.
+      // Periodically poll for voices.
+      const pollInterval = setInterval(() => {
+        const v = speechSynthesis.getVoices()
+        if (v.length > 0) {
+          clearInterval(pollInterval)
+          if (!resolved) {
+            resolved = true
+            cachedVoice = null
+            resolve()
+          }
+        }
+      }, 200)
+
       // Fallback timeout
-      setTimeout(resolve, 1000)
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (!resolved) {
+          resolved = true
+          resolve()
+        }
+      }, 3000)
+    })
+  }
+
+  /**
+   * Warm up SpeechSynthesis with a silent utterance.
+   * Must be called within a user gesture (click/touch) context.
+   * On Android Chrome, the first speak() call is often silently ignored
+   * unless it happens directly in a user gesture handler.
+   */
+  function warmUpTTS(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!isSupported.value) {
+        resolve()
+        return
+      }
+
+      try {
+        speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(' ')
+        utterance.volume = 0.01
+        utterance.rate = 10
+        utterance.onend = () => resolve()
+        utterance.onerror = () => resolve()
+        speechSynthesis.speak(utterance)
+        // Safety timeout
+        setTimeout(resolve, 500)
+      } catch {
+        resolve()
+      }
     })
   }
 
@@ -401,5 +453,6 @@ export function useSpeakingTTS() {
     playStopSound,
     ensureVoicesLoaded,
     warmUpAudio,
+    warmUpTTS,
   }
 }
