@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useSpeakingFlow } from '@/composables/useSpeakingFlow'
 import { useSpeakingStore } from '@/stores/speakingStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -14,6 +14,16 @@ import SpeakingIntroCard from '@/components/speaking/SpeakingIntroCard.vue'
 const store = useSpeakingStore()
 const authStore = useAuthStore()
 const flow = useSpeakingFlow()
+
+// Mobile browsers require a user gesture (click/touch) to unlock
+// SpeechSynthesis, AudioContext, and MediaRecorder.
+// Show a start button instead of auto-starting.
+const examStarted = ref(false)
+
+async function startExam() {
+  examStarted.value = true
+  flow.start()
+}
 
 async function finishExam() {
   await authStore.logout('/login')
@@ -116,7 +126,6 @@ const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
 
 onMounted(() => {
   window.addEventListener('beforeunload', beforeUnloadHandler)
-  flow.start()
 })
 
 onUnmounted(() => {
@@ -131,6 +140,25 @@ onUnmounted(() => {
       :active-part-index="flow.phase.value === 'exam-end' ? flow.partLabels.value.length : flow.currentPartIndex.value"
     />
 
+    <!-- Start Screen — user must tap to unlock TTS/Audio on mobile -->
+    <main v-if="!examStarted" class="speaking-exam__content">
+      <div class="speaking-exam__center">
+        <div class="speaking-exam__start-icon">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="38" fill="#4285f4" />
+            <path d="M32 24v32l24-16z" fill="white" />
+          </svg>
+        </div>
+        <h1 class="speaking-exam__start-title">Speaking Test</h1>
+        <p class="speaking-exam__start-hint">Tap the button below to start the exam.<br />Please allow microphone access when prompted.</p>
+        <button class="speaking-exam__start-btn" @click="startExam">
+          Start Exam
+        </button>
+      </div>
+    </main>
+
+    <!-- Exam Content -->
+    <template v-else>
     <!-- Permission Error -->
     <div v-if="flow.permissionError.value" class="speaking-exam__error">
       <p>{{ flow.permissionError.value }}</p>
@@ -341,6 +369,7 @@ onUnmounted(() => {
         </div>
       </Transition>
     </main>
+    </template>
   </div>
 </template>
 
@@ -707,6 +736,46 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* Start screen */
+.speaking-exam__start-icon {
+  margin-bottom: 8px;
+}
+
+.speaking-exam__start-title {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.speaking-exam__start-hint {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.speaking-exam__start-btn {
+  padding: 16px 64px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  background: #4285f4;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 8px;
+}
+
+.speaking-exam__start-btn:hover {
+  background: #3367d6;
+}
+
+.speaking-exam__start-btn:active {
+  transform: scale(0.97);
+}
+
 /* Responsive — Tablet */
 @media (max-width: 768px) {
   .speaking-exam__content {
@@ -716,6 +785,19 @@ onUnmounted(() => {
   .speaking-exam__center {
     gap: 18px;
     margin-top: -20px;
+  }
+
+  .speaking-exam__start-title {
+    font-size: 28px;
+  }
+
+  .speaking-exam__start-hint {
+    font-size: 15px;
+  }
+
+  .speaking-exam__start-btn {
+    padding: 14px 48px;
+    font-size: 18px;
   }
 
   .speaking-exam__title {
