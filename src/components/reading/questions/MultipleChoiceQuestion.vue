@@ -229,7 +229,8 @@ const onToggle = (value: string) => {
 .option-label {
   font-size: 14px;
   font-family: Arial, sans-serif;
-  color: #374151;
+  color: #111827;
+  font-weight: 500;
   line-height: 1.4;
 }
 </style>
