@@ -130,25 +130,24 @@ const itemClass = computed(() => ({
 }
 
 .question-text {
-  font-size: 14px;
+  font-size: 16px;
   font-family: Arial, sans-serif;
   color: #374151;
   margin: 0 0 12px 0;
+  line-height: 1.6;
   display: block;
 }
 
 @media (max-width: 640px) {
   .question-text {
-    font-size: 13px;
+    font-size: 15px;
     margin-bottom: 10px;
   }
 }
 
 .question-text.has-number {
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0;
 }
 
 .question-text span {
@@ -167,6 +166,12 @@ const itemClass = computed(() => ({
   color: #374151;
   flex-shrink: 0;
   margin-right: 8px;
+  white-space: nowrap;
+}
+
+.question-text.has-number > span:last-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .question-text.has-number :deep(p),
