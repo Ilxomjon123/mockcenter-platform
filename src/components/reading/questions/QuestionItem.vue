@@ -133,7 +133,7 @@ const itemClass = computed(() => ({
   font-size: 16px;
   font-family: Arial, sans-serif;
   color: #374151;
-  margin: 0 0 12px 0;
+  margin: 0 0 12px -16px;
   line-height: 1.6;
   display: block;
 }
@@ -141,7 +141,7 @@ const itemClass = computed(() => ({
 @media (max-width: 640px) {
   .question-text {
     font-size: 15px;
-    margin-bottom: 10px;
+    margin: 0 0 10px -8px;
   }
 }
 
