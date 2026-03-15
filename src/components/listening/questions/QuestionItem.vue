@@ -118,6 +118,7 @@ const itemClass = computed(() => ({
   color: #374151;
   flex-shrink: 0;
   margin-right: 8px;
+  font-size: inherit;
 }
 
 .question-text.has-number :deep(p),
@@ -131,5 +132,9 @@ const itemClass = computed(() => ({
   display: inline !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+.question-text.has-number :deep(*) {
+  font-size: inherit !important;
 }
 </style>

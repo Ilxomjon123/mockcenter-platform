@@ -8,6 +8,25 @@
   font-family: Arial, sans-serif;
 }
 
+.question-content ul,
+.question-content ol {
+  padding-left: 24px;
+  margin: 4px 0;
+}
+
+.question-content ul {
+  list-style-type: disc;
+}
+
+.question-content ul ul {
+  list-style-type: circle;
+  padding-left: 28px;
+}
+
+.question-content li {
+  margin: 2px 0;
+}
+
 .question-content img {
   max-height: 500px;
   height: auto;
