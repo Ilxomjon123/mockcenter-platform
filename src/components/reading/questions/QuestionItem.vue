@@ -114,13 +114,13 @@ const itemClass = computed(() => ({
 
 .question-item.question-child {
   padding-top: 16px;
-  padding-left: 48px;
+  padding-left: 32px;
   border-bottom: 1px solid #f3f4f6;
 }
 
 @media (max-width: 640px) {
   .question-item.question-child {
-    padding-left: 24px;
+    padding-left: 16px;
     padding-top: 12px;
   }
 }
