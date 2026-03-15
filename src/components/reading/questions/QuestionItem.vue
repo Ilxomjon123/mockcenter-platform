@@ -190,4 +190,14 @@ const itemClass = computed(() => ({
 .question-text.has-number :deep(*) {
   font-size: inherit !important;
 }
+
+:deep(.question-content) {
+  margin-left: -16px;
+}
+
+@media (max-width: 640px) {
+  :deep(.question-content) {
+    margin-left: -8px;
+  }
+}
 </style>
