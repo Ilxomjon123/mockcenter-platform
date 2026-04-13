@@ -338,9 +338,11 @@ const { get, post } = useApi()
 
 onMounted(async () => {
   const tokenParam = route.query.token as string
+  const examTypeParam = route.query.exam_type as string
+  const nameParam = route.query.name as string
   if (tokenParam) {
     isTokenLogin.value = true
-    await authStore.loginWithToken(tokenParam)
+    await authStore.loginWithToken(tokenParam, examTypeParam, nameParam)
     isTokenLogin.value = false
   } else {
     await createQrSession()
