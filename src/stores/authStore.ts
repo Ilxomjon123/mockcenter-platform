@@ -8,11 +8,14 @@ import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
+import { useCscaStore } from '@/stores/cscaStore'
+import type { CscaTestResponse } from '@/types/csca'
 
 interface LoginResponse {
   data: {
     access_token: string
     number: string
+    name?: string
     exam_type?: string
     exam_datetime?: string
     speaking_datetime?: string
@@ -47,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const token = ref(localStorage.getItem('token') || '')
   const takerNumber = ref(localStorage.getItem('takerNumber') || '')
+  const takerName = ref(localStorage.getItem('takerName') || '')
   const examDatetime = ref(localStorage.getItem('examDatetime') || '')
   const speakingDatetime = ref(localStorage.getItem('speakingDatetime') || '')
   const examType = ref(localStorage.getItem('examType') || '')
@@ -71,6 +75,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Get first available section based on test data
   const getFirstAvailableSection = (): string => {
+    // CSCA exams go to subject selection page
+    if (examType.value === 'csca') {
+      const cscaStore = useCscaStore()
+      if (cscaStore.allCompleted) {
+        return '/csca/results'
+      }
+      return '/csca/subjects'
+    }
+
     // CEFR exams go to section selection page
     if (examType.value === 'cerf') {
       return '/section-select'
@@ -97,6 +110,31 @@ export const useAuthStore = defineStore('auth', () => {
   const fetchTestData = async () => {
     isLoadingTest.value = true
     try {
+      // CSCA has its own endpoint and response shape
+      if (examType.value === 'csca') {
+        const cscaResponse = await get<CscaTestResponse>('/api/exam/subject/test')
+        if (cscaResponse) {
+          const cscaStore = useCscaStore()
+          cscaStore.restore()
+
+          // If the backend returns different session IDs than what we cached,
+          // the admin has reset/allowed-resubmit — wipe local state and use fresh.
+          const freshIds = cscaResponse.subjects.map((s) => s.session_id).sort()
+          const cachedIds = cscaStore.subjects.map((s) => s.session_id).sort()
+          const isStale =
+            cachedIds.length !== freshIds.length ||
+            cachedIds.some((id, i) => id !== freshIds[i])
+
+          if (cscaStore.subjects.length === 0 || isStale) {
+            cscaStore.clearCsca()
+            cscaStore.setTest(cscaResponse)
+          }
+          testDataLoaded.value = true
+          return { success: true }
+        }
+        throw new Error('Test data not found')
+      }
+
       const response = await get<TestDataResponse>('/api/exam/test')
 
       if (response?.data) {
@@ -152,7 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const loginWithToken = async (tokenValue: string) => {
+  const loginWithToken = async (tokenValue: string, examTypeValue?: string, nameValue?: string) => {
     errorMessage.value = ''
     errorDetails.value = ''
     isPaymentError.value = false
@@ -164,12 +202,21 @@ export const useAuthStore = defineStore('auth', () => {
       useReadingStore().clearReading()
       useWritingStore().clearWriting()
       useSpeakingStore().clearSpeaking()
+      useCscaStore().clearCsca()
       localStorage.clear()
       sessionStorage.clear()
 
-      // Set the new token
+      // Set the new token, exam type and name
       token.value = tokenValue
       localStorage.setItem('token', tokenValue)
+      if (examTypeValue) {
+        examType.value = examTypeValue
+        localStorage.setItem('examType', examTypeValue)
+      }
+      if (nameValue) {
+        takerName.value = nameValue
+        localStorage.setItem('takerName', nameValue)
+      }
 
       // Fetch test data (also validates the token)
       const result = await fetchTestData()
@@ -215,10 +262,12 @@ export const useAuthStore = defineStore('auth', () => {
       if (response?.data?.access_token) {
         token.value = response.data.access_token
         takerNumber.value = response.data.number
+        takerName.value = response.data.name || ''
         examDatetime.value = response.data.exam_datetime || ''
         speakingDatetime.value = response.data.speaking_slot_time || response.data.speaking_datetime || ''
         localStorage.setItem('token', response.data.access_token)
         localStorage.setItem('takerNumber', response.data.number)
+        localStorage.setItem('takerName', response.data.name || '')
         localStorage.setItem('examDatetime', response.data.exam_datetime || '')
         localStorage.setItem('speakingDatetime', response.data.speaking_slot_time || response.data.speaking_datetime || '')
         examType.value = response.data.exam_type || ''
@@ -272,6 +321,7 @@ export const useAuthStore = defineStore('auth', () => {
     useReadingStore().clearReading()
     useWritingStore().clearWriting()
     useSpeakingStore().clearSpeaking()
+    useCscaStore().clearCsca()
 
     // Clear token and flags
     token.value = ''
@@ -367,6 +417,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     token,
     takerNumber,
+    takerName,
     examDatetime,
     speakingDatetime,
     examType,

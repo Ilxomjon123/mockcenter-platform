@@ -5,6 +5,7 @@ import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
+import { useCscaStore } from '@/stores/cscaStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -61,6 +62,24 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
+    path: '/csca/subjects',
+    name: 'csca-subjects',
+    component: () => import('@/views/CscaSubjectSelectView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/csca/exam',
+    name: 'csca-exam',
+    component: () => import('@/views/CscaExamView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/csca/results',
+    name: 'csca-results',
+    component: () => import('@/views/CscaResultsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/preview/:type',
     name: 'preview',
     component: () => import('@/views/PreviewExamView.vue'),
@@ -115,7 +134,14 @@ const getFirstAvailableSection = (
   writingStore: ReturnType<typeof useWritingStore>,
   speakingStore: ReturnType<typeof useSpeakingStore>,
   examType?: string,
+  cscaStore?: ReturnType<typeof useCscaStore>,
 ): string => {
+  // CSCA exams go to subject-select page (or results if all done)
+  if (examType === 'csca') {
+    if (cscaStore?.allCompleted) return 'csca-results'
+    return 'csca-subjects'
+  }
+
   // CEFR exams go to section-select page
   if (examType === 'cerf') {
     return 'section-select'
@@ -152,6 +178,7 @@ router.beforeEach(async (to, from, next) => {
   const readingStore = useReadingStore()
   const writingStore = useWritingStore()
   const speakingStore = useSpeakingStore()
+  const cscaStore = useCscaStore()
 
   // If user is already logged in and trying to access login page or root
   // Allow login page access when token query param is present (preview/re-login flow)
@@ -161,9 +188,24 @@ router.beforeEach(async (to, from, next) => {
       return
     }
     const examType = authStore.examType
-    const firstSection = getFirstAvailableSection(listeningStore, readingStore, writingStore, speakingStore, examType)
+    const firstSection = getFirstAvailableSection(listeningStore, readingStore, writingStore, speakingStore, examType, cscaStore)
     next({ name: firstSection })
     return
+  }
+
+  // CSCA route guards
+  if (to.name === 'csca-exam' && isAuthenticated) {
+    // Must have an active session to access exam view
+    if (!cscaStore.activeSessionId || cscaStore.isSubmitted(cscaStore.activeSessionId)) {
+      next({ name: 'csca-subjects' })
+      return
+    }
+  }
+  if (to.name === 'csca-results' && isAuthenticated) {
+    if (!cscaStore.allCompleted) {
+      next({ name: 'csca-subjects' })
+      return
+    }
   }
 
   // Allow going back from submission page to review
