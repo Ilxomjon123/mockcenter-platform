@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <div class="mobile-tabs">
+      <div v-if="hasReadingPassage" class="mobile-tabs">
         <button class="mobile-tab" :class="{ active: readingTab === 'passage' }" @click="readingTab = 'passage'">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -39,14 +39,20 @@
         </button>
       </div>
 
-      <div class="panels-container">
+      <div class="panels-container" :class="{ 'no-passage': !hasReadingPassage }">
         <ReadingPassagePanel
+          v-if="hasReadingPassage"
           :width="leftWidth"
           :passage="readingStore.currentPassage"
           :class="{ 'mobile-hidden': readingTab !== 'passage' }"
         />
-        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" class="hide-mobile" />
-        <ReadingQuestionPanel :class="{ 'mobile-hidden': readingTab !== 'questions' }" />
+        <ResizableDivider
+          v-if="hasReadingPassage"
+          :is-dragging="isDragging"
+          @start-drag="startDrag"
+          class="hide-mobile"
+        />
+        <ReadingQuestionPanel :class="{ 'mobile-hidden': hasReadingPassage && readingTab !== 'questions' }" />
       </div>
     </div>
 
@@ -237,6 +243,11 @@ onUnmounted(() => {
 })
 
 // Reading computed
+const hasReadingPassage = computed((): boolean => {
+  const content = readingStore.currentPassage?.content
+  return !!content && content.trim() !== ''
+})
+
 const readingQuestionsRange = computed(() => {
   const part = readingStore.currentPart
   const stats = readingStore.partStats[part]
@@ -527,6 +538,11 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+.panels-container.no-passage :deep(.question-panel) {
+  width: 100% !important;
+  flex: 1;
 }
 
 @media (max-width: 640px) {

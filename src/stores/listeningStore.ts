@@ -95,10 +95,13 @@ export const useListeningStore = defineStore('listening', {
 
       const processQuestion = (q: QuestionRaw): void => {
         const qType = q.type
+        const hasChildren = Array.isArray(q.children) && q.children.length > 0
         if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
         } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += q.answers_count || 1
+        } else if (qType === QuestionType.MATCHING_INFORMATION && !hasChildren) {
+          currentCounter += 1
         }
         currentCounter += countGapsAndMatches(q.content)
 

@@ -12,7 +12,7 @@
       </div>
 
       <!-- Mobile Tab Switcher -->
-      <div class="mobile-tabs">
+      <div v-if="hasPassage" class="mobile-tabs">
         <button
           class="mobile-tab"
           :class="{ active: activeTab === 'passage' }"
@@ -39,16 +39,22 @@
       </div>
 
       <!-- Panels container -->
-      <div class="panels-container">
+      <div class="panels-container" :class="{ 'no-passage': !hasPassage }">
         <ReadingPassagePanel
+          v-if="hasPassage"
           :width="leftWidth"
           :passage="readingStore.currentPassage"
           :class="{ 'mobile-hidden': activeTab !== 'passage' }"
         />
 
-        <ResizableDivider :is-dragging="isDragging" @start-drag="startDrag" class="hide-mobile" />
+        <ResizableDivider
+          v-if="hasPassage"
+          :is-dragging="isDragging"
+          @start-drag="startDrag"
+          class="hide-mobile"
+        />
 
-        <ReadingQuestionPanel :class="{ 'mobile-hidden': activeTab !== 'questions' }" />
+        <ReadingQuestionPanel :class="{ 'mobile-hidden': hasPassage && activeTab !== 'questions' }" />
       </div>
     </div>
 
@@ -198,6 +204,11 @@ onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
   document.removeEventListener('focusin', handleInputFocus)
   document.removeEventListener('click', handleInputFocus)
+})
+
+const hasPassage = computed((): boolean => {
+  const content = readingStore.currentPassage?.content
+  return !!content && content.trim() !== ''
 })
 
 const getQuestionsRange = computed((): string => {
@@ -390,6 +401,11 @@ const handleSubmit = (): void => {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+.panels-container.no-passage :deep(.question-panel) {
+  width: 100% !important;
+  flex: 1;
 }
 
 @media (max-width: 640px) {

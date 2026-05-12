@@ -337,6 +337,18 @@ watch(
   margin-bottom: 16px;
 }
 
+.passage-text :deep(h1),
+.passage-text :deep(h2),
+.passage-text :deep(h3),
+.passage-text :deep(h4),
+.passage-text :deep(h5),
+.passage-text :deep(h6) {
+  font-weight: 600;
+  margin: 24px 0 12px;
+  font-size: 15px;
+  color: #1f2937;
+}
+
 /* Gap input styles */
 .passage-text :deep(.gap-input) {
   min-width: 80px;

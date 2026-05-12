@@ -71,10 +71,13 @@ export const useReadingStore = defineStore('reading', {
 
       const processNode = (q: RawQuestion | RawChild): void => {
         const qType = q.type
+        const hasChildren = 'children' in q && Array.isArray(q.children) && q.children.length > 0
         if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
         } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += (q as RawQuestion).answers_count || 1
+        } else if (qType === QuestionType.MATCHING_INFORMATION && !hasChildren) {
+          currentCounter += 1
         }
         currentCounter += countGapsAndMatches(q.content)
 

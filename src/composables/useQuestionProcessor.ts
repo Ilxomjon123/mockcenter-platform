@@ -46,6 +46,13 @@ export function useQuestionProcessor(options: QuestionProcessorOptions) {
         } else {
           processedQuestion.displayNumber = String(globalGapCounter)
         }
+      } else if (question.type === QuestionType.MATCHING_INFORMATION) {
+        const hasChildren = Array.isArray(question.children) && question.children.length > 0
+        if (!hasChildren) {
+          globalGapCounter++
+          processedQuestion.questionNumber = globalGapCounter
+          processedQuestion.displayNumber = String(globalGapCounter)
+        }
       }
 
       if (question.content) {
