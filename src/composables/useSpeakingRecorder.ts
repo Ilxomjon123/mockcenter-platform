@@ -71,7 +71,7 @@ export function useSpeakingRecorder() {
         analyser.getByteTimeDomainData(timeBuffer)
         let sumSq = 0
         for (let i = 0; i < timeBuffer.length; i++) {
-          const v = (timeBuffer[i] - 128) / 128
+          const v = (timeBuffer[i]! - 128) / 128
           sumSq += v * v
         }
         const rms = Math.sqrt(sumSq / timeBuffer.length)
@@ -83,11 +83,11 @@ export function useSpeakingRecorder() {
         // Per-band energy from frequency-domain data.
         analyser.getByteFrequencyData(freqBuffer)
         let lowSum = 0
-        for (let i = 1; i < lowEnd; i++) lowSum += freqBuffer[i]
+        for (let i = 1; i < lowEnd; i++) lowSum += freqBuffer[i]!
         let midSum = 0
-        for (let i = lowEnd; i < midEnd; i++) midSum += freqBuffer[i]
+        for (let i = lowEnd; i < midEnd; i++) midSum += freqBuffer[i]!
         let highSum = 0
-        for (let i = midEnd; i < highEnd; i++) highSum += freqBuffer[i]
+        for (let i = midEnd; i < highEnd; i++) highSum += freqBuffer[i]!
 
         const lowAvg = lowSum / Math.max(1, lowEnd - 1) / 255
         const midAvg = midSum / Math.max(1, midEnd - lowEnd) / 255
