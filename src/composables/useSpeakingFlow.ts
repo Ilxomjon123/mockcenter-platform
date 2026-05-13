@@ -743,6 +743,10 @@ export function useSpeakingFlow() {
 
     // From sub-composables
     isRecording: recorder.isRecording,
+    micLevel: recorder.level,
+    micLow: recorder.lowLevel,
+    micMid: recorder.midLevel,
+    micHigh: recorder.highLevel,
     isSpeaking: tts.isSpeaking,
     hasPermission: recorder.hasPermission,
     permissionError: recorder.permissionError,

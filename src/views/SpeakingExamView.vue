@@ -188,7 +188,7 @@ onUnmounted(() => {
                 </div>
                 <div v-else-if="flow.phase.value === 'recording'" key="p2-rec" class="speaking-exam__part2-side">
                   <div class="speaking-exam__stoppable" @click="flow.forceStopRecording()">
-                    <SpeakingMicButton :active="flow.isRecording.value" />
+                    <SpeakingMicButton :active="flow.isRecording.value" :level="flow.micLevel.value" :low="flow.micLow.value" :mid="flow.micMid.value" :high="flow.micHigh.value" />
                   </div>
                   <SpeakingRecordingTimer :seconds="flow.recordingTime.value" />
                 </div>
@@ -220,7 +220,7 @@ onUnmounted(() => {
           <div class="speaking-exam__part3-bottom-wrap" :class="{ 'speaking-exam__part3-bottom-wrap--active': flow.phase.value === 'recording' }">
             <div v-if="flow.phase.value === 'recording'" class="speaking-exam__part3-recording">
               <div class="speaking-exam__stoppable" @click="flow.forceStopRecording()">
-                <SpeakingMicButton :active="flow.isRecording.value" />
+                <SpeakingMicButton :active="flow.isRecording.value" :level="flow.micLevel.value" :low="flow.micLow.value" :mid="flow.micMid.value" :high="flow.micHigh.value" />
               </div>
               <SpeakingRecordingTimer :seconds="flow.recordingTime.value" />
             </div>
@@ -252,7 +252,7 @@ onUnmounted(() => {
           <h2 class="speaking-exam__question-text">Can you tell me your full name please?</h2>
           <Transition name="fade">
             <div v-if="flow.phase.value === 'name-recording'" class="speaking-exam__mic-area">
-              <SpeakingMicButton :active="flow.isRecording.value" />
+              <SpeakingMicButton :active="flow.isRecording.value" :level="flow.micLevel.value" :low="flow.micLow.value" :mid="flow.micMid.value" :high="flow.micHigh.value" />
             </div>
           </Transition>
         </div>
@@ -314,7 +314,7 @@ onUnmounted(() => {
             </div>
             <div v-else-if="flow.phase.value === 'recording'" key="qr">
               <div class="speaking-exam__mic-area">
-                <SpeakingMicButton :active="flow.isRecording.value" />
+                <SpeakingMicButton :active="flow.isRecording.value" :level="flow.micLevel.value" :low="flow.micLow.value" :mid="flow.micMid.value" :high="flow.micHigh.value" />
               </div>
               <div class="speaking-exam__recording-timer">
                 <SpeakingRecordingTimer :seconds="flow.recordingTime.value" />
