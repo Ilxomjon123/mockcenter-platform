@@ -147,6 +147,18 @@ const getFirstAvailableSection = (
     return 'section-select'
   }
 
+  // If only a subset of sections is available (online section-based registration),
+  // route through section-select so the user picks the entry point.
+  const availableCount = [
+    listeningStore.test?.parts?.length,
+    readingStore.test?.parts?.length,
+    writingStore.test?.parts?.length,
+    speakingStore.test?.parts?.length,
+  ].filter(Boolean).length
+
+  if (availableCount === 0) return 'submission'
+  if (availableCount < 4) return 'section-select'
+
   if (listeningStore.test?.parts?.length) return 'listening'
   if (readingStore.test?.parts?.length) return 'reading'
   if (writingStore.test?.parts?.length) return 'writing'

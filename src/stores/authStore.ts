@@ -92,6 +92,24 @@ export const useAuthStore = defineStore('auth', () => {
     const listeningStore = useListeningStore()
     const readingStore = useReadingStore()
     const writingStore = useWritingStore()
+    const speakingStore = useSpeakingStore()
+
+    // For IELTS, if only some sections are available (online section-based registration),
+    // route through section-select so user can pick what to start with.
+    const availableCount = [
+      listeningStore.test?.parts?.length,
+      readingStore.test?.parts?.length,
+      writingStore.test?.parts?.length,
+      speakingStore.test?.parts?.length,
+    ].filter(Boolean).length
+
+    if (availableCount === 0) {
+      return '/submission'
+    }
+
+    if (availableCount < 4) {
+      return '/section-select'
+    }
 
     if (listeningStore.test?.parts?.length) {
       return '/listening'
