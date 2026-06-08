@@ -3,6 +3,7 @@ export enum QuestionType {
   GAP_FILLING = 'gap_filling',
   MULTIPLE_CHOICE = 'multiple_choice',
   MATCHING = 'matching',
+  MATCH_HEADING = 'match_heading',
   MATCHING_INFORMATION = 'matching_information',
   DROP_DOWN = 'drop_down',
   TRUE_FALSE_NOT_GIVEN = 'true_false_not_given',

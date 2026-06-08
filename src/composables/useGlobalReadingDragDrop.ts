@@ -5,6 +5,9 @@ import { useReadingStore } from '@/stores/readingStore'
 const draggedOption = ref<HTMLElement | null>(null)
 const sourceDropzone = ref<HTMLElement | null>(null)
 const draggedValue = ref<string | null>(null)
+// Kind of the value being dragged ('match' | 'heading'). Drops are only
+// allowed onto a dropzone of the same kind so the two families never mix.
+const draggedKind = ref<string>('match')
 const dragClone = ref<HTMLElement | null>(null)
 const currentDropzone = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
@@ -12,10 +15,10 @@ const isDragging = ref(false)
 export function useGlobalReadingDragDrop() {
   const readingStore = useReadingStore()
 
-  // Helper to show option by key (search globally)
-  const showOptionByKey = (key: string) => {
+  // Helper to show option by key within a kind family (search globally)
+  const showOptionByKey = (key: string, kind: string) => {
     const option = document.querySelector(
-      `.draggable-option[data-option-key="${key}"]`
+      `.draggable-option[data-option-key="${key}"][data-kind="${kind}"]`
     ) as HTMLElement
     if (option) {
       option.classList.remove('used')
@@ -49,10 +52,14 @@ export function useGlobalReadingDragDrop() {
     const matchNumber = dropzone.dataset.match
     if (!matchNumber || !draggedValue.value) return
 
+    // Reject drops across kind families (e.g. heading option onto match dropzone)
+    const zoneKind = dropzone.dataset.kind ?? 'match'
+    if (zoneKind !== draggedKind.value) return
+
     // If target dropzone already has a value, restore that option
     const oldValue = dropzone.querySelector('.match-value')?.textContent
     if (oldValue) {
-      showOptionByKey(oldValue)
+      showOptionByKey(oldValue, zoneKind)
     }
 
     // Update the target dropzone display
@@ -67,9 +74,9 @@ export function useGlobalReadingDragDrop() {
 
     // Handle source: either an option or another dropzone
     if (draggedOption.value) {
-      // Mark option as used globally
+      // Mark option as used within the same kind family
       const allOptions = document.querySelectorAll(
-        `.draggable-option[data-option-key="${draggedValue.value}"]`
+        `.draggable-option[data-option-key="${draggedValue.value}"][data-kind="${zoneKind}"]`
       )
       allOptions.forEach((opt) => opt.classList.add('used'))
     } else if (sourceDropzone.value) {
@@ -98,6 +105,7 @@ export function useGlobalReadingDragDrop() {
       isDragging.value = true
       draggedOption.value = option
       draggedValue.value = option.dataset.optionKey || ''
+      draggedKind.value = option.dataset.kind || 'match'
       sourceDropzone.value = null
       option.classList.add('dragging')
 
@@ -116,6 +124,7 @@ export function useGlobalReadingDragDrop() {
       if (!draggedValue.value) return
 
       isDragging.value = true
+      draggedKind.value = dropzone.dataset.kind || 'match'
       sourceDropzone.value = dropzone
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
@@ -139,14 +148,15 @@ export function useGlobalReadingDragDrop() {
     dragClone.value.style.display = ''
 
     const dropzone = elementUnder?.closest('.match-dropzone') as HTMLElement
+    const kindMatches = !!dropzone && (dropzone.dataset.kind ?? 'match') === draggedKind.value
 
     // Remove highlight from previous dropzone
     if (currentDropzone.value && currentDropzone.value !== dropzone) {
       currentDropzone.value.classList.remove('drag-over')
     }
 
-    // Add highlight to current dropzone
-    if (dropzone && dropzone !== sourceDropzone.value) {
+    // Add highlight to current dropzone (only same-kind zones are valid targets)
+    if (dropzone && kindMatches && dropzone !== sourceDropzone.value) {
       dropzone.classList.add('drag-over')
       currentDropzone.value = dropzone
     } else {
@@ -207,6 +217,7 @@ export function useGlobalReadingDragDrop() {
       isDragging.value = true
       draggedOption.value = option
       draggedValue.value = option.dataset.optionKey || ''
+      draggedKind.value = option.dataset.kind || 'match'
       sourceDropzone.value = null
       option.classList.add('touch-dragging')
 
@@ -224,6 +235,7 @@ export function useGlobalReadingDragDrop() {
       if (!draggedValue.value) return
 
       isDragging.value = true
+      draggedKind.value = dropzone.dataset.kind || 'match'
       sourceDropzone.value = dropzone
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
@@ -249,12 +261,13 @@ export function useGlobalReadingDragDrop() {
     dragClone.value.style.display = ''
 
     const dropzone = elementUnder?.closest('.match-dropzone') as HTMLElement
+    const kindMatches = !!dropzone && (dropzone.dataset.kind ?? 'match') === draggedKind.value
 
     if (currentDropzone.value && currentDropzone.value !== dropzone) {
       currentDropzone.value.classList.remove('drag-over')
     }
 
-    if (dropzone && dropzone !== sourceDropzone.value) {
+    if (dropzone && kindMatches && dropzone !== sourceDropzone.value) {
       dropzone.classList.add('drag-over')
       currentDropzone.value = dropzone
     } else {
@@ -311,11 +324,12 @@ export function useGlobalReadingDragDrop() {
     const matchNumber = dropzone.dataset.match
     const valueEl = dropzone.querySelector('.match-value')
     const currentValue = valueEl?.textContent
+    const zoneKind = dropzone.dataset.kind ?? 'match'
 
     if (matchNumber && valueEl) {
       setTimeout(() => {
         if (currentValue) {
-          showOptionByKey(currentValue)
+          showOptionByKey(currentValue, zoneKind)
         }
 
         valueEl.textContent = ''

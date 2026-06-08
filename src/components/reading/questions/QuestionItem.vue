@@ -14,7 +14,7 @@
 
     <!-- Heading type (options only, dropzones are in passage) -->
     <HeadingQuestion
-      v-else-if="isHeading && hasOptions"
+      v-else-if="(isHeading || isMatchHeading) && hasOptions"
       :question="question"
     />
 
@@ -74,6 +74,12 @@ const isHeading = computed(() => {
 
 const isMatching = computed(() => {
   return props.question.type === QuestionType.MATCHING
+})
+
+// match_heading: heading-style, options in question column, [heading_match]
+// dropzones live in the passage. Rendered like a heading question.
+const isMatchHeading = computed(() => {
+  return props.question.type === QuestionType.MATCH_HEADING
 })
 
 const isDropdown = computed(() => {

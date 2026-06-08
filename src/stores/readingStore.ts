@@ -61,12 +61,15 @@ export const useReadingStore = defineStore('reading', {
       // Pre-compiled regex for better performance
       const gapRegex = /\[gap\]/g
       const matchRegex = /\[match\]/g
+      const headingMatchRegex = /\[heading_match\]/g
 
       const countGapsAndMatches = (text: string | null | undefined): number => {
         if (!text) return 0
         const gaps = text.match(gapRegex)?.length ?? 0
+        // `[match]` is not a substring of `[heading_match]`, so these counts don't overlap
         const matches = text.match(matchRegex)?.length ?? 0
-        return gaps + matches
+        const headingMatches = text.match(headingMatchRegex)?.length ?? 0
+        return gaps + matches + headingMatches
       }
 
       const processNode = (q: RawQuestion | RawChild): void => {

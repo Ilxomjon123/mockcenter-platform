@@ -3,8 +3,11 @@
  */
 
 // Pre-compiled regex patterns for better performance
-const GAP_REGEX = /\[gap\]/g
 const MATCH_REGEX = /\[match\]/g
+// Single pass over all placeholder tokens, in order of appearance.
+// [heading_match] listed before [match] in the alternation for clarity;
+// they never overlap since `[match]` is not a substring of `[heading_match]`.
+const TOKEN_REGEX = /\[gap\]|\[heading_match\]|\[match\]/g
 
 // Reusable span element for measuring text width
 let measureSpan: HTMLSpanElement | null = null
@@ -46,7 +49,13 @@ export function autoResizeAllInputs(container: HTMLElement | null): void {
 }
 
 /**
- * Processes text containing [gap] and [match] tags and replaces them with HTML elements
+ * Processes text containing [gap], [match] and [heading_match] tags and replaces
+ * them with HTML elements. Tokens are numbered in the order they appear.
+ *
+ * Dropzones carry a `data-kind` attribute so that drag/drop keeps the two match
+ * families separate: `match` dropzones only accept `match` options and
+ * `heading` dropzones only accept `heading` options.
+ *
  * @param text The raw text content
  * @param startCounter The starting number for the gaps/matches
  * @returns Object containing the processed HTML and the next counter value
@@ -59,19 +68,18 @@ export function processQuestionText(
 
   let counter = startCounter
 
-  // Reset regex lastIndex for global patterns
-  GAP_REGEX.lastIndex = 0
-  MATCH_REGEX.lastIndex = 0
+  // Reset regex lastIndex for global pattern
+  TOKEN_REGEX.lastIndex = 0
 
-  const html = text
-    .replace(GAP_REGEX, () => {
-      counter++
+  const html = text.replace(TOKEN_REGEX, (token) => {
+    counter++
+    if (token === '[gap]') {
       return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}">`
-    })
-    .replace(MATCH_REGEX, () => {
-      counter++
-      return `<span class="match-dropzone" data-match="${counter}" data-gap="${counter}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
-    })
+    }
+    const kind = token === '[heading_match]' ? 'heading' : 'match'
+    const extraClass = kind === 'heading' ? ' heading-dropzone' : ''
+    return `<span class="match-dropzone${extraClass}" data-match="${counter}" data-gap="${counter}" data-kind="${kind}"><span class="match-number">${counter}</span><span class="match-value"></span></span>`
+  })
 
   return { html, nextCounter: counter }
 }
@@ -168,8 +176,11 @@ export function restoreAnswersInContainer(
       valueEl.textContent = String(savedValue)
       dropzone.classList.add('has-value')
 
+      // Only mark the used option within the same kind family so that an
+      // identical option value in the other family stays available.
+      const kind = dropzone.dataset.kind ?? 'match'
       const usedOption = container.querySelector(
-        `.draggable-option[data-option-key="${savedValue}"]`,
+        `.draggable-option[data-option-key="${savedValue}"][data-kind="${kind}"]`,
       ) as HTMLElement
       if (usedOption) {
         usedOption.classList.add(usedClass)

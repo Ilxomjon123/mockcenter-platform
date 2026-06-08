@@ -9,11 +9,17 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProcessedQuestion } from '@/types/test'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
 
 const props = defineProps<{
   question: ProcessedQuestion
 }>()
+
+// match_heading options belong to the 'heading' drop family; classic matching
+// headings stay in the 'match' family. Keeps the two pools separate.
+const kind = computed(() =>
+  props.question.type === QuestionType.MATCH_HEADING ? 'heading' : 'match'
+)
 
 const formattedOptions = computed(() => {
   const options = props.question.options
@@ -22,7 +28,7 @@ const formattedOptions = computed(() => {
   if (Array.isArray(options)) {
     return options
       .map((opt) => {
-        return `<span class="draggable-option" data-option-key="${opt}" data-option-value="${opt}">${opt}</span>`
+        return `<span class="draggable-option" data-option-key="${opt}" data-option-value="${opt}" data-kind="${kind.value}">${opt}</span>`
       })
       .join('')
   }
@@ -31,7 +37,7 @@ const formattedOptions = computed(() => {
     return Object.entries(options as Record<string, string>)
       .map(
         ([key, value]) =>
-          `<span class="draggable-option" data-option-key="${key}" data-option-value="${value}">${value}</span>`
+          `<span class="draggable-option" data-option-key="${key}" data-option-value="${value}" data-kind="${kind.value}">${value}</span>`
       )
       .join('')
   }
