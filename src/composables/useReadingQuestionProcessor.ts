@@ -71,6 +71,16 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
         } else {
           processed.displayNumber = String(globalGapCounter)
         }
+      } else if (q.type === QuestionType.MATCHING) {
+        // Statement-style matching: the question number is the number the
+        // upcoming [match] dropzone in `content` will receive. Heading-style
+        // matching (no [match] in content) keeps its dropzones in the passage,
+        // so it gets no number here.
+        if (typeof q.content === 'string' && q.content.includes('[match]')) {
+          const num = globalGapCounter + 1
+          processed.questionNumber = num
+          processed.displayNumber = String(num)
+        }
       } else if (q.type === QuestionType.MATCHING_INFORMATION) {
         const hasChildren = 'children' in q && Array.isArray(q.children) && q.children.length > 0
         if (!hasChildren) {

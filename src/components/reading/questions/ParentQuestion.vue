@@ -5,6 +5,12 @@
     :question="question"
   />
 
+  <!-- Matching parent: shared options once, each statement + dropzone per row -->
+  <MatchingGroupQuestion
+    v-else-if="isMatchingGroup"
+    :question="question"
+  />
+
   <template v-else>
     <!-- Parent question header -->
     <div class="question-item question-parent">
@@ -36,6 +42,7 @@ import { computed } from 'vue'
 import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import QuestionItem from './QuestionItem.vue'
 import MatchingInformationQuestion from './MatchingInformationQuestion.vue'
+import MatchingGroupQuestion from './MatchingGroupQuestion.vue'
 
 const props = defineProps<{
   question: ProcessedQuestion
@@ -44,6 +51,14 @@ const props = defineProps<{
 const isMatchingInformation = computed(
   () => props.question.type === QuestionType.MATCHING_INFORMATION,
 )
+
+// A matching group is a parent whose children are all statement-style
+// matching questions. Options are shared and rendered once under the parent.
+const isMatchingGroup = computed(() => {
+  const children = props.question.children
+  if (!children || children.length === 0) return false
+  return children.every((c) => c.type === QuestionType.MATCHING)
+})
 </script>
 
 <style src="./styles/shared.css"></style>
