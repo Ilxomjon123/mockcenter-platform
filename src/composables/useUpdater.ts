@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { check, type Update } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
-import { isTauri } from './useTauri'
+import { isTauri, enableClose } from './useTauri'
 
 export const updateInfo = ref<{ version: string; notes: string } | null>(null)
 export const updating = ref(false)
@@ -51,6 +51,8 @@ export async function installUpdate(): Promise<void> {
       updateProgress.value = total ? Math.round((got / total) * 100) : 0
     }
   })
+  // Kiosk mode blocks window close by default — release the guard so relaunch succeeds.
+  await enableClose()
   await relaunch()
 }
 
