@@ -46,7 +46,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVDNDA2RTBEOTVDQTdEMTAKUldRUWZjcVZEVzVBWEExVHNDTnBSNWdTdVlna1BWK1NEeDFmNW1RS1JGUGp0UHRJZkl0WlZaNkQK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzNzNDN0QzQzQyQjMyRkMKUldUOE1pdkUwOGR6ZzdOU1hmQkZkYUhuS2RTTXpuTjc2RzlvYlAvYU1SUVVaRXFVYjJENU9kNTEK",
       "endpoints": [
         "https://github.com/Ilxomjon123/mockcenter-platform/releases/latest/download/latest.json"
       ]
