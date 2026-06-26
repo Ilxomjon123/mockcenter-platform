@@ -32,6 +32,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -42,5 +43,13 @@
     "category": "Education",
     "shortDescription": "MockCenter IELTS Exam Platform",
     "longDescription": "A comprehensive IELTS exam practice platform with listening, reading, and writing sections."
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVDNDA2RTBEOTVDQTdEMTAKUldRUWZjcVZEVzVBWEExVHNDTnBSNWdTdVlna1BWK1NEeDFmNW1RS1JGUGp0UHRJZkl0WlZaNkQK",
+      "endpoints": [
+        "https://github.com/Ilxomjon123/mockcenter-platform/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

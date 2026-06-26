@@ -31,6 +31,13 @@ pub fn run() {
                 )?;
             }
 
+            // Desktop: auto-update + process (restart after install)
+            #[cfg(desktop)]
+            {
+                app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+                app.handle().plugin(tauri_plugin_process::init())?;
+            }
+
             // Get the main window
             let window = app.get_webview_window("main").unwrap();
 
