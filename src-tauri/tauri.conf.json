@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "MockCenter",
-  "version": "0.1.0",
+  "productName": "MockCenter Exam",
+  "version": "0.1.1",
   "identifier": "com.mockcenter.ielts",
   "build": {
     "frontendDist": "../dist",
