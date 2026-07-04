@@ -89,6 +89,7 @@ export function useGlobalReadingDragDrop() {
 
       if (sourceMatchNumber) {
         delete readingStore.answers[parseInt(sourceMatchNumber, 10)]
+        readingStore.saveToStorage()
       }
     }
   }
@@ -336,6 +337,7 @@ export function useGlobalReadingDragDrop() {
         dropzone.classList.remove('has-value', 'remove-animation')
 
         delete readingStore.answers[parseInt(matchNumber, 10)]
+        readingStore.saveToStorage()
       }, 150)
     }
   }

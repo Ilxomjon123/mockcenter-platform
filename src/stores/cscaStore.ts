@@ -6,6 +6,7 @@ import type {
   CscaSubjectResult,
 } from '@/types/csca'
 import { CSCA_SUBJECT_DURATION_MINUTES } from '@/types/csca'
+import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'csca_state'
 
@@ -17,6 +18,8 @@ interface PersistedState {
   submittedSessionIds: number[]
   results: Record<number, CscaSubjectResult>
 }
+
+const storage = useLocalStorage<PersistedState>(STORAGE_KEY)
 
 export const useCscaStore = defineStore('csca', () => {
   const subjects = ref<CscaSubjectSession[]>([])
@@ -152,7 +155,7 @@ export const useCscaStore = defineStore('csca', () => {
     submittedSessionIds.value = []
     results.value = {}
     currentQuestionIndex.value = 0
-    localStorage.removeItem(STORAGE_KEY)
+    storage.remove()
   }
 
   const persist = () => {
@@ -164,27 +167,18 @@ export const useCscaStore = defineStore('csca', () => {
       submittedSessionIds: submittedSessionIds.value,
       results: results.value,
     }
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    } catch {
-      // storage full or unavailable
-    }
+    storage.saveImmediate(state)
   }
 
   const restore = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return
-      const state = JSON.parse(raw) as PersistedState
-      subjects.value = state.subjects || []
-      activeSessionId.value = state.activeSessionId ?? null
-      answers.value = state.answers || {}
-      startedAt.value = state.startedAt || {}
-      submittedSessionIds.value = state.submittedSessionIds || []
-      results.value = state.results || {}
-    } catch {
-      // ignore parse errors
-    }
+    const state = storage.load()
+    if (!state) return
+    subjects.value = state.subjects || []
+    activeSessionId.value = state.activeSessionId ?? null
+    answers.value = state.answers || {}
+    startedAt.value = state.startedAt || {}
+    submittedSessionIds.value = state.submittedSessionIds || []
+    results.value = state.results || {}
   }
 
   // Auto-persist on answers change

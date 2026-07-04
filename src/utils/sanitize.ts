@@ -52,22 +52,3 @@ export function sanitizeHtml(html: string): string {
 
   return sanitized
 }
-
-/**
- * Creates safe HTML for form inputs with placeholders
- * Used specifically for gap-fill questions where [gap] is replaced with input fields
- * @param text - The text containing [gap] markers
- * @param inputClassName - CSS class for the input elements
- * @returns Sanitized HTML with safe input elements
- */
-export function createSafeGapHtml(text: string, inputClassName: string = 'gap-input'): string {
-  // First sanitize the incoming text to prevent XSS
-  const sanitized = sanitizeHtml(text)
-
-  // Then safely replace [gap] markers with input elements
-  let gapCounter = 0
-  return sanitized.replace(/\[gap\]/g, () => {
-    gapCounter++
-    return `<input type="text" placeholder="${gapCounter}" class="${escapeHtml(inputClassName)}" style="width: 100px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px;" />`
-  })
-}

@@ -143,7 +143,7 @@ const restoreQuestionHighlights = () => {
 
               try {
                 range.surroundContents(span)
-              } catch (e) {
+              } catch {
                 // Skip if range crosses element boundaries
               }
               break

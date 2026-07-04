@@ -63,7 +63,7 @@ export const useApi = () => {
       return response.data
     } catch (err: unknown) {
       error.value = getErrorMessage(err)
-      return null
+      throw err // Re-throw to allow caller to handle
     } finally {
       isLoading.value = false
     }
@@ -103,7 +103,7 @@ export const useApi = () => {
       return response.data
     } catch (err: unknown) {
       error.value = getErrorMessage(err)
-      return null
+      throw err // Re-throw to allow caller to handle
     } finally {
       isLoading.value = false
     }
@@ -123,7 +123,7 @@ export const useApi = () => {
       return response.data
     } catch (err: unknown) {
       error.value = getErrorMessage(err)
-      return null
+      throw err // Re-throw to allow caller to handle
     } finally {
       isLoading.value = false
     }
@@ -139,7 +139,7 @@ export const useApi = () => {
       return response.data
     } catch (err: unknown) {
       error.value = getErrorMessage(err)
-      return null
+      throw err // Re-throw to allow caller to handle
     } finally {
       isLoading.value = false
     }

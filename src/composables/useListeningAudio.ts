@@ -1,4 +1,4 @@
-import { ref, computed, watch, type Ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useAudioCache } from './useAudioCache'
 
@@ -70,7 +70,7 @@ export function useListeningAudio() {
 
     try {
       // Cache all audios and track progress
-      const cached = await audioCache.cacheAllAudios(urls, (loaded, total) => {
+      const cached = await audioCache.cacheAllAudios(urls, (loaded) => {
         loadedAudios.value = new Set(Array.from({ length: loaded }, (_, i) => i))
       })
 

@@ -43,17 +43,21 @@ export async function installUpdate(): Promise<void> {
   updateProgress.value = 0
   let total = 0
   let got = 0
-  await _update.downloadAndInstall((ev) => {
-    if (ev.event === 'Started') {
-      total = ev.data.contentLength ?? 0
-    } else if (ev.event === 'Progress') {
-      got += ev.data.chunkLength
-      updateProgress.value = total ? Math.round((got / total) * 100) : 0
-    }
-  })
-  // Kiosk mode blocks window close by default — release the guard so relaunch succeeds.
-  await enableClose()
-  await relaunch()
+  try {
+    await _update.downloadAndInstall((ev) => {
+      if (ev.event === 'Started') {
+        total = ev.data.contentLength ?? 0
+      } else if (ev.event === 'Progress') {
+        got += ev.data.chunkLength
+        updateProgress.value = total ? Math.round((got / total) * 100) : 0
+      }
+    })
+    // Kiosk mode blocks window close by default — release the guard so relaunch succeeds.
+    await enableClose()
+    await relaunch()
+  } finally {
+    updating.value = false
+  }
 }
 
 export function dismissUpdate() {

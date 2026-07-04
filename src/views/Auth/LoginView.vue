@@ -341,7 +341,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useApi } from '@/composables/useApi'
-import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
 import { useAppVersion } from '@/composables/useAppVersion'
 import {
@@ -352,6 +351,7 @@ import {
   installUpdate,
   dismissUpdate,
 } from '@/composables/useUpdater'
+import type { Html5Qrcode } from 'html5-qrcode'
 
 const number = ref('')
 const password = ref('')
@@ -361,7 +361,7 @@ const isTokenLogin = ref(false)
 
 // QR Scanner state
 const showScanner = ref(false)
-const scannerInstance = ref<any>(null)
+const scannerInstance = ref<Html5Qrcode | null>(null)
 const scannerError = ref('')
 const scannerWarning = ref('')
 const isQrLogging = ref(false)
@@ -376,7 +376,7 @@ const QR_SESSION_TTL = 4.5 * 60 * 1000 // Refresh 30s before 5min backend expiry
 
 const route = useRoute()
 const authStore = useAuthStore()
-const { isTauri } = useTauri()
+const { isTauri, exitApp } = useTauri()
 const { get, post } = useApi()
 const { appVersion } = useAppVersion()
 
@@ -418,7 +418,7 @@ const isFormValid = computed(() => {
 
 const closeWindow = async () => {
   try {
-    await invoke('exit_app')
+    await exitApp()
   } catch (error) {
     console.error('Failed to close window:', error)
   }
@@ -463,12 +463,13 @@ const openScanner = async () => {
       onScanSuccess,
       () => {},
     )
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Scanner error:', err)
-    if (err?.message?.includes('Permission') || err?.toString?.().includes('Permission')) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message.includes('Permission')) {
       scannerError.value = 'Camera permission denied. Please allow camera access.'
     } else {
-      scannerError.value = 'Failed to start camera: ' + (err?.message || err)
+      scannerError.value = 'Failed to start camera: ' + message
     }
   }
 }
@@ -585,7 +586,7 @@ const pollQrSession = async () => {
   if (!qrSessionId.value || authStore.isLoading) return
 
   try {
-    const response = await get<{ status: string; data?: any }>(
+    const response = await get<{ status: string; data?: { access_token: string } }>(
       `/api/exam/qr-session/${qrSessionId.value}`,
     )
 

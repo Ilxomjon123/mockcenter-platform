@@ -1,4 +1,5 @@
 use tauri::Manager;
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
@@ -6,15 +7,38 @@ use std::time::Duration;
 // Global flag to allow closing the app
 static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
 
+// Both commands below are reachable from any script in the webview, so they must not be
+// able to lift the kiosk close-guard on their own. Require an explicit, native OS-level
+// confirmation (which webview JS cannot script or auto-click) before arming ALLOW_CLOSE.
 #[tauri::command]
-fn exit_app(app: tauri::AppHandle) {
-    ALLOW_CLOSE.store(true, Ordering::SeqCst);
-    app.exit(0);
+async fn exit_app(app: tauri::AppHandle) {
+    let confirmed = app
+        .dialog()
+        .message("Are you sure you want to exit the application?")
+        .title("Confirm Exit")
+        .kind(MessageDialogKind::Warning)
+        .buttons(MessageDialogButtons::YesNo)
+        .blocking_show();
+
+    if confirmed {
+        ALLOW_CLOSE.store(true, Ordering::SeqCst);
+        app.exit(0);
+    }
 }
 
 #[tauri::command]
-fn enable_close() {
-    ALLOW_CLOSE.store(true, Ordering::SeqCst);
+async fn enable_close(app: tauri::AppHandle) {
+    let confirmed = app
+        .dialog()
+        .message("An update has been installed. Restart the application now?")
+        .title("Confirm Restart")
+        .kind(MessageDialogKind::Warning)
+        .buttons(MessageDialogButtons::YesNo)
+        .blocking_show();
+
+    if confirmed {
+        ALLOW_CLOSE.store(true, Ordering::SeqCst);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

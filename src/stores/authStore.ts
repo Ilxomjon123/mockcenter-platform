@@ -43,6 +43,37 @@ interface SubmitResponse {
   results: ExamResults
 }
 
+// Decode a JWT payload and check whether it has expired (or is malformed).
+// This is a client-side sanity check only; the server remains the source of truth.
+const isTokenExpired = (rawToken: string): boolean => {
+  try {
+    const payload = rawToken.split('.')[1]
+    if (!payload) return true
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+    if (typeof decoded.exp !== 'number') return false
+    return Date.now() >= decoded.exp * 1000
+  } catch {
+    return true
+  }
+}
+
+// Keys that hold user accessibility preferences (not exam session state) and must
+// survive a full localStorage clear on login/logout.
+const PRESERVED_STORAGE_KEYS = ['contrast', 'textSize']
+
+const clearExamStorage = () => {
+  const preserved: Record<string, string | null> = {}
+  for (const key of PRESERVED_STORAGE_KEYS) {
+    preserved[key] = localStorage.getItem(key)
+  }
+  localStorage.clear()
+  for (const key of PRESERVED_STORAGE_KEYS) {
+    if (preserved[key] !== null) {
+      localStorage.setItem(key, preserved[key] as string)
+    }
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const route = useRoute()
@@ -221,7 +252,7 @@ export const useAuthStore = defineStore('auth', () => {
       useWritingStore().clearWriting()
       useSpeakingStore().clearSpeaking()
       useCscaStore().clearCsca()
-      localStorage.clear()
+      clearExamStorage()
       sessionStorage.clear()
 
       // Set the new token, exam type and name
@@ -292,7 +323,14 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('examType', examType.value)
 
         // Fetch test data after successful login
-        await fetchTestData()
+        const testResult = await fetchTestData()
+
+        if (!testResult.success) {
+          token.value = ''
+          localStorage.removeItem('token')
+          errorMessage.value = testResult.message || 'Error loading test data'
+          return { success: false, message: errorMessage.value }
+        }
 
         // Get redirect path from query or first available section
         let redirectPath = route.query.redirect as string
@@ -345,8 +383,8 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = ''
     testDataLoaded.value = false
 
-    // Clear all localStorage
-    localStorage.clear()
+    // Clear all localStorage (preserving accessibility settings)
+    clearExamStorage()
 
     // Clear sessionStorage
     sessionStorage.clear()
@@ -425,9 +463,14 @@ export const useAuthStore = defineStore('auth', () => {
   // Token validligini tekshirish
   const checkAuth = () => {
     const storedToken = localStorage.getItem('token')
-    if (storedToken) {
+    if (storedToken && !isTokenExpired(storedToken)) {
       token.value = storedToken
       return true
+    }
+    if (storedToken) {
+      // Expired or malformed token — don't treat it as a valid session
+      token.value = ''
+      localStorage.removeItem('token')
     }
     return false
   }
