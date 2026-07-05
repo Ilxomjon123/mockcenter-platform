@@ -25,6 +25,37 @@
     </button>
 
     <div class="box">
+      <!-- Auto-update banner -->
+      <transition name="fade">
+        <div v-if="updateInfo" class="update-banner">
+          <div class="update-banner-head">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              <polyline points="21 3 21 9 15 9"></polyline>
+            </svg>
+            <span>New version {{ updateInfo.version }} available</span>
+          </div>
+          <div v-if="updating" class="update-progress">
+            <div class="update-progress-bar" :style="{ width: updateProgress + '%' }"></div>
+            <span class="update-progress-text">Updating… {{ updateProgress }}%</span>
+          </div>
+          <div v-else class="update-actions">
+            <button class="update-btn" @click="runUpdate">Update now</button>
+            <button class="update-btn-ghost" @click="dismissUpdate">Later</button>
+          </div>
+        </div>
+      </transition>
+
       <!-- Token auto-login loading state -->
       <div v-if="isTokenLogin" class="token-login-loading">
         <span class="spinner"></span>
@@ -222,6 +253,9 @@
         Scan QR Code
       </button>
       </template>
+
+      <!-- App version -->
+      <div v-if="appVersion" class="app-version">v{{ appVersion }}</div>
     </div>
 
     <!-- QR Scanner Overlay -->
@@ -307,8 +341,17 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useApi } from '@/composables/useApi'
-import { invoke } from '@tauri-apps/api/core'
 import { useTauri } from '@/composables/useTauri'
+import { useAppVersion } from '@/composables/useAppVersion'
+import {
+  updateInfo,
+  updating,
+  updateProgress,
+  checkForUpdate,
+  installUpdate,
+  dismissUpdate,
+} from '@/composables/useUpdater'
+import type { Html5Qrcode } from 'html5-qrcode'
 
 const number = ref('')
 const password = ref('')
@@ -318,7 +361,7 @@ const isTokenLogin = ref(false)
 
 // QR Scanner state
 const showScanner = ref(false)
-const scannerInstance = ref<any>(null)
+const scannerInstance = ref<Html5Qrcode | null>(null)
 const scannerError = ref('')
 const scannerWarning = ref('')
 const isQrLogging = ref(false)
@@ -333,8 +376,17 @@ const QR_SESSION_TTL = 4.5 * 60 * 1000 // Refresh 30s before 5min backend expiry
 
 const route = useRoute()
 const authStore = useAuthStore()
-const { isTauri } = useTauri()
+const { isTauri, exitApp } = useTauri()
 const { get, post } = useApi()
+const { appVersion } = useAppVersion()
+
+const runUpdate = async () => {
+  try {
+    await installUpdate()
+  } catch (error) {
+    console.error('Update failed:', error)
+  }
+}
 
 onMounted(async () => {
   const tokenParam = route.query.token as string
@@ -347,6 +399,8 @@ onMounted(async () => {
   } else {
     await createQrSession()
   }
+  // Auto-update check (fire-and-forget; never blocks login)
+  void checkForUpdate()
 })
 
 onUnmounted(() => {
@@ -364,7 +418,7 @@ const isFormValid = computed(() => {
 
 const closeWindow = async () => {
   try {
-    await invoke('exit_app')
+    await exitApp()
   } catch (error) {
     console.error('Failed to close window:', error)
   }
@@ -409,12 +463,13 @@ const openScanner = async () => {
       onScanSuccess,
       () => {},
     )
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Scanner error:', err)
-    if (err?.message?.includes('Permission') || err?.toString?.().includes('Permission')) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message.includes('Permission')) {
       scannerError.value = 'Camera permission denied. Please allow camera access.'
     } else {
-      scannerError.value = 'Failed to start camera: ' + (err?.message || err)
+      scannerError.value = 'Failed to start camera: ' + message
     }
   }
 }
@@ -531,7 +586,7 @@ const pollQrSession = async () => {
   if (!qrSessionId.value || authStore.isLoading) return
 
   try {
-    const response = await get<{ status: string; data?: any }>(
+    const response = await get<{ status: string; data?: { access_token: string } }>(
       `/api/exam/qr-session/${qrSessionId.value}`,
     )
 
@@ -1446,6 +1501,90 @@ button[type='submit'].loading {
 
 :root.contrast-yellow-on-black .scanner-footer p {
   color: #cccc00;
+}
+
+/* Auto-update banner */
+.update-banner {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.update-banner-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.update-btn {
+  flex: 1;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.update-btn:hover {
+  background: #15803d;
+}
+
+.update-btn-ghost {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.update-progress {
+  position: relative;
+  margin-top: 12px;
+  height: 8px;
+  background: #dcfce7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.update-progress-bar {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 999px;
+  transition: width 0.2s;
+}
+
+.update-progress-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #166534;
+}
+
+/* App version label */
+.app-version {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  user-select: none;
 }
 </style>
 

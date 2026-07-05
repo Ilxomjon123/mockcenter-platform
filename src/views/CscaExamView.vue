@@ -42,6 +42,25 @@ const renderedOptions = computed<Array<{ key: string; html: string }>>(() => {
 const secondsLeft = ref(0)
 let timerId: number | undefined
 
+// Retry auto-submit on failure instead of fabricating a zero score
+const AUTO_SUBMIT_RETRY_DELAY_MS = 5000
+let autoSubmitRetryId: number | undefined
+
+function clearAutoSubmitRetry() {
+  if (autoSubmitRetryId) {
+    window.clearTimeout(autoSubmitRetryId)
+    autoSubmitRetryId = undefined
+  }
+}
+
+function scheduleAutoSubmitRetry() {
+  clearAutoSubmitRetry()
+  autoSubmitRetryId = window.setTimeout(() => {
+    autoSubmitRetryId = undefined
+    submitSession(true)
+  }, AUTO_SUBMIT_RETRY_DELAY_MS)
+}
+
 function recalcTime() {
   secondsLeft.value = cscaStore.getTimeLeftSeconds() ?? 0
 }
@@ -98,6 +117,7 @@ async function submitSession(isAutoSubmit = false) {
     )
 
     if (response?.result) {
+      clearAutoSubmitRetry()
       cscaStore.markSubmitted(sessionId, response.result)
       isExamActive.value = false
 
@@ -112,15 +132,11 @@ async function submitSession(isAutoSubmit = false) {
   } catch (e) {
     submitError.value = e instanceof Error ? e.message : 'Submission failed'
     if (isAutoSubmit && session.value) {
-      isExamActive.value = false
-      cscaStore.markSubmitted(session.value.session_id, {
-        session_id: session.value.session_id,
-        subject: session.value.subject,
-        correct_count: 0,
-        total_questions: session.value.total_questions,
-        score: 0,
-      })
-      router.push({ name: 'csca-subjects' })
+      // The backend never received the answers — do not mark the session as
+      // submitted with a fabricated score. Keep it active and keep retrying
+      // until the submit actually succeeds.
+      isExamActive.value = true
+      scheduleAutoSubmitRetry()
     }
   } finally {
     isSubmitting.value = false
@@ -182,6 +198,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timerId) window.clearInterval(timerId)
+  clearAutoSubmitRetry()
   isExamActive.value = false
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })

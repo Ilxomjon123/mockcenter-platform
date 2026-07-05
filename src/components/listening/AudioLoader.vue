@@ -134,7 +134,8 @@ const playTestSound = () => {
   testProgress.value = 0
 
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioContext = new (window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     const duration = 3 // 3 seconds total
 
     // Progress bar animation

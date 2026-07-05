@@ -2,6 +2,9 @@
  * Common utilities for processing IELTS exam questions (Listening and Reading)
  */
 
+import { escapeHtml, sanitizeHtml } from './sanitize'
+import { QuestionType, type ProcessedQuestion } from '@/types/test'
+
 // Pre-compiled regex patterns for better performance
 const MATCH_REGEX = /\[match\]/g
 // Single pass over all placeholder tokens, in order of appearance.
@@ -68,10 +71,13 @@ export function processQuestionText(
 
   let counter = startCounter
 
+  // Sanitize server-supplied HTML before token replacement to prevent stored XSS
+  const safeText = sanitizeHtml(text)
+
   // Reset regex lastIndex for global pattern
   TOKEN_REGEX.lastIndex = 0
 
-  const html = text.replace(TOKEN_REGEX, (token) => {
+  const html = safeText.replace(TOKEN_REGEX, (token) => {
     counter++
     if (token === '[gap]') {
       return `<input type="text" placeholder="${counter}" class="gap-input" data-gap="${counter}">`
@@ -103,7 +109,7 @@ export function processDropdownText(
   if (Array.isArray(options)) {
     const optionParts: string[] = []
     for (let i = 0; i < options.length; i++) {
-      const opt = options[i]
+      const opt = escapeHtml(String(options[i]))
       optionParts.push(`<option value="${opt}">${opt}</option>`)
     }
     optionsHtml += optionParts.join('')
@@ -112,16 +118,19 @@ export function processDropdownText(
     const optionParts: string[] = []
     for (let i = 0; i < entries.length; i++) {
       const [key, value] = entries[i]!
-      optionParts.push(`<option value="${key}">${value}</option>`)
+      optionParts.push(`<option value="${escapeHtml(String(key))}">${escapeHtml(String(value))}</option>`)
     }
     optionsHtml += optionParts.join('')
   }
+
+  // Sanitize server-supplied HTML before token replacement to prevent stored XSS
+  const safeText = sanitizeHtml(text)
 
   let counter = startCounter
   // Reset regex lastIndex
   MATCH_REGEX.lastIndex = 0
 
-  const html = text.replace(MATCH_REGEX, () => {
+  const html = safeText.replace(MATCH_REGEX, () => {
     counter++
     return `<span class="dropdown-wrapper"><select class="dropdown-select" data-gap="${counter}">${optionsHtml}</select></span>`
   })
@@ -201,4 +210,98 @@ export function restoreAnswersInContainer(
       dropdown.value = String(savedValue)
     }
   }
+}
+
+/**
+ * Applies the standard IELTS question-numbering rules (true/false-not-given,
+ * yes/no-not-given, multiple choice and matching-information) to a processed
+ * question, mutating it in place, and returns the updated running gap counter.
+ *
+ * Shared between the listening and reading question processors; any
+ * section-specific numbering rules (e.g. reading's statement-style MATCHING)
+ * should be layered on top by the caller.
+ *
+ * @param question The raw question being processed
+ * @param processedQuestion The output question object to annotate
+ * @param globalGapCounter The running gap/question counter
+ * @returns The updated running gap counter
+ */
+export function applyQuestionNumbering(
+  question: { type: QuestionType | string; answers_count?: number; children?: unknown[] },
+  processedQuestion: ProcessedQuestion,
+  globalGapCounter: number,
+): number {
+  if (question.type === QuestionType.TRUE_FALSE_NOT_GIVEN) {
+    processedQuestion.options = ['TRUE', 'FALSE', 'NOT GIVEN']
+    globalGapCounter++
+    processedQuestion.questionNumber = globalGapCounter
+    processedQuestion.displayNumber = String(globalGapCounter)
+  } else if (question.type === QuestionType.YES_NO_NOT_GIVEN) {
+    processedQuestion.options = ['YES', 'NO', 'NOT GIVEN']
+    globalGapCounter++
+    processedQuestion.questionNumber = globalGapCounter
+    processedQuestion.displayNumber = String(globalGapCounter)
+  } else if (question.type === QuestionType.MULTIPLE_CHOICE) {
+    globalGapCounter++
+    processedQuestion.questionNumber = globalGapCounter
+    const answerCount = question.answers_count ?? 1
+    if (answerCount > 1) {
+      const startNumber = globalGapCounter
+      globalGapCounter += answerCount - 1
+      processedQuestion.displayNumber = `${startNumber}-${globalGapCounter}`
+    } else {
+      processedQuestion.displayNumber = String(globalGapCounter)
+    }
+  } else if (question.type === QuestionType.MATCHING_INFORMATION) {
+    const hasChildren = Array.isArray(question.children) && question.children.length > 0
+    if (!hasChildren) {
+      globalGapCounter++
+      processedQuestion.questionNumber = globalGapCounter
+      processedQuestion.displayNumber = String(globalGapCounter)
+    }
+  }
+
+  return globalGapCounter
+}
+
+/**
+ * Wires up gap-input and dropdown-select change delegation on a container,
+ * persisting edits via `updateAnswer`. Shared between the listening and
+ * reading question processors.
+ *
+ * @param container The container element to listen on
+ * @param updateAnswer Callback that persists a single answer for a gap
+ * @returns The handlers that were attached, in case the caller needs them
+ */
+export function attachGapInputListeners(
+  container: HTMLElement | null,
+  updateAnswer: (gap: number, value: string) => void,
+): { handleGapInput: (e: Event) => void; handleDropdownChange: (e: Event) => void } {
+  const handleGapInput = (e: Event): void => {
+    const target = e.target as HTMLInputElement
+    if (!target.classList.contains('gap-input')) return
+
+    const gap = target.dataset.gap
+    if (gap) {
+      updateAnswer(parseInt(gap, 10), target.value)
+    }
+    autoResizeInput(target)
+  }
+
+  const handleDropdownChange = (e: Event): void => {
+    const target = e.target as HTMLSelectElement
+    if (!target.classList.contains('dropdown-select')) return
+
+    const gap = target.dataset.gap
+    if (gap) {
+      updateAnswer(parseInt(gap, 10), target.value)
+    }
+  }
+
+  if (container) {
+    container.addEventListener('input', handleGapInput)
+    container.addEventListener('change', handleDropdownChange)
+  }
+
+  return { handleGapInput, handleDropdownChange }
 }

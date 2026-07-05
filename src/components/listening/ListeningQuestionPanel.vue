@@ -19,9 +19,7 @@
       <div class="header-info">
         <span class="part-label">Part {{ listeningStore.currentPart }}</span>
         <p class="instruction">
-          Listen and answer questions {{ (listeningStore.currentPart - 1) * 10 + 1 }}–{{
-            listeningStore.currentPart * 10
-          }}.
+          Listen and answer questions {{ currentPartRange.start }}–{{ currentPartRange.end }}.
         </p>
       </div>
     </div>
@@ -117,11 +115,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useListeningAudio } from '@/composables/useListeningAudio'
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useQuestionProcessor } from '@/composables/useQuestionProcessor'
+import { useTextHighlight } from '@/composables/useTextHighlight'
 import AudioLoader from './AudioLoader.vue'
 import ListeningCompletedModal from './ListeningCompletedModal.vue'
 import TransferTimeModal from './TransferTimeModal.vue'
@@ -131,6 +130,12 @@ const listeningStore = useListeningStore()
 
 // Questions container ref
 const questionsContainerRef = ref<HTMLElement | null>(null)
+
+// Question range for the current part, from the same source of truth as ExamFooter
+const currentPartRange = computed(() => {
+  const stats = listeningStore.partStats[listeningStore.currentPart]
+  return stats ?? { start: 0, end: 0 }
+})
 
 // Audio composable
 const {
@@ -175,249 +180,20 @@ const { setupEventListeners: setupDragDropListeners } = useDragAndDrop({
   containerRef: questionsContainerRef,
 })
 
-// Restore question highlights from store
-const restoreQuestionHighlights = () => {
-  const container = questionsContainerRef.value
-  if (!container) return
-
-  const currentPart = listeningStore.currentPart
-  const savedHtml = listeningStore.questionHighlights[currentPart]
-
-  if (savedHtml && typeof savedHtml === 'string') {
-    // Parse saved HTML to extract highlights
-    const parser = new DOMParser()
-    const savedDoc = parser.parseFromString(`<div>${savedHtml}</div>`, 'text/html')
-    const savedHighlights = savedDoc.querySelectorAll('.question-highlight')
-
-    // Apply each saved highlight to current DOM
-    savedHighlights.forEach((savedHighlight) => {
-      const highlightId = savedHighlight.getAttribute('data-highlight-id')
-      const backgroundColor = (savedHighlight as HTMLElement).style.backgroundColor
-      const highlightText = savedHighlight.textContent
-
-      if (!highlightText) return
-
-      // Find and highlight matching text in current DOM
-      const treeWalker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
-
-      let node: Node | null
-      while ((node = treeWalker.nextNode())) {
-        if (node.textContent && node.textContent.includes(highlightText)) {
-          const parent = node.parentElement
-          if (
-            parent &&
-            !parent.closest('.question-highlight') &&
-            !parent.closest('input, select, textarea')
-          ) {
-            const text = node.textContent
-            const index = text.indexOf(highlightText)
-            if (index !== -1) {
-              const range = document.createRange()
-              range.setStart(node, index)
-              range.setEnd(node, index + highlightText.length)
-
-              const span = document.createElement('span')
-              span.className = 'question-highlight'
-              span.style.backgroundColor = backgroundColor
-              span.dataset.highlightId = highlightId || Math.random().toString(36).substr(2, 9)
-
-              try {
-                range.surroundContents(span)
-              } catch (e) {
-                // Skip if range crosses element boundaries
-              }
-              break
-            }
-          }
-        }
-      }
-    })
-  }
-}
-
-// Highlight state
-const showToolbar = ref(false)
-const toolbarStyle = ref({ top: '0px', left: '0px' })
-let savedRange: Range | null = null
-
-const handleMouseUp = () => {
-  const selection = window.getSelection()
-  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
-    const range = selection.getRangeAt(0)
-
-    // Check if selection is within questions container
-    const container = questionsContainerRef.value
-    if (container && container.contains(range.commonAncestorContainer)) {
-      // Don't show toolbar if selection is within an input
-      const ancestor = range.commonAncestorContainer
-      const parentElement =
-        ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : (ancestor as Element)
-      if (parentElement?.closest('input, select, textarea')) {
-        return
-      }
-
-      // Save the range for later use
-      savedRange = range.cloneRange()
-
-      // Get selection position
-      const rect = range.getBoundingClientRect()
-      const toolbarHeight = 48 // Approximate toolbar height
-
-      // Position toolbar above the selection
-      toolbarStyle.value = {
-        top: `${rect.top + window.scrollY - toolbarHeight - 8}px`,
-        left: `${rect.left + rect.width / 2 + window.scrollX}px`,
-      }
-
-      showToolbar.value = true
-    }
-  } else {
-    // Hide toolbar when selection is cleared
-    showToolbar.value = false
-    savedRange = null
-  }
-}
-
-// Expand range to word boundaries
-const expandRangeToWords = (range: Range): Range => {
-  const newRange = range.cloneRange()
-
-  // Expand start to word boundary
-  const startNode = newRange.startContainer
-  if (startNode.nodeType === Node.TEXT_NODE) {
-    const text = startNode.textContent || ''
-    let startOffset = newRange.startOffset
-
-    // Move back to start of word
-    while (
-      startOffset > 0 &&
-      text[startOffset - 1] !== undefined &&
-      /\w/.test(text[startOffset - 1]!)
-    ) {
-      startOffset--
-    }
-    newRange.setStart(startNode, startOffset)
-  }
-
-  // Expand end to word boundary
-  const endNode = newRange.endContainer
-  if (endNode.nodeType === Node.TEXT_NODE) {
-    const text = endNode.textContent || ''
-    let endOffset = newRange.endOffset
-
-    // Move forward to end of word
-    while (
-      endOffset < text.length &&
-      text[endOffset] !== undefined &&
-      /\w/.test(text[endOffset]!)
-    ) {
-      endOffset++
-    }
-    newRange.setEnd(endNode, endOffset)
-  }
-
-  return newRange
-}
-
-const applyHighlight = (color: string) => {
-  if (!savedRange) return
-
-  const range = expandRangeToWords(savedRange)
-  const commonAncestor = range.commonAncestorContainer
-
-  // Check if selection is already within a highlight span
-  let highlightNode: HTMLElement | null = null
-  if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
-    highlightNode = (commonAncestor as HTMLElement).closest('.question-highlight')
-  } else {
-    highlightNode = (commonAncestor.parentElement as HTMLElement).closest('.question-highlight')
-  }
-
-  // If already highlighted, remove the highlight
-  if (highlightNode) {
-    const parent = highlightNode.parentNode
-    while (highlightNode.firstChild) {
-      parent?.insertBefore(highlightNode.firstChild, highlightNode)
-    }
-    parent?.removeChild(highlightNode)
-
-    // Save updated HTML to store
-    const container = questionsContainerRef.value
-    if (container) {
-      listeningStore.saveQuestionHtml(container.innerHTML)
-    }
-
-    showToolbar.value = false
-    savedRange = null
-    window.getSelection()?.removeAllRanges()
-    return
-  }
-
-  // Otherwise, apply new highlight
-  const span = document.createElement('span')
-  span.className = 'question-highlight'
-  span.style.backgroundColor = color
-  span.dataset.highlightId = Math.random().toString(36).substr(2, 9)
-
-  try {
-    const content = range.extractContents()
-    span.appendChild(content)
-    range.insertNode(span)
-
-    // Save highlighted HTML to store for persistence
-    const container = questionsContainerRef.value
-    if (container) {
-      listeningStore.saveQuestionHtml(container.innerHTML)
-    }
-
-    // Clear selection and hide toolbar
-    showToolbar.value = false
-    savedRange = null
-    window.getSelection()?.removeAllRanges()
-  } catch (e) {
-    console.error('Could not apply highlight:', e)
-  }
-}
-
-const removeHighlight = () => {
-  if (!savedRange) return
-
-  const commonAncestor = savedRange.commonAncestorContainer
-
-  let highlightNode: HTMLElement | null = null
-  if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
-    highlightNode = (commonAncestor as HTMLElement).closest('.question-highlight')
-  } else {
-    highlightNode = (commonAncestor.parentElement as HTMLElement).closest('.question-highlight')
-  }
-
-  if (highlightNode) {
-    const parent = highlightNode.parentNode
-    while (highlightNode.firstChild) {
-      parent?.insertBefore(highlightNode.firstChild, highlightNode)
-    }
-    parent?.removeChild(highlightNode)
-
-    // Save updated HTML to store
-    const container = questionsContainerRef.value
-    if (container) {
-      listeningStore.saveQuestionHtml(container.innerHTML)
-    }
-
-    showToolbar.value = false
-    savedRange = null
-    window.getSelection()?.removeAllRanges()
-  }
-}
-
-// Hide toolbar when clicking outside
-const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.highlight-toolbar') && !target.closest('.questions-container')) {
-    showToolbar.value = false
-    savedRange = null
-  }
-}
+// Text highlighting (selection toolbar, restore-on-mount, apply/remove) - shared composable
+const {
+  showToolbar,
+  toolbarStyle,
+  restoreQuestionHighlights,
+  handleMouseUp,
+  applyHighlight,
+  removeHighlight,
+  handleClickOutside,
+} = useTextHighlight({
+  containerRef: questionsContainerRef,
+  getSavedHtml: () => listeningStore.questionHighlights[listeningStore.currentPart],
+  onSave: (html) => listeningStore.saveQuestionHtml(html),
+})
 
 // Prevent page refresh/close during listening test
 const handleBeforeUnload = (e: BeforeUnloadEvent) => {

@@ -8,7 +8,6 @@ export function useSpeakingTTS() {
   const isSpeaking = ref(false)
   const isSupported = ref('speechSynthesis' in window)
 
-  let currentUtterance: SpeechSynthesisUtterance | null = null
   let cachedVoice: SpeechSynthesisVoice | null = null
 
   // Known male voice names across browsers/OS
@@ -156,7 +155,6 @@ export function useSpeakingTTS() {
 
     return new Promise((resolve) => {
       const utterance = new SpeechSynthesisUtterance(text)
-      currentUtterance = utterance
 
       const voice = getBestVoice()
       if (voice) {
@@ -175,7 +173,6 @@ export function useSpeakingTTS() {
         settled = true
         clearTimeout(safetyTimer)
         isSpeaking.value = false
-        currentUtterance = null
         resolve()
       }
 
@@ -213,7 +210,6 @@ export function useSpeakingTTS() {
   function stop() {
     speechSynthesis.cancel()
     isSpeaking.value = false
-    currentUtterance = null
     stopIOSKeepAlive()
   }
 

@@ -21,9 +21,11 @@ export function useSpeakingFlow() {
   const prepTotal = ref(0)
   const isTransitioning = ref(false)
   const showContent = ref(false)
+  const uploadFailed = ref(false)
 
   let countdownTimer: ReturnType<typeof setInterval> | null = null
   let recordingTimer: ReturnType<typeof setInterval> | null = null
+  let lastRecordingBlob: Blob | null = null
 
   // Current part and question from store
   const currentPart = computed(() => store.currentPart)
@@ -88,69 +90,14 @@ export function useSpeakingFlow() {
   }
 
   /**
-   * Resume preparation phase with saved countdown.
+   * Start the recording timer for `startTime` seconds, persisting progress
+   * on each tick and advancing to the next question/part once it elapses.
    */
-  async function resumePreparation() {
-    showContent.value = true
-    phase.value = 'preparation'
-
-    const savedCountdown = store.savedCountdown
-    const savedPrepTotal = store.savedPrepTotal
-    countdown.value = savedCountdown > 0 ? savedCountdown : getPartConfig().preparationTime
-    prepTotal.value = savedPrepTotal > 0 ? savedPrepTotal : countdown.value
-
-    return new Promise<void>((resolve) => {
-      countdownTimer = setInterval(async () => {
-        countdown.value--
-        store.savedCountdown = countdown.value
-        store.phase = 'preparation'
-        store.saveState()
-        if (countdown.value <= 0) {
-          clearTimers()
-          await delay(1000)
-          phase.value = 'recording'
-          store.phase = 'recording'
-          await tts.playStartSound()
-          recorder.resumeRecording()
-          const answerTime = getPartConfig().answerTime
-          recordingTime.value = answerTime
-          store.savedRecordingTime = answerTime
-          store.saveState()
-
-          recordingTimer = setInterval(async () => {
-            recordingTime.value--
-            store.savedRecordingTime = recordingTime.value
-            store.phase = 'recording'
-            store.saveState()
-            if (recordingTime.value <= 0) {
-              clearTimers()
-              await tts.playStopSound()
-              recorder.pauseRecording()
-              await fadeHide()
-              await handleNextQuestionOrPart()
-            }
-          }, 1000)
-          resolve()
-        }
-      }, 1000)
-    })
-  }
-
-  /**
-   * Resume recording phase with saved timer.
-   */
-  async function resumeRecording() {
-    showContent.value = true
-    phase.value = 'recording'
-
-    const savedTime = store.savedRecordingTime
-    recordingTime.value = savedTime > 0 ? savedTime : getPartConfig().answerTime
-
-    // Also set prepTotal for UI (countdown ring won't show, but just in case)
-    prepTotal.value = store.savedPrepTotal > 0 ? store.savedPrepTotal : getPartConfig().preparationTime
-
-    await tts.playStartSound()
-    recorder.resumeRecording()
+  function startRecordingTimer(startTime: number) {
+    recordingTime.value = startTime
+    store.savedRecordingTime = startTime
+    store.phase = 'recording'
+    store.saveState()
 
     recordingTimer = setInterval(async () => {
       recordingTime.value--
@@ -165,6 +112,66 @@ export function useSpeakingFlow() {
         await handleNextQuestionOrPart()
       }
     }, 1000)
+  }
+
+  /**
+   * Run the preparation countdown (starting from the current `countdown.value`).
+   * On reaching zero, switch to the recording phase, play the start sound,
+   * resume the recorder, and start the recording timer.
+   */
+  function runPreparationCountdown(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      countdownTimer = setInterval(async () => {
+        countdown.value--
+        store.savedCountdown = countdown.value
+        store.phase = 'preparation'
+        store.saveState()
+        if (countdown.value <= 0) {
+          clearTimers()
+          await delay(1000)
+          phase.value = 'recording'
+          store.phase = 'recording'
+          await tts.playStartSound()
+          recorder.resumeRecording()
+          startRecordingTimer(getPartConfig().answerTime)
+          resolve()
+        }
+      }, 1000)
+    })
+  }
+
+  /**
+   * Resume preparation phase with saved countdown.
+   */
+  async function resumePreparation() {
+    showContent.value = true
+    phase.value = 'preparation'
+
+    const savedCountdown = store.savedCountdown
+    const savedPrepTotal = store.savedPrepTotal
+    countdown.value = savedCountdown > 0 ? savedCountdown : getPartConfig().preparationTime
+    prepTotal.value = savedPrepTotal > 0 ? savedPrepTotal : countdown.value
+
+    return runPreparationCountdown()
+  }
+
+  /**
+   * Resume recording phase with saved timer.
+   */
+  async function resumeRecording() {
+    showContent.value = true
+    phase.value = 'recording'
+
+    const savedTime = store.savedRecordingTime
+    const startTime = savedTime > 0 ? savedTime : getPartConfig().answerTime
+
+    // Also set prepTotal for UI (countdown ring won't show, but just in case)
+    prepTotal.value = store.savedPrepTotal > 0 ? store.savedPrepTotal : getPartConfig().preparationTime
+
+    await tts.playStartSound()
+    recorder.resumeRecording()
+
+    startRecordingTimer(startTime)
   }
 
   /**
@@ -609,46 +616,7 @@ export function useSpeakingFlow() {
     prepTotal.value = prepTime
     store.savedPrepTotal = prepTime
 
-    return new Promise<void>((resolve) => {
-      countdownTimer = setInterval(async () => {
-        countdown.value--
-        // Persist timer for resume
-        store.savedCountdown = countdown.value
-        store.phase = 'preparation'
-        store.saveState()
-
-        if (countdown.value <= 0) {
-          clearTimers()
-          await delay(1000)
-          // Switch to recording - resume recording AFTER start sound (only capture student answers)
-          phase.value = 'recording'
-          await tts.playStartSound()
-          recorder.resumeRecording()
-          const answerTime = getPartConfig().answerTime
-          recordingTime.value = answerTime
-          store.savedRecordingTime = answerTime
-          store.phase = 'recording'
-          store.saveState()
-
-          recordingTimer = setInterval(async () => {
-            recordingTime.value--
-            // Persist timer for resume
-            store.savedRecordingTime = recordingTime.value
-            store.phase = 'recording'
-            store.saveState()
-
-            if (recordingTime.value <= 0) {
-              clearTimers()
-              await tts.playStopSound()
-              recorder.pauseRecording()
-              await fadeHide()
-              await handleNextQuestionOrPart()
-            }
-          }, 1000)
-          resolve()
-        }
-      }, 1000)
-    })
+    return runPreparationCountdown()
   }
 
   async function handleRecording() {
@@ -702,8 +670,19 @@ export function useSpeakingFlow() {
     // Stop continuous recording and upload the combined audio
     const blob = await recorder.stopRecording()
     if (blob.size > 0) {
-      await uploader.uploadAndSubmit(blob)
+      lastRecordingBlob = blob
+      const uploaded = await uploader.uploadAndSubmit(blob)
+      uploadFailed.value = !uploaded
     }
+  }
+
+  /**
+   * Retry uploading and submitting the recording after a previous failure.
+   */
+  async function retryUpload() {
+    if (!lastRecordingBlob) return
+    const uploaded = await uploader.uploadAndSubmit(lastRecordingBlob)
+    uploadFailed.value = !uploaded
   }
 
   /**
@@ -751,6 +730,7 @@ export function useSpeakingFlow() {
     hasPermission: recorder.hasPermission,
     permissionError: recorder.permissionError,
     isUploading: uploader.isUploading,
+    uploadFailed,
 
     // Computed
     currentPart,
@@ -762,5 +742,6 @@ export function useSpeakingFlow() {
     // Actions
     start,
     forceStopRecording,
+    retryUpload,
   }
 }

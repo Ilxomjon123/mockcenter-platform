@@ -153,6 +153,7 @@ import { useWritingStore } from '@/stores/writingStore'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useResizable } from '@/composables/useResizable'
 import { useGlobalReadingDragDrop } from '@/composables/useGlobalReadingDragDrop'
+import { useApi } from '@/composables/useApi'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
 import ResizableDivider from '@/components/exam/ResizableDivider.vue'
 import ReadingPassagePanel from '@/components/reading/ReadingPassagePanel.vue'
@@ -171,27 +172,32 @@ const readingStore = useReadingStore()
 const writingStore = useWritingStore()
 const listeningStore = useListeningStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
+const { get } = useApi()
 
 // Tab states
 const readingTab = ref<'passage' | 'questions'>('passage')
 const writingTab = ref<'question' | 'answer'>('question')
 const currentQuestion = ref(0)
 
-const API_URL = import.meta.env.VITE_API_URL
-
 // Drag and drop for reading
 const { setupGlobalListeners, cleanupGlobalListeners } = useGlobalReadingDragDrop()
 
 const noop = () => {}
 
-// Fetch preview data using raw axios (bypassing auth interceptor)
+interface PreviewResponse {
+  data: SectionWithPartsRaw
+}
+
+// Fetch preview data via the shared API composable
 const fetchPreview = async (type: string) => {
   try {
-    const response = await axios.get(`${API_URL}/api/exam/preview/${type}`, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    })
+    const response = await get<PreviewResponse>(`/api/exam/preview/${type}`)
+    if (!response) {
+      error.value = 'Failed to load preview'
+      return
+    }
 
-    const section: SectionWithPartsRaw = response.data.data
+    const section: SectionWithPartsRaw = response.data
 
     // Build a minimal ExamTestRaw with just this section
     const testData: ExamTestRaw = {
