@@ -13,7 +13,7 @@
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span>Options</span>
+            <span>{{ $t('options.title') }}</span>
           </button>
           <h2 class="modal-title">{{ viewTitle }}</h2>
           <button class="close-btn" @click="close">
@@ -39,7 +39,7 @@
                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
               />
             </svg>
-            <span>Go to submission page</span>
+            <span>{{ $t('options.goToSubmission') }}</span>
             <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path
                 stroke-linecap="round"
@@ -57,7 +57,7 @@
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"
                 />
               </svg>
-              <span>Contrast</span>
+              <span>{{ $t('options.contrast') }}</span>
               <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
                   stroke-linecap="round"
@@ -77,7 +77,7 @@
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m-3-3h6"
                 />
               </svg>
-              <span>Text size</span>
+              <span>{{ $t('options.textSize') }}</span>
               <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
                   stroke-linecap="round"
@@ -145,6 +145,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore, type ContrastMode, type TextSize } from '@/stores/settingsStore'
 
 interface Props {
@@ -159,6 +160,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const route = useRoute()
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
 
 type ViewType = 'main' | 'contrast' | 'textSize'
 const currentView = ref<ViewType>('main')
@@ -166,25 +168,25 @@ const currentView = ref<ViewType>('main')
 const viewTitle = computed(() => {
   switch (currentView.value) {
     case 'contrast':
-      return 'Contrast'
+      return t('options.contrast')
     case 'textSize':
-      return 'Text size'
+      return t('options.textSize')
     default:
-      return 'Options'
+      return t('options.title')
   }
 })
 
-const contrastOptions = [
-  { value: 'black-on-white' as ContrastMode, label: 'Black on white' },
-  { value: 'white-on-black' as ContrastMode, label: 'White on black' },
-  { value: 'yellow-on-black' as ContrastMode, label: 'Yellow on black' },
-]
+const contrastOptions = computed(() => [
+  { value: 'black-on-white' as ContrastMode, label: t('options.blackOnWhite') },
+  { value: 'white-on-black' as ContrastMode, label: t('options.whiteOnBlack') },
+  { value: 'yellow-on-black' as ContrastMode, label: t('options.yellowOnBlack') },
+])
 
-const textSizeOptions = [
-  { value: 'regular' as TextSize, label: 'Regular' },
-  { value: 'large' as TextSize, label: 'Large' },
-  { value: 'extra-large' as TextSize, label: 'Extra Large' },
-]
+const textSizeOptions = computed(() => [
+  { value: 'regular' as TextSize, label: t('options.normal') },
+  { value: 'large' as TextSize, label: t('options.large') },
+  { value: 'extra-large' as TextSize, label: t('options.extraLarge') },
+])
 
 const close = () => {
   currentView.value = 'main'

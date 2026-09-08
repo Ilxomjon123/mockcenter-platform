@@ -25,6 +25,10 @@
     </button>
 
     <div class="box">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+        <LanguageSwitcher />
+      </div>
+
       <!-- Auto-update banner -->
       <transition name="fade">
         <div v-if="updateInfo" class="update-banner">
@@ -43,15 +47,15 @@
               <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
               <polyline points="21 3 21 9 15 9"></polyline>
             </svg>
-            <span>New version {{ updateInfo.version }} available</span>
+            <span>{{ $t('login.updateAvailable', { version: updateInfo.version }) }}</span>
           </div>
           <div v-if="updating" class="update-progress">
             <div class="update-progress-bar" :style="{ width: updateProgress + '%' }"></div>
-            <span class="update-progress-text">Updating… {{ updateProgress }}%</span>
+            <span class="update-progress-text">{{ $t('login.updating', { progress: updateProgress }) }}</span>
           </div>
           <div v-else class="update-actions">
-            <button class="update-btn" @click="runUpdate">Update now</button>
-            <button class="update-btn-ghost" @click="dismissUpdate">Later</button>
+            <button class="update-btn" @click="runUpdate">{{ $t('login.updateNow') }}</button>
+            <button class="update-btn-ghost" @click="dismissUpdate">{{ $t('login.later') }}</button>
           </div>
         </div>
       </transition>
@@ -59,18 +63,18 @@
       <!-- Token auto-login loading state -->
       <div v-if="isTokenLogin" class="token-login-loading">
         <span class="spinner"></span>
-        <p>Logging in...</p>
+        <p>{{ $t('login.loggingIn') }}</p>
       </div>
 
       <template v-else>
-      <h2>Login</h2>
+      <h2>{{ $t('login.title') }}</h2>
 
       <!-- QR Code for website scanning -->
       <div v-if="qrCodeDataUrl" class="qr-display">
         <div class="qr-display-image">
           <img :src="qrCodeDataUrl" alt="Login QR Code" />
         </div>
-        <p class="qr-display-hint">Scan from your cabinet to login instantly</p>
+        <p class="qr-display-hint">{{ $t('login.scanFromCabinet') }}</p>
       </div>
       <div v-else-if="isQrSessionLoading" class="qr-display">
         <div class="qr-display-loading">
@@ -80,7 +84,7 @@
 
       <!-- Divider between QR and form -->
       <div v-if="qrCodeDataUrl || isQrSessionLoading" class="qr-divider">
-        <span>or enter manually</span>
+        <span>{{ $t('login.orEnterManually') }}</span>
       </div>
 
       <transition name="fade">
@@ -139,7 +143,7 @@
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="number">Number</label>
+          <label for="number">{{ $t('login.candidateNumber') }}</label>
           <input
             id="number"
             v-model.trim="number"
@@ -151,7 +155,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">{{ $t('login.password') }}</label>
           <div class="password-input-wrapper">
             <input
               id="password"
@@ -166,7 +170,7 @@
               class="toggle-password"
               @click="showPassword = !showPassword"
               :disabled="authStore.isLoading"
-              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              :aria-label="showPassword ? $t('login.hidePassword') : $t('login.showPassword')"
             >
               <svg
                 v-if="!showPassword"
@@ -211,19 +215,19 @@
         >
           <span v-if="authStore.isLoading">
             <span class="spinner"></span>
-            Loading...
+            {{ $t('common.loading') }}
           </span>
           <span v-else-if="authStore.isLoadingTest">
             <span class="spinner"></span>
-            Loading test...
+            {{ $t('login.loadingTest') }}
           </span>
-          <span v-else>Login</span>
+          <span v-else>{{ $t('login.loginBtn') }}</span>
         </button>
       </form>
 
       <!-- QR Scanner divider -->
       <div class="qr-divider">
-        <span>or</span>
+        <span>{{ $t('login.or') }}</span>
       </div>
 
       <!-- Scan QR Code button -->
@@ -250,7 +254,7 @@
           <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
           <rect x="7" y="7" width="10" height="10" rx="1"></rect>
         </svg>
-        Scan QR Code
+        {{ $t('login.scanQr') }}
       </button>
       </template>
 
@@ -279,7 +283,7 @@
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <h3>Scan QR Code</h3>
+          <h3>{{ $t('login.scanQr') }}</h3>
           <div style="width: 36px"></div>
         </div>
 
@@ -288,14 +292,14 @@
           <!-- QR logging state -->
           <div v-if="isQrLogging" class="scanner-logging">
             <span class="spinner spinner-dark"></span>
-            <p>Logging in...</p>
+            <p>{{ $t('login.loggingIn') }}</p>
           </div>
 
           <!-- Error state -->
           <div v-else-if="scannerError" class="scanner-error-state">
             <p>{{ scannerError }}</p>
             <button class="scanner-retry-btn" @click="closeScanner(); openScanner()">
-              Try Again
+              {{ $t('common.retry') }}
             </button>
           </div>
 
@@ -329,7 +333,7 @@
 
         <!-- Footer instruction -->
         <div class="scanner-footer">
-          <p>Point your camera at the QR code from your exam credentials</p>
+          <p>{{ $t('login.scanInstructions') }}</p>
         </div>
       </div>
     </transition>
@@ -343,6 +347,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useApi } from '@/composables/useApi'
 import { useTauri } from '@/composables/useTauri'
 import { useAppVersion } from '@/composables/useAppVersion'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import {
   updateInfo,
   updating,

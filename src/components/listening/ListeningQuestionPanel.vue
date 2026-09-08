@@ -17,9 +17,9 @@
   <div class="question-panel">
     <div class="listening-header">
       <div class="header-info">
-        <span class="part-label">Part {{ listeningStore.currentPart }}</span>
+        <span class="part-label">{{ $t('footer.part', { part: listeningStore.currentPart }) }}</span>
         <p class="instruction">
-          Listen and answer questions {{ currentPartRange.start }}–{{ currentPartRange.end }}.
+          {{ $t('listening.listenAndAnswer', { start: currentPartRange.start, end: currentPartRange.end }) }}
         </p>
       </div>
     </div>

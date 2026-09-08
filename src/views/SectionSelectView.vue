@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const router = useRouter()
+const { t } = useI18n()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
@@ -15,28 +18,28 @@ const speakingStore = useSpeakingStore()
 const sections = computed(() => [
   {
     key: 'listening',
-    label: 'Listening',
+    label: t('sectionSelect.listening'),
     icon: '🎧',
     available: !!listeningStore.test?.parts?.length,
     route: '/listening',
   },
   {
     key: 'reading',
-    label: 'Reading',
+    label: t('sectionSelect.reading'),
     icon: '📖',
     available: !!readingStore.test?.parts?.length,
     route: '/reading',
   },
   {
     key: 'writing',
-    label: 'Writing',
+    label: t('sectionSelect.writing'),
     icon: '✍️',
     available: !!writingStore.test?.parts?.length,
     route: '/writing',
   },
   {
     key: 'speaking',
-    label: 'Speaking',
+    label: t('sectionSelect.speaking'),
     icon: '🗣️',
     available: !!speakingStore.test?.parts?.length,
     route: '/speaking',
@@ -51,10 +54,14 @@ function selectSection(section: (typeof sections.value)[0]) {
 </script>
 
 <template>
-  <div class="section-select">
+  <div class="section-select relative">
+    <div style="position: absolute; top: 16px; right: 16px;">
+      <LanguageSwitcher />
+    </div>
+
     <div class="section-select__header">
-      <h1 class="section-select__title">Select a Section</h1>
-      <p class="section-select__subtitle">Choose which section you would like to start with</p>
+      <h1 class="section-select__title">{{ $t('sectionSelect.title') }}</h1>
+      <p class="section-select__subtitle">{{ $t('sectionSelect.subtitle') }}</p>
     </div>
 
     <div class="section-select__grid">
@@ -71,7 +78,7 @@ function selectSection(section: (typeof sections.value)[0]) {
       >
         <span class="section-card__icon">{{ section.icon }}</span>
         <span class="section-card__label">{{ section.label }}</span>
-        <span v-if="!section.available" class="section-card__unavailable">Not available</span>
+        <span v-if="!section.available" class="section-card__unavailable">{{ $t('sectionSelect.notAvailable') }}</span>
       </button>
     </div>
   </div>

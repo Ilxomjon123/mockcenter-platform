@@ -5,7 +5,7 @@
     <div class="main-content">
       <div class="writing-header">
         <div class="header-info">
-          <span class="part-label">Part {{ writingStore.currentPage }}</span>
+          <span class="part-label">{{ $t('footer.part', { part: writingStore.currentPage }) }}</span>
           <p v-if="instructionText" class="instruction">{{ instructionText }}</p>
         </div>
       </div>
@@ -21,7 +21,7 @@
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
-          Task
+          {{ $t('common.task') }}
         </button>
         <button
           class="mobile-tab"
@@ -32,7 +32,7 @@
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
-          Answer
+          {{ $t('common.answer') }}
         </button>
       </div>
 

@@ -6,8 +6,8 @@
       <!-- Shared sticky header -->
       <div class="reading-header">
         <div class="header-info">
-          <span class="part-label">Part {{ readingStore.currentPart }}</span>
-          <p class="instruction">Read the text and answer questions {{ getQuestionsRange }}</p>
+          <span class="part-label">{{ $t('footer.part', { part: readingStore.currentPart }) }}</span>
+          <p class="instruction">{{ $t('reading.readAndAnswer', { range: getQuestionsRange }) }}</p>
         </div>
       </div>
 
@@ -22,7 +22,7 @@
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
-          Passage
+          {{ $t('common.passage') }}
         </button>
         <button
           class="mobile-tab"
@@ -34,7 +34,7 @@
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
             <path d="M12 17h.01" />
           </svg>
-          Questions
+          {{ $t('common.questions') }}
         </button>
       </div>
 

@@ -9,7 +9,9 @@ import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
 import { useCscaStore } from '@/stores/cscaStore'
+import { isSubjectBasedExam } from '@/types/csca'
 import type { CscaTestResponse } from '@/types/csca'
+import i18n from '@/i18n'
 
 interface LoginResponse {
   data: {
@@ -59,7 +61,7 @@ const isTokenExpired = (rawToken: string): boolean => {
 
 // Keys that hold user accessibility preferences (not exam session state) and must
 // survive a full localStorage clear on login/logout.
-const PRESERVED_STORAGE_KEYS = ['contrast', 'textSize']
+const PRESERVED_STORAGE_KEYS = ['contrast', 'textSize', 'mc_exam_locale']
 
 const clearExamStorage = () => {
   const preserved: Record<string, string | null> = {}
@@ -107,7 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Get first available section based on test data
   const getFirstAvailableSection = (): string => {
     // CSCA exams go to subject selection page
-    if (examType.value === 'csca') {
+    if (isSubjectBasedExam(examType.value)) {
       const cscaStore = useCscaStore()
       if (cscaStore.allCompleted) {
         return '/csca/results'
@@ -160,7 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoadingTest.value = true
     try {
       // CSCA has its own endpoint and response shape
-      if (examType.value === 'csca') {
+      if (isSubjectBasedExam(examType.value)) {
         const cscaResponse = await get<CscaTestResponse>('/api/exam/subject/test')
         if (cscaResponse) {
           const cscaStore = useCscaStore()
@@ -181,7 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
           testDataLoaded.value = true
           return { success: true }
         }
-        throw new Error('Test data not found')
+        throw new Error(i18n.global.t('auth.testDataNotFound'))
       }
 
       const response = await get<TestDataResponse>('/api/exam/test')
@@ -223,10 +225,10 @@ export const useAuthStore = defineStore('auth', () => {
         testDataLoaded.value = true
         return { success: true }
       } else {
-        throw new Error('Test data not found')
+        throw new Error(i18n.global.t('auth.testDataNotFound'))
       }
     } catch (error: unknown) {
-      let message = 'Error loading test data'
+      let message = i18n.global.t('auth.errorLoadingTestData')
       if (axios.isAxiosError(error)) {
         message = error.response?.data?.message || error.message
       } else if (error instanceof Error) {
@@ -277,13 +279,13 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         token.value = ''
         localStorage.removeItem('token')
-        errorMessage.value = result.message || 'Invalid or expired token'
+        errorMessage.value = result.message || i18n.global.t('auth.invalidOrExpiredToken')
         return { success: false, message: errorMessage.value }
       }
     } catch (error: unknown) {
       token.value = ''
       localStorage.removeItem('token')
-      let message = 'Invalid or expired token'
+      let message = i18n.global.t('auth.invalidOrExpiredToken')
       if (axios.isAxiosError(error)) {
         message = error.response?.data?.message || message
       } else if (error instanceof Error) {
@@ -328,7 +330,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (!testResult.success) {
           token.value = ''
           localStorage.removeItem('token')
-          errorMessage.value = testResult.message || 'Error loading test data'
+          errorMessage.value = testResult.message || i18n.global.t('auth.errorLoadingTestData')
           return { success: false, message: errorMessage.value }
         }
 
@@ -341,11 +343,11 @@ export const useAuthStore = defineStore('auth', () => {
 
         return { success: true }
       } else {
-        errorMessage.value = response?.message || "Invalid number or password"
+        errorMessage.value = response?.message || i18n.global.t('auth.invalidCredentials')
         return { success: false, message: errorMessage.value }
       }
     } catch (error: unknown) {
-      let message = 'Server connection error'
+      let message = i18n.global.t('auth.serverError')
       let details = ''
       let isPayment = false
 
@@ -441,12 +443,14 @@ export const useAuthStore = defineStore('auth', () => {
       if (response) {
         return { success: true, results: response.results }
       } else {
-        return { success: false, message: "Error submitting the exam" }
+        return { success: false, message: i18n.global.t('auth.errorSubmitting') }
       }
     } catch (error: unknown) {
-      let message = 'Server connection error'
+      let message = i18n.global.t('auth.serverError')
       if (axios.isAxiosError(error)) {
         message = error.response?.data?.message || error.message
+      } else if (error instanceof Error) {
+        message = error.message
       }
       return { success: false, message }
     } finally {

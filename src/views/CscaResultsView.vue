@@ -3,7 +3,8 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCscaStore } from '@/stores/cscaStore'
 import { useAuthStore } from '@/stores/authStore'
-import { CSCA_SUBJECT_LABELS } from '@/types/csca'
+import { subjectLabelOf } from '@/types/csca'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const router = useRouter()
 const cscaStore = useCscaStore()
@@ -19,7 +20,7 @@ onMounted(() => {
 const results = computed(() =>
   cscaStore.subjects.map((s) => ({
     sessionId: s.session_id,
-    subject: CSCA_SUBJECT_LABELS[s.subject] || s.subject,
+    subject: subjectLabelOf(s),
     result: cscaStore.results[s.session_id],
   })),
 )
@@ -52,23 +53,26 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="csca-results">
+  <div class="csca-results relative">
+    <div style="position: absolute; top: 16px; right: 16px;">
+      <LanguageSwitcher />
+    </div>
+
     <div class="csca-results__container">
       <div class="csca-results__icon">✓</div>
-      <h1 class="csca-results__title">Exam Completed</h1>
-      <p class="csca-results__subtitle">All subjects have been submitted successfully</p>
+      <h1 class="csca-results__title">{{ $t('csca.resultsTitle') }}</h1>
+      <p class="csca-results__subtitle">{{ $t('csca.resultsSubtitle') }}</p>
 
       <div class="csca-results__overall">
-        <div class="csca-results__overall-label">Average Score</div>
+        <div class="csca-results__overall-label">{{ $t('csca.avgScore') }}</div>
         <div class="csca-results__overall-score">{{ averageScore }} <span>/ 100</span></div>
         <div class="csca-results__overall-meta">
-          Total: {{ totalScore }} / {{ maxTotalScore }} · {{ totalCorrect }}/{{ totalQuestions }}
-          correct
+          {{ $t('csca.totalStats', { score: totalScore, maxScore: maxTotalScore, correct: totalCorrect, total: totalQuestions }) }}
         </div>
       </div>
 
       <div class="csca-results__list">
-        <h2 class="csca-results__list-title">By Subject</h2>
+        <h2 class="csca-results__list-title">{{ $t('csca.bySubject') }}</h2>
         <div v-for="item in results" :key="item.sessionId" class="csca-results__row">
           <div class="csca-results__row-subject">{{ item.subject }}</div>
           <div class="csca-results__row-score">
@@ -76,13 +80,13 @@ function handleLogout() {
               {{ Math.round(item.result?.score || 0) }} <small>/ 100</small>
             </span>
             <span class="csca-results__row-count">
-              {{ item.result?.correct_count || 0 }}/{{ item.result?.total_questions || 0 }} correct
+              {{ $t('csca.correctOf', { correct: item.result?.correct_count || 0, total: item.result?.total_questions || 0 }) }}
             </span>
           </div>
         </div>
       </div>
 
-      <button class="csca-results__logout" @click="handleLogout">Log out</button>
+      <button class="csca-results__logout" @click="handleLogout">{{ $t('common.logout') }}</button>
     </div>
   </div>
 </template>

@@ -10,7 +10,7 @@
             class="part-label"
             :class="{ active: currentPage === partOrder }"
           >
-            Part {{ partOrder }}
+            {{ $t('footer.part', { part: partOrder }) }}
           </button>
 
           <!-- Question indices - only show for active part -->
@@ -30,7 +30,7 @@
           </div>
 
           <!-- Part count -->
-          <span class="part-count">{{ getAnsweredCount(partOrder) }} of {{ getTotalCount(partOrder) }}</span>
+          <span class="part-count">{{ $t('footer.countOf', { answered: getAnsweredCount(partOrder), total: getTotalCount(partOrder) }) }}</span>
         </div>
       </template>
     </div>

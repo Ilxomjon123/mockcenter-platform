@@ -3,7 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCscaStore } from '@/stores/cscaStore'
 import { useAuthStore } from '@/stores/authStore'
-import { CSCA_SUBJECT_LABELS, CSCA_SUBJECT_DURATION_MINUTES } from '@/types/csca'
+import { subjectColorOf, subjectDurationOf, subjectIconOf, subjectLabelOf } from '@/types/csca'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const router = useRouter()
 const cscaStore = useCscaStore()
@@ -13,21 +14,38 @@ onMounted(() => {
   cscaStore.restore()
 })
 
+const uniqueOf = <T,>(values: T[]): T[] => [...new Set(values)]
+
 const subjectCards = computed(() =>
   cscaStore.subjects.map((session) => ({
     sessionId: session.session_id,
     key: session.subject,
-    label: CSCA_SUBJECT_LABELS[session.subject] || session.subject,
+    label: subjectLabelOf(session),
     totalQuestions: session.total_questions,
+    durationMinutes: subjectDurationOf(session),
     submitted: cscaStore.isSubmitted(session.session_id),
     inProgress:
       !!cscaStore.startedAt[session.session_id] &&
       !cscaStore.isSubmitted(session.session_id),
     result: cscaStore.results[session.session_id],
-    icon: session.subject === 'math' ? '📐' : session.subject === 'physics' ? '⚛️' : '🧪',
-    color: session.subject === 'math' ? 'blue' : session.subject === 'physics' ? 'purple' : 'emerald',
+    icon: subjectIconOf(session.subject),
+    color: subjectColorOf(session.subject),
   })),
 )
+
+// Hero stats are aggregated from the loaded subjects so they stay correct for
+// any subject-based exam type, not just the 48-question / 60-minute CSCA setup.
+const heroDuration = computed(() => {
+  const values = uniqueOf(subjectCards.value.map((c) => c.durationMinutes))
+  if (values.length === 0) return '0'
+  return values.length === 1 ? `${values[0]}` : `${Math.min(...values)}–${Math.max(...values)}`
+})
+
+const heroQuestions = computed(() => {
+  const values = uniqueOf(subjectCards.value.map((c) => c.totalQuestions))
+  if (values.length === 0) return '0'
+  return values.length === 1 ? `${values[0]}` : `${Math.min(...values)}–${Math.max(...values)}`
+})
 
 const allDone = computed(() => cscaStore.allCompleted)
 const completedCount = computed(() => subjectCards.value.filter(c => c.submitted).length)
@@ -88,14 +106,15 @@ function handleLogout() {
         </div>
       </div>
       <div class="nav__right">
+        <LanguageSwitcher class="mr-2" />
         <div class="nav__user">
           <div class="nav__avatar">{{ (authStore.takerName || 'U')[0] }}</div>
           <div class="nav__user-info">
-            <span class="nav__user-name">{{ authStore.takerName || 'Taker' }}</span>
+            <span class="nav__user-name">{{ authStore.takerName || $t('header.taker') }}</span>
             <span class="nav__user-id">{{ authStore.takerNumber }}</span>
           </div>
         </div>
-        <button class="nav__logout" @click="handleLogout">
+        <button class="nav__logout" @click="handleLogout" :title="$t('common.logout')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
@@ -105,22 +124,22 @@ function handleLogout() {
     <div class="content">
       <!-- Hero -->
       <div class="hero">
-        <h1 class="hero__title">Select a Subject</h1>
-        <p class="hero__desc">Choose a subject to start your exam. Complete all subjects to see your final results.</p>
+        <h1 class="hero__title">{{ $t('csca.selectSubject') }}</h1>
+        <p class="hero__desc">{{ $t('csca.selectSubjectDesc') }}</p>
         <div class="hero__stats">
           <div class="hero__stat">
             <span class="hero__stat-num">{{ completedCount }}/{{ subjectCards.length }}</span>
-            <span class="hero__stat-lbl">Completed</span>
+            <span class="hero__stat-lbl">{{ $t('csca.completed') }}</span>
           </div>
           <div class="hero__stat-divider"></div>
           <div class="hero__stat">
-            <span class="hero__stat-num">{{ CSCA_SUBJECT_DURATION_MINUTES }}m</span>
-            <span class="hero__stat-lbl">Per subject</span>
+            <span class="hero__stat-num">{{ heroDuration }}m</span>
+            <span class="hero__stat-lbl">{{ $t('csca.perSubject') }}</span>
           </div>
           <div class="hero__stat-divider"></div>
           <div class="hero__stat">
-            <span class="hero__stat-num">48</span>
-            <span class="hero__stat-lbl">Questions</span>
+            <span class="hero__stat-num">{{ heroQuestions }}</span>
+            <span class="hero__stat-lbl">{{ $t('common.questions') }}</span>
           </div>
         </div>
       </div>
@@ -149,14 +168,14 @@ function handleLogout() {
                   'card__badge--active': card.inProgress,
                 }"
               >
-                {{ card.submitted ? '✓ Done' : card.inProgress ? 'In progress' : 'Ready' }}
+                {{ card.submitted ? $t('csca.done') : card.inProgress ? $t('submission.inProgress') : $t('csca.ready') }}
               </span>
             </div>
             <h3 class="card__name">{{ card.label }}</h3>
             <div class="card__meta">
-              <span>{{ card.totalQuestions }} questions</span>
+              <span>{{ $t('csca.questionsCount', { count: card.totalQuestions }) }}</span>
               <span class="card__dot">·</span>
-              <span>{{ CSCA_SUBJECT_DURATION_MINUTES }} min</span>
+              <span>{{ $t('csca.durationMinutes', { minutes: card.durationMinutes }) }}</span>
             </div>
 
             <!-- Result -->
@@ -168,13 +187,13 @@ function handleLogout() {
                 </svg>
                 <span class="card__score-text">{{ Math.round(card.result.score) }}</span>
               </div>
-              <span class="card__correct">{{ card.result.correct_count }}/{{ card.result.total_questions }} correct</span>
+              <span class="card__correct">{{ $t('csca.correctOf', { correct: card.result.correct_count, total: card.result.total_questions }) }}</span>
             </div>
 
             <!-- Action -->
             <div v-else class="card__cta">
-              <span v-if="card.inProgress" class="card__cta-text card__cta-text--resume">Continue →</span>
-              <span v-else class="card__cta-text">Start Exam →</span>
+              <span v-if="card.inProgress" class="card__cta-text card__cta-text--resume">{{ $t('csca.continue') }} →</span>
+              <span v-else class="card__cta-text">{{ $t('csca.startSubject') }} →</span>
             </div>
           </div>
         </button>
@@ -185,16 +204,16 @@ function handleLogout() {
         <div class="done-banner__info">
           <span class="done-banner__emoji">🎉</span>
           <div>
-            <p class="done-banner__title">All subjects completed!</p>
-            <p class="done-banner__sub">Average score: <strong>{{ totalScore }}/100</strong></p>
+            <p class="done-banner__title">{{ $t('csca.allSubjectsCompleted') }}</p>
+            <p class="done-banner__sub">{{ $t('csca.avgScore') }}: <strong>{{ totalScore }}/100</strong></p>
           </div>
         </div>
-        <button class="done-banner__btn" @click="goToResults">View Results →</button>
+        <button class="done-banner__btn" @click="goToResults">{{ $t('csca.viewResults') }} →</button>
       </div>
 
       <!-- Warning -->
       <p class="footnote">
-        ⚠️ Once started, the <strong>{{ CSCA_SUBJECT_DURATION_MINUTES }}-minute</strong> timer begins immediately and you <strong>cannot leave</strong> until you submit.
+        ⚠️ {{ $t('csca.heroWarning', { duration: heroDuration }) }}
       </p>
     </div>
 
@@ -206,30 +225,30 @@ function handleLogout() {
             <div v-if="showStartModal" class="dialog" @click.stop>
               <div class="dialog__icon">{{ pendingCard.icon }}</div>
               <h3 class="dialog__title">{{ pendingCard.label }}</h3>
-              <p class="dialog__sub">Are you ready to begin?</p>
+              <p class="dialog__sub">{{ $t('csca.readyToBegin') }}</p>
 
               <div class="dialog__chips">
                 <div class="dialog__chip">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  {{ CSCA_SUBJECT_DURATION_MINUTES }} minutes
+                  {{ $t('csca.durationMinutes', { minutes: pendingCard.durationMinutes }) }}
                 </div>
                 <div class="dialog__chip">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                  {{ pendingCard.totalQuestions }} questions
+                  {{ $t('csca.questionsCount', { count: pendingCard.totalQuestions }) }}
                 </div>
               </div>
 
               <div class="dialog__warn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 <div>
-                  <p>Timer starts <strong>immediately</strong>. You cannot close or navigate away until you submit your answers.</p>
+                  <p>{{ $t('csca.modalWarning') }}</p>
                 </div>
               </div>
 
               <div class="dialog__btns">
-                <button class="dialog__btn dialog__btn--ghost" @click="closeStartModal">Cancel</button>
+                <button class="dialog__btn dialog__btn--ghost" @click="closeStartModal">{{ $t('common.cancel') }}</button>
                 <button class="dialog__btn dialog__btn--go" @click="confirmStart">
-                  Start Exam
+                  {{ $t('csca.startSubject') }}
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
               </div>

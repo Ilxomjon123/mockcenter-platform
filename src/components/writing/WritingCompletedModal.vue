@@ -21,18 +21,18 @@
         </div>
       </div>
 
-      <h2 class="modal-title">Test Completed</h2>
+      <h2 class="modal-title">{{ $t('writing.completedTitle') }}</h2>
 
       <div class="modal-description">
-        <p>You have successfully completed all written parts of the IELTS Mock Test.</p>
+        <p>{{ $t('writing.completedDesc') }}</p>
         <p v-if="!writingStore.isManualSubmit && !isSubmitting" class="auto-finish-text">
-          Test will be submitted automatically in <strong>{{ countdown }}</strong> seconds.
+          {{ $t('writing.autoSubmitDesc', { seconds: countdown }) }}
         </p>
         <div v-if="authStore.showSpeakingInfo" class="info-box">
-          <h3 class="info-title">Speaking Exam Information:</h3>
-          <p>Your Speaking exam is scheduled for <strong>{{ formattedSpeakingDate }}</strong>.</p>
-          <p>The exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
-          <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
+          <h3 class="info-title">{{ $t('writing.speakingInfo') }}</h3>
+          <p>{{ $t('submission.speakingScheduled') }} <strong>{{ formattedSpeakingDate }}</strong>.</p>
+          <p>{{ $t('submission.speakingFormat') }}</p>
+          <p>{{ $t('submission.speakingDetailsNotice') }}</p>
         </div>
       </div>
 
@@ -52,13 +52,13 @@
               stroke-linejoin="round"
             />
           </svg>
-          Back to Writing
+          {{ $t('writing.backToWriting') }}
         </button>
 
         <button class="finish-button" @click="finishTest" :disabled="isSubmitting">
           <span v-if="isSubmitting" class="loader"></span>
           <template v-else>
-            Finish Test
+            {{ $t('speaking.finishTest') }}
             <svg
               class="arrow-icon"
               viewBox="0 0 24 24"

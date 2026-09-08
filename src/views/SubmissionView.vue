@@ -13,12 +13,11 @@
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h1>Review & Submit</h1>
+          <h1>{{ $t('submission.title') }}</h1>
         </div>
 
         <p class="description">
-          Please review your answers before final submission. Once submitted, you cannot make any
-          changes.
+          {{ $t('submission.subtitle') }}
         </p>
 
         <!-- Progress Summary -->
@@ -35,7 +34,7 @@
               </svg>
             </div>
             <div class="progress-info">
-              <span class="progress-label">Listening</span>
+              <span class="progress-label">{{ $t('sectionSelect.listening') }}</span>
               <span class="progress-status" :class="listeningStatus.class">{{
                 listeningStatus.text
               }}</span>
@@ -55,7 +54,7 @@
               </svg>
             </div>
             <div class="progress-info">
-              <span class="progress-label">Reading</span>
+              <span class="progress-label">{{ $t('sectionSelect.reading') }}</span>
               <span class="progress-status" :class="readingStatus.class">{{
                 readingStatus.text
               }}</span>
@@ -75,7 +74,7 @@
               </svg>
             </div>
             <div class="progress-info">
-              <span class="progress-label">Writing</span>
+              <span class="progress-label">{{ $t('sectionSelect.writing') }}</span>
               <span class="progress-status" :class="writingStatus.class">{{
                 writingStatus.text
               }}</span>
@@ -91,7 +90,7 @@
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
             />
           </svg>
-          <span>You have unanswered questions. Are you sure you want to submit?</span>
+          <span>{{ $t('submission.unansweredWarning') }}</span>
         </div>
 
         <!-- Actions -->
@@ -105,7 +104,7 @@
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Go Back
+            {{ $t('common.goBack') }}
           </button>
           <button class="btn-primary" :disabled="isSubmitting" @click="handleSubmit">
             <svg v-if="!isSubmitting" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -117,7 +116,7 @@
               />
             </svg>
             <span v-if="isSubmitting" class="spinner"></span>
-            {{ isSubmitting ? 'Submitting...' : 'Submit Exam' }}
+            {{ isSubmitting ? $t('submission.submitting') : $t('submission.submitExam') }}
           </button>
         </div>
       </div>
@@ -125,10 +124,10 @@
 
     <ConfirmModal
       :is-open="isConfirmModalOpen"
-      title="Submit Exam"
-      message="Are you sure you want to submit your exam? This action cannot be undone."
-      confirm-text="Yes, submit"
-      cancel-text="Cancel"
+      :title="$t('submission.submitExam')"
+      :message="$t('submission.confirmSubmitDesc')"
+      :confirm-text="$t('submission.yesSubmit')"
+      :cancel-text="$t('common.cancel')"
       type="warning"
       @confirm="confirmSubmit"
       @cancel="isConfirmModalOpen = false"
@@ -139,6 +138,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
@@ -149,6 +149,7 @@ import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
@@ -233,36 +234,36 @@ const writingAnsweredCount = computed(() => {
 })
 
 const listeningStatus = computed(() => {
-  if (!hasListening.value) return { text: 'Not Available', class: 'not-started' }
+  if (!hasListening.value) return { text: t('sectionSelect.notAvailable'), class: 'not-started' }
   if (listeningStore.isCompleted) {
-    return { text: 'Completed', class: 'completed' }
+    return { text: t('csca.completed'), class: 'completed' }
   }
   if (listeningAnsweredCount.value > 0) {
-    return { text: 'In Progress', class: 'in-progress' }
+    return { text: t('submission.inProgress'), class: 'in-progress' }
   }
-  return { text: 'Not Started', class: 'not-started' }
+  return { text: t('submission.notStarted'), class: 'not-started' }
 })
 
 const readingStatus = computed(() => {
-  if (!hasReading.value) return { text: 'Not Available', class: 'not-started' }
+  if (!hasReading.value) return { text: t('sectionSelect.notAvailable'), class: 'not-started' }
   if (readingStore.isCompleted) {
-    return { text: 'Completed', class: 'completed' }
+    return { text: t('csca.completed'), class: 'completed' }
   }
   if (readingAnsweredCount.value > 0) {
-    return { text: 'In Progress', class: 'in-progress' }
+    return { text: t('submission.inProgress'), class: 'in-progress' }
   }
-  return { text: 'Not Started', class: 'not-started' }
+  return { text: t('submission.notStarted'), class: 'not-started' }
 })
 
 const writingStatus = computed(() => {
-  if (!hasWriting.value) return { text: 'Not Available', class: 'not-started' }
+  if (!hasWriting.value) return { text: t('sectionSelect.notAvailable'), class: 'not-started' }
   if (writingStore.isCompleted) {
-    return { text: 'Completed', class: 'completed' }
+    return { text: t('csca.completed'), class: 'completed' }
   }
   if (writingAnsweredCount.value > 0) {
-    return { text: 'In Progress', class: 'in-progress' }
+    return { text: t('submission.inProgress'), class: 'in-progress' }
   }
-  return { text: 'Not Started', class: 'not-started' }
+  return { text: t('submission.notStarted'), class: 'not-started' }
 })
 
 const hasUnanswered = computed(() => {

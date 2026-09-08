@@ -5,14 +5,14 @@
         class="answer-textarea"
         :value="modelValue"
         @input="handleInput"
-        placeholder="Type your answer here..."
+        :placeholder="$t('writing.typePlaceholder')"
         spellcheck="false"
         autocomplete="off"
         autocorrect="off"
         autocapitalize="off"
       />
     </div>
-    <div class="word-count">Words: {{ wordCount }}</div>
+    <div class="word-count">{{ $t('writing.wordCount', { count: wordCount }) }}</div>
   </div>
 </template>
 

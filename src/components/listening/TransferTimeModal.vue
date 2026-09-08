@@ -22,11 +22,10 @@
             </svg>
           </div>
 
-          <h2 class="modal-title">Audio Completed</h2>
+          <h2 class="modal-title">{{ $t('listening.audioCompleted') }}</h2>
 
           <p class="modal-description">
-            The listening audio has finished. You now have <strong>2 minutes</strong> to review and
-            complete your answers before moving to the next section.
+            {{ $t('listening.transferNotice') }}
           </p>
 
           <div class="info-box">
@@ -35,14 +34,11 @@
                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
               />
             </svg>
-            <span
-              >The timer will be displayed in the header. Make sure to complete all your answers
-              before time runs out.</span
-            >
+            <span>{{ $t('listening.timerNotice') }}</span>
           </div>
 
           <button class="start-button" @click="handleStart">
-            Ok
+            {{ $t('listening.ok') }}
             <svg
               class="arrow-icon"
               viewBox="0 0 24 24"

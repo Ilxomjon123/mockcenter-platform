@@ -6,7 +6,7 @@ defineProps<{
 
 <template>
   <div class="part-badge">
-    <span class="part-badge__text">PART</span>
+    <span class="part-badge__text">{{ $t('common.part').toUpperCase() }}</span>
     <span class="part-badge__number">{{ label }}</span>
   </div>
 </template>

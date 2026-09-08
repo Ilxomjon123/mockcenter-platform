@@ -33,15 +33,15 @@
             </svg>
           </div>
 
-          <h3 class="modal-title">{{ title }}</h3>
-          <p class="modal-message">{{ message }}</p>
+          <h3 class="modal-title">{{ displayTitle }}</h3>
+          <p class="modal-message">{{ displayMessage }}</p>
 
           <div class="modal-actions">
             <button class="btn btn-cancel" @click="handleCancel">
-              {{ cancelText }}
+              {{ displayCancelText }}
             </button>
             <button class="btn btn-confirm" :class="type" @click="handleConfirm">
-              {{ confirmText }}
+              {{ displayConfirmText }}
             </button>
           </div>
         </div>
@@ -51,6 +51,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 interface Props {
   isOpen: boolean
   title?: string
@@ -60,13 +63,20 @@ interface Props {
   type?: 'warning' | 'danger' | 'info'
 }
 
-withDefaults(defineProps<Props>(), {
-  title: 'Confirm',
-  message: 'Are you sure you want to continue?',
-  confirmText: 'Yes',
-  cancelText: 'Cancel',
+const props = withDefaults(defineProps<Props>(), {
+  title: '',
+  message: '',
+  confirmText: '',
+  cancelText: '',
   type: 'warning'
 })
+
+const { t } = useI18n()
+
+const displayTitle = computed(() => props.title || t('common.confirm'))
+const displayMessage = computed(() => props.message || t('common.logoutConfirm'))
+const displayConfirmText = computed(() => props.confirmText || t('common.yes'))
+const displayCancelText = computed(() => props.cancelText || t('common.cancel'))
 
 const emit = defineEmits<{
   (e: 'confirm'): void

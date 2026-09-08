@@ -3,11 +3,11 @@
 
 <template>
   <div class="intro-card">
-    <h1 class="intro-card__title">Multilevel Exam</h1>
+    <h1 class="intro-card__title">{{ $t('speaking.introTitle') }}</h1>
     <div class="intro-card__divider" />
     <div class="intro-card__subtitle">
-      <span class="intro-card__badge">New</span>
-      <span>Speaking Test</span>
+      <span class="intro-card__badge">{{ $t('speaking.introBadge') }}</span>
+      <span>{{ $t('speaking.title') }}</span>
     </div>
   </div>
 </template>

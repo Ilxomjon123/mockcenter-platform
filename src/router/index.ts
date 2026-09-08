@@ -6,6 +6,7 @@ import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
 import { useCscaStore } from '@/stores/cscaStore'
+import { isSubjectBasedExam } from '@/types/csca'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -136,8 +137,9 @@ const getFirstAvailableSection = (
   examType?: string,
   cscaStore?: ReturnType<typeof useCscaStore>,
 ): string => {
-  // CSCA exams go to subject-select page (or results if all done)
-  if (examType === 'csca') {
+  // Subject-based exams (CSCA, Milliy sertifikat) go to the subject-select page
+  // (or results if all subjects are done)
+  if (isSubjectBasedExam(examType)) {
     if (cscaStore?.allCompleted) return 'csca-results'
     return 'csca-subjects'
   }

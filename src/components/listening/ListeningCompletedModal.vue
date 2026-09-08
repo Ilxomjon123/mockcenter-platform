@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <h2 class="modal-title">Listening Section Completed</h2>
+      <h2 class="modal-title">{{ $t('listening.completedTitle') }}</h2>
 
       <p class="modal-description">
         {{ descriptionText }}
@@ -43,7 +43,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          Back
+          {{ $t('common.goBack') }}
         </button>
 
         <button class="continue-button" @click="goToNextSection">
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
@@ -81,6 +82,7 @@ defineProps<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 const listeningStore = useListeningStore()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
@@ -91,19 +93,19 @@ const showBackButton = computed(() => listeningStore.isManualSubmit)
 const nextSection = computed(() => getNextSection('listening'))
 
 const buttonText = computed(() => {
-  if (nextSection.value === 'reading') return 'Continue to Reading'
-  if (nextSection.value === 'writing') return 'Continue to Writing'
-  return 'Go to Submission'
+  if (nextSection.value === 'reading') return t('listening.continueToReading')
+  if (nextSection.value === 'writing') return t('listening.continueToWriting')
+  return t('options.goToSubmission')
 })
 
 const descriptionText = computed(() => {
   if (nextSection.value === 'reading') {
-    return 'You have successfully completed the Listening section. Click the button below to proceed to the Reading section.'
+    return t('listening.descReading')
   }
   if (nextSection.value === 'writing') {
-    return 'You have successfully completed the Listening section. Click the button below to proceed to the Writing section.'
+    return t('listening.descWriting')
   }
-  return 'You have successfully completed the Listening section. Click the button below to submit your exam.'
+  return t('listening.descSubmission')
 })
 
 const goBack = () => {

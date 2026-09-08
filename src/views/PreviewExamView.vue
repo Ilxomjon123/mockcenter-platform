@@ -1,12 +1,12 @@
 <template>
   <div v-if="loading" class="preview-loading">
     <span class="spinner"></span>
-    <p>Loading preview...</p>
+    <p>{{ $t('common.loading') }}</p>
   </div>
 
   <div v-else-if="error" class="preview-error">
     <p>{{ error }}</p>
-    <a href="/" class="back-link">Go back</a>
+    <a href="/" class="back-link">{{ $t('common.goBack') }}</a>
   </div>
 
   <!-- Reading Preview -->
@@ -16,8 +16,8 @@
     <div class="main-content">
       <div class="section-header">
         <div class="header-info">
-          <span class="part-label">Part {{ readingStore.currentPart }}</span>
-          <p class="instruction">Read the text and answer questions {{ readingQuestionsRange }}</p>
+          <span class="part-label">{{ $t('footer.part', { part: readingStore.currentPart }) }}</span>
+          <p class="instruction">{{ $t('reading.readAndAnswer', { range: readingQuestionsRange }) }}</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
-          Passage
+          {{ $t('common.passage') }}
         </button>
         <button class="mobile-tab" :class="{ active: readingTab === 'questions' }" @click="readingTab = 'questions'">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -35,7 +35,7 @@
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
             <path d="M12 17h.01" />
           </svg>
-          Questions
+          {{ $t('common.questions') }}
         </button>
       </div>
 
@@ -76,7 +76,7 @@
     <div class="main-content">
       <div class="section-header">
         <div class="header-info">
-          <span class="part-label">Part {{ writingStore.currentPage }}</span>
+          <span class="part-label">{{ $t('footer.part', { part: writingStore.currentPage }) }}</span>
           <p class="instruction">{{ writingInstruction }}</p>
         </div>
       </div>
@@ -87,14 +87,14 @@
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
-          Task
+          {{ $t('common.task') }}
         </button>
         <button class="mobile-tab" :class="{ active: writingTab === 'answer' }" @click="writingTab = 'answer'">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
-          Answer
+          {{ $t('common.answer') }}
         </button>
       </div>
 

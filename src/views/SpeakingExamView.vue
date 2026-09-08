@@ -149,10 +149,10 @@ onUnmounted(() => {
             <path d="M32 24v32l24-16z" fill="white" />
           </svg>
         </div>
-        <h1 class="speaking-exam__start-title">Speaking Test</h1>
-        <p class="speaking-exam__start-hint">Tap the button below to start the exam.<br />Please allow microphone access when prompted.</p>
+        <h1 class="speaking-exam__start-title">{{ $t('speaking.title') }}</h1>
+        <p class="speaking-exam__start-hint">{{ $t('speaking.startInstruction') }}<br />{{ $t('speaking.micPermission') }}</p>
         <button class="speaking-exam__start-btn" @click="startExam">
-          Start Exam
+          {{ $t('speaking.startExam') }}
         </button>
       </div>
     </main>
@@ -231,7 +231,7 @@ onUnmounted(() => {
       <!-- WELCOME -->
       <Transition name="fade" mode="out-in">
         <div v-if="flow.phase.value === 'welcome' && flow.showContent.value" key="welcome" class="speaking-exam__center">
-          <h1 class="speaking-exam__title">Welcome to MockCenter<br />Learning Platform!</h1>
+          <h1 class="speaking-exam__title" style="white-space: pre-line">{{ $t('speaking.welcomeTitle') }}</h1>
         </div>
       </Transition>
 
@@ -249,7 +249,7 @@ onUnmounted(() => {
           key="name"
           class="speaking-exam__center"
         >
-          <h2 class="speaking-exam__question-text">Can you tell me your full name please?</h2>
+          <h2 class="speaking-exam__question-text">{{ $t('speaking.nameQuestion') }}</h2>
           <Transition name="fade">
             <div v-if="flow.phase.value === 'name-recording'" class="speaking-exam__mic-area">
               <SpeakingMicButton :active="flow.isRecording.value" :level="flow.micLevel.value" :low="flow.micLow.value" :mid="flow.micMid.value" :high="flow.micHigh.value" />
@@ -261,16 +261,16 @@ onUnmounted(() => {
       <!-- THANK YOU -->
       <Transition name="fade" mode="out-in">
         <div v-if="flow.phase.value === 'thank-you' && flow.showContent.value" key="thanks" class="speaking-exam__center">
-          <h1 class="speaking-exam__title">Thank you</h1>
+          <h1 class="speaking-exam__title">{{ $t('speaking.thankYou') }}</h1>
         </div>
       </Transition>
 
       <!-- COUNTDOWN -->
       <Transition name="fade" mode="out-in">
         <div v-if="flow.phase.value === 'countdown' && flow.showContent.value" key="countdown" class="speaking-exam__center">
-          <h2 class="speaking-exam__question-text">Your exam starts in 10 seconds.</h2>
+          <h2 class="speaking-exam__question-text">{{ $t('speaking.countdownNotice') }}</h2>
           <SpeakingCountdown :value="flow.countdown.value" :total="10" size="large" />
-          <p class="speaking-exam__subtext">Please prepare!</p>
+          <p class="speaking-exam__subtext">{{ $t('speaking.pleasePrepare') }}</p>
         </div>
       </Transition>
 
@@ -292,7 +292,7 @@ onUnmounted(() => {
               {{ partAnswerTimeText }}
             </p>
             <p v-else-if="flow.phase.value === 'part-speak-after-sound'" key="pi5" class="speaking-exam__instruction">
-              You should speak after this sound!
+              {{ $t('speaking.speakAfterSound') }}
             </p>
           </Transition>
         </div>
@@ -342,28 +342,28 @@ onUnmounted(() => {
                 <path d="M30 50l12 12 24-28" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
               </svg>
             </div>
-            <h1 class="speaking-exam__end-title">Speaking Test Complete</h1>
-            <p class="speaking-exam__end-subtitle">You have completed all parts of the speaking exam.</p>
+            <h1 class="speaking-exam__end-title">{{ $t('speaking.completedTitle') }}</h1>
+            <p class="speaking-exam__end-subtitle">{{ $t('speaking.completedDesc') }}</p>
             <div class="speaking-exam__end-parts">
               <div v-for="label in flow.partLabels.value" :key="label" class="speaking-exam__end-part-chip">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#4CAF50" />
                 </svg>
-                Part {{ label }}
+                {{ $t('speaking.partChip', { label }) }}
               </div>
             </div>
             <div v-if="flow.isUploading.value" class="speaking-exam__uploading">
               <div class="speaking-exam__uploading-spinner" />
-              Uploading recordings...
+              {{ $t('speaking.uploadingRecordings') }}
             </div>
             <div v-else class="speaking-exam__end-done">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#4CAF50" />
               </svg>
-              Recordings uploaded successfully
+              {{ $t('speaking.uploadedSuccess') }}
             </div>
             <button class="speaking-exam__end-btn" @click="finishExam">
-              Finish &amp; Exit
+              {{ $t('speaking.finishAndExit') }}
             </button>
           </div>
         </div>

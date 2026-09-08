@@ -3,8 +3,8 @@
     <!-- Loading state -->
     <div v-if="isLoading" class="loader-content">
       <div class="spinner"></div>
-      <h2 class="loader-title">Your test will begin shortly</h2>
-      <p class="loader-subtitle">Please wait</p>
+      <h2 class="loader-title">{{ $t('listening.testWillBegin') }}</h2>
+      <p class="loader-subtitle">{{ $t('listening.pleaseWait') }}</p>
     </div>
 
     <!-- Ready to play state -->
@@ -34,24 +34,23 @@
       </svg>
 
       <p class="instruction-text">
-        You will be listening to an audio clip during this test. You will not be permitted to pause
-        or rewind the audio while answering the questions.
+        {{ $t('listening.audioInstruction') }}
       </p>
 
-      <p class="action-text">To continue, click Play.</p>
+      <p class="action-text">{{ $t('listening.clickPlay') }}</p>
 
       <!-- Check sections -->
       <div class="check-sections">
         <!-- Speaker test section -->
         <div class="speaker-test">
-          <p class="speaker-test-label">Test your speakers/headphones:</p>
+          <p class="speaker-test-label">{{ $t('listening.testSpeakers') }}</p>
           <button class="test-button" @click="playTestSound" :disabled="isTestPlaying">
             <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
               />
             </svg>
-            {{ isTestPlaying ? 'Playing...' : 'Test Sound' }}
+            {{ isTestPlaying ? $t('listening.playing') : $t('listening.testSound') }}
           </button>
           <div v-if="isTestPlaying" class="progress-bar">
             <div class="progress-fill" :style="{ width: testProgress + '%' }"></div>
@@ -60,14 +59,14 @@
 
         <!-- Keyboard test section -->
         <div class="keyboard-test">
-          <p class="keyboard-test-label">Test your keyboard:</p>
+          <p class="keyboard-test-label">{{ $t('listening.testKeyboard') }}</p>
           <div class="keyboard-test-input-wrapper">
             <input
               ref="keyboardTestInput"
               type="text"
               class="keyboard-test-input"
               :class="{ 'keyboard-verified': isKeyboardVerified }"
-              placeholder="Type here to test..."
+              :placeholder="$t('listening.typeToTest')"
               v-model="keyboardTestValue"
               autocomplete="off"
             />
@@ -84,7 +83,7 @@
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <p v-if="isKeyboardVerified" class="keyboard-success-text">Keyboard is working!</p>
+          <p v-if="isKeyboardVerified" class="keyboard-success-text">{{ $t('listening.keyboardWorking') }}</p>
         </div>
       </div>
 
@@ -92,7 +91,7 @@
         <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z" />
         </svg>
-        Play
+        {{ $t('listening.play') }}
       </button>
     </div>
   </div>

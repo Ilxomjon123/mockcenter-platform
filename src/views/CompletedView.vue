@@ -1,5 +1,9 @@
 <template>
-  <div class="completed-view">
+  <div class="completed-view relative">
+    <div style="position: absolute; top: 16px; right: 16px;">
+      <LanguageSwitcher />
+    </div>
+
     <div class="content-card">
       <!-- Success Icon -->
       <div class="icon-container" style="background: transparent !important;">
@@ -10,21 +14,21 @@
         </div>
       </div>
 
-      <h1 class="title">Test Successfully Submitted</h1>
+      <h1 class="title">{{ $t('submission.submittedTitle') }}</h1>
 
       <div class="message-section" style="background: transparent !important;">
         <div v-if="authStore.showSpeakingInfo" class="info-box">
-          <h3 class="info-title">Speaking Exam Information:</h3>
-          <p>Your Speaking exam is scheduled for <strong>{{ formattedSpeakingDate }}</strong>.</p>
-          <p>The exam will be conducted either <strong>offline</strong> at our center or via <strong>Zoom</strong>.</p>
-          <p>Please check your dashboard or wait for an administrator to contact you regarding your speaking slot details.</p>
+          <h3 class="info-title">{{ $t('writing.speakingInfo') }}</h3>
+          <p>{{ $t('submission.speakingScheduled') }} <strong>{{ formattedSpeakingDate }}</strong>.</p>
+          <p>{{ $t('submission.speakingFormat') }}</p>
+          <p>{{ $t('submission.speakingDetailsNotice') }}</p>
         </div>
 
         <button class="back-to-login-btn" @click="goToLogin">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
           </svg>
-          Back to Login
+          {{ $t('login.backToLogin') }}
         </button>
       </div>
     </div>
@@ -33,14 +37,18 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const authStore = useAuthStore()
+const { locale } = useI18n()
 
 const formattedSpeakingDate = computed(() => {
   if (!authStore.speakingDatetime) return ''
   const date = new Date(authStore.speakingDatetime)
-  return date.toLocaleDateString('en-US', {
+  const loc = locale.value === 'uz' ? 'uz-UZ' : 'en-US'
+  return date.toLocaleDateString(loc, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

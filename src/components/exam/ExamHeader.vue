@@ -3,7 +3,7 @@
     <div class="header-left">
       <div class="logo">IELTS</div>
       <div class="test-info">
-        <div class="test-id">{{ authStore.takerName || 'Taker' }} — {{ authStore.takerNumber }}</div>
+        <div class="test-id">{{ authStore.takerName || $t('header.taker') }} — {{ authStore.takerNumber }}</div>
         <div v-if="timer" class="timer-display" :class="{ 'timer-low': isTimerLow }">
           <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path
@@ -18,6 +18,7 @@
       </div>
     </div>
     <div class="header-right">
+      <LanguageSwitcher />
       <div class="wifi-wrapper">
         <div class="wifi-status" :class="{ online: isOnline, offline: !isOnline }">
           <svg class="icon wifi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,22 +33,14 @@
         <div class="wifi-tooltip" :class="{ online: isOnline, offline: !isOnline }">
           <div class="tooltip-status">
             <span class="status-dot"></span>
-            <span class="status-text">{{ isOnline ? 'Connected' : 'Disconnected' }}</span>
+            <span class="status-text">{{ isOnline ? $t('common.connected') : $t('common.disconnected') }}</span>
           </div>
           <p class="tooltip-message">
-            {{ isOnline ? 'Your internet connection is stable. Your answers are being saved automatically.' : 'No internet connection. Your answers will be saved once the connection is restored.' }}
+            {{ isOnline ? $t('common.connectedMsg') : $t('common.disconnectedMsg') }}
           </p>
         </div>
       </div>
-      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-        />
-      </svg>
-      <button v-if="!isRunningInTauri" class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+      <button v-if="!isRunningInTauri" class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? $t('common.exitFullscreen') : $t('common.fullscreen')">
         <!-- Expand icon (enter fullscreen) -->
         <svg v-if="!isFullscreen" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4" />
@@ -63,7 +56,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 20v-4h4" />
         </svg>
       </button>
-      <button class="options-btn" @click="isOptionsOpen = true" title="Options">
+      <button class="options-btn" @click="isOptionsOpen = true" :title="$t('common.options')">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -73,7 +66,7 @@
           />
         </svg>
       </button>
-      <button v-if="!isRunningInTauri" class="logout-btn" @click="handleLogout" title="Logout">
+      <button v-if="!isRunningInTauri" class="logout-btn" @click="handleLogout" :title="$t('common.logout')">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -90,10 +83,10 @@
 
   <ConfirmModal
     :is-open="isLogoutModalOpen"
-    title="Logout"
-    message="Are you sure you want to logout?"
-    confirm-text="Yes, logout"
-    cancel-text="Cancel"
+    :title="$t('common.logout')"
+    :message="$t('common.logoutConfirm')"
+    :confirm-text="$t('common.yesLogout')"
+    :cancel-text="$t('common.cancel')"
     type="danger"
     @confirm="confirmLogout"
     @cancel="isLogoutModalOpen = false"
@@ -105,6 +98,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import { isTauri } from '@/composables/useTauri'
 import { useConnectionStatus } from '@/composables/useHealthCheck'
 

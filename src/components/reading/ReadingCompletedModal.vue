@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <h2 class="modal-title">Reading Section Completed</h2>
+      <h2 class="modal-title">{{ $t('reading.completedTitle') }}</h2>
 
       <p class="modal-description">
         {{ descriptionText }}
@@ -43,7 +43,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          Back
+          {{ $t('common.goBack') }}
         </button>
 
         <button class="continue-button" @click="goToNextSection">
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useExamNavigation } from '@/composables/useExamNavigation'
@@ -80,6 +81,7 @@ defineProps<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
 const { getNextSection } = useExamNavigation()
@@ -101,15 +103,15 @@ onUnmounted(() => {
 const nextSection = computed(() => getNextSection('reading'))
 
 const buttonText = computed(() => {
-  if (nextSection.value === 'writing') return 'Continue to Writing'
-  return 'Go to Submission'
+  if (nextSection.value === 'writing') return t('reading.continueToWriting')
+  return t('options.goToSubmission')
 })
 
 const descriptionText = computed(() => {
   if (nextSection.value === 'writing') {
-    return 'You have successfully completed the Reading section. Click the button below to proceed to the Writing section.'
+    return t('reading.descWriting')
   }
-  return 'You have successfully completed the Reading section. Click the button below to submit your exam.'
+  return t('reading.descSubmission')
 })
 
 const showBackButton = computed(() => {

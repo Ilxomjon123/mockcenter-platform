@@ -5,7 +5,7 @@ import type {
   CscaTestResponse,
   CscaSubjectResult,
 } from '@/types/csca'
-import { CSCA_SUBJECT_DURATION_MINUTES } from '@/types/csca'
+import { subjectDurationOf } from '@/types/csca'
 import { useLocalStorage } from '@/composables/useLocalStorage'
 
 const STORAGE_KEY = 'csca_state'
@@ -13,7 +13,7 @@ const STORAGE_KEY = 'csca_state'
 interface PersistedState {
   subjects: CscaSubjectSession[]
   activeSessionId: number | null
-  answers: Record<number, Record<number, string>>
+  answers: Record<number, Record<number, string | Record<string, string>>>
   startedAt: Record<number, number>
   submittedSessionIds: number[]
   results: Record<number, CscaSubjectResult>
@@ -25,7 +25,7 @@ export const useCscaStore = defineStore('csca', () => {
   const subjects = ref<CscaSubjectSession[]>([])
   const activeSessionId = ref<number | null>(null)
   // Answers keyed by session_id then question_id
-  const answers = ref<Record<number, Record<number, string>>>({})
+  const answers = ref<Record<number, Record<number, string | Record<string, string>>>>({})
   // When each subject was started (unix ms)
   const startedAt = ref<Record<number, number>>({})
   // Locally tracked submitted session ids (set after backend ack)
@@ -64,7 +64,7 @@ export const useCscaStore = defineStore('csca', () => {
     const start = startedAt.value[activeSessionId.value]
     if (!start) return null
     const elapsed = Math.floor((Date.now() - start) / 1000)
-    const total = CSCA_SUBJECT_DURATION_MINUTES * 60
+    const total = subjectDurationOf(activeSession.value) * 60
     return Math.max(0, total - elapsed)
   }
 
@@ -107,7 +107,7 @@ export const useCscaStore = defineStore('csca', () => {
     persist()
   }
 
-  const setAnswer = (questionId: number, option: string) => {
+  const setAnswer = (questionId: number, option: string | Record<string, string>) => {
     const sessionId = activeSessionId.value
     if (!sessionId) return
     const sessionAnswers = answers.value[sessionId] ?? {}

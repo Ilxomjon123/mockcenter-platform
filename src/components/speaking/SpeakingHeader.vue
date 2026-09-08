@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 defineProps<{
   partLabels: string[]
@@ -48,11 +49,12 @@ const confirmLogout = () => {
     </nav>
 
     <div class="speaking-header__right">
+      <LanguageSwitcher class="mr-2" />
       <div class="speaking-header__brand">
         <span class="speaking-header__brand-multi">MULTI</span>
         <span class="speaking-header__brand-level">LEVEL</span>
       </div>
-      <button class="speaking-header__logout" @click="handleLogout" title="Logout">
+      <button class="speaking-header__logout" @click="handleLogout" :title="$t('common.logout')">
         <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -62,10 +64,10 @@ const confirmLogout = () => {
 
     <ConfirmModal
       :is-open="isLogoutModalOpen"
-      title="Logout"
-      message="Are you sure you want to logout?"
-      confirm-text="Yes, logout"
-      cancel-text="Cancel"
+      :title="$t('common.logout')"
+      :message="$t('common.logoutConfirm')"
+      :confirm-text="$t('common.yesLogout')"
+      :cancel-text="$t('common.cancel')"
       type="danger"
       @confirm="confirmLogout"
       @cancel="isLogoutModalOpen = false"

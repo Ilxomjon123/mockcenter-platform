@@ -3,7 +3,7 @@
     <div class="header-left">
       <div class="logo">IELTS</div>
       <div class="test-info">
-        <div class="preview-badge">Preview Mode</div>
+        <div class="preview-badge">{{ $t('common.previewMode') }}</div>
         <div v-if="timer" class="timer-display">
           <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path
@@ -18,6 +18,7 @@
       </div>
     </div>
     <div class="header-right">
+      <LanguageSwitcher />
       <div class="wifi-status online">
         <svg class="icon wifi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -28,7 +29,7 @@
           />
         </svg>
       </div>
-      <button class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+      <button class="fullscreen-btn" @click="toggleFullscreen" :title="isFullscreen ? $t('common.exitFullscreen') : $t('common.fullscreen')">
         <svg v-if="!isFullscreen" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 8V4h-4" />
@@ -48,6 +49,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 interface Props {
   timer?: string
