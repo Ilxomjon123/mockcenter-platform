@@ -21,11 +21,9 @@
   "dependencies": {
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-dialog": "~2.6.0",
-    "@tauri-apps/plugin-process": "^2.3.1",
-    "@tauri-apps/plugin-updater": "^2.10.1",
     "axios": "^1.13.2",
     "html5-qrcode": "^2.3.8",
-    "katex": "^0.17.0",
+    "katex": "^0.16.45",
     "pinia": "^3.0.3",
     "qrcode": "^1.5.4",
     "vue": "^3.5.22",
