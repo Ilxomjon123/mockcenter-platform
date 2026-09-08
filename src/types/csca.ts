@@ -69,7 +69,7 @@ export const CSCA_SUBJECT_DURATION_MINUTES = 60
  * Exam types that use the subject-based flow (/api/exam/subject/*).
  * Keep in sync with ExamTypeEnum::isSubjectBased() on the backend.
  */
-export const SUBJECT_BASED_EXAM_TYPES = ['csca', 'national', 'driving_license'] as const
+export const SUBJECT_BASED_EXAM_TYPES = ['csca', 'national', 'driving_license', 'sat'] as const
 
 export const isSubjectBasedExam = (examType?: string | null): boolean =>
   !!examType && (SUBJECT_BASED_EXAM_TYPES as readonly string[]).includes(examType)
@@ -97,6 +97,8 @@ export const CSCA_SUBJECT_LABELS: Record<string, string> = {
   a_category: 'A toifa (Mototsikl)',
   c_category: 'C toifa (Yuk avtomobili)',
   d_category: 'D toifa (Avtobus)',
+  sat_math: 'SAT Math',
+  sat_reading_writing: 'SAT Reading & Writing',
 }
 
 const SUBJECT_ICONS: Record<string, string> = {
@@ -118,6 +120,8 @@ const SUBJECT_ICONS: Record<string, string> = {
   d_category: '🚌',
   qoraqalpoq_tili: '📕',
   huquqshunoslik: '⚖️',
+  sat_math: '📐',
+  sat_reading_writing: '📖',
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -135,6 +139,8 @@ const SUBJECT_COLORS: Record<string, string> = {
   rus_tili: 'indigo',
   qoraqalpoq_tili: 'teal',
   huquqshunoslik: 'amber',
+  sat_math: 'blue',
+  sat_reading_writing: 'indigo',
 }
 
 /** Prefer the backend-supplied label; fall back to the local map, then the raw slug. */
