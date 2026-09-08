@@ -1,10 +1,45 @@
 <script setup lang="ts">
+import { computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { setSavedLocale } from '@/i18n'
+import { useAuthStore } from '@/stores/authStore'
 
 const { locale } = useI18n()
+const route = useRoute()
+const authStore = useAuthStore()
+
+const isEnglishOnly = computed(() => {
+  const currentExamType = (
+    (route.query.exam_type as string) ||
+    (route.params.type as string) ||
+    authStore.examType ||
+    localStorage.getItem('examType') ||
+    ''
+  ).toLowerCase()
+
+  return ['ielts', 'cerf', 'cefr', 'sat'].includes(currentExamType)
+})
+
+const enforceEnglish = () => {
+  if (isEnglishOnly.value && locale.value !== 'en') {
+    locale.value = 'en'
+    setSavedLocale('en')
+  }
+}
+
+watch(isEnglishOnly, (isEnglish) => {
+  if (isEnglish) {
+    enforceEnglish()
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  enforceEnglish()
+})
 
 const selectLocale = (target: 'uz' | 'ru' | 'en') => {
+  if (isEnglishOnly.value) return
   if (locale.value === target) return
   locale.value = target
   setSavedLocale(target)
@@ -12,7 +47,12 @@ const selectLocale = (target: 'uz' | 'ru' | 'en') => {
 </script>
 
 <template>
-  <div class="lang-pill-group" role="group" aria-label="Language switcher">
+  <div
+    v-if="!isEnglishOnly"
+    class="lang-pill-group"
+    role="group"
+    aria-label="Language switcher"
+  >
     <button
       type="button"
       class="lang-pill-btn"

@@ -7,6 +7,7 @@ import { useWritingStore } from '@/stores/writingStore'
 import { useSpeakingStore } from '@/stores/speakingStore'
 import { useCscaStore } from '@/stores/cscaStore'
 import { isSubjectBasedExam } from '@/types/csca'
+import i18n, { setSavedLocale } from '@/i18n'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -186,6 +187,22 @@ router.beforeEach(async (to, from, next) => {
   // Fetch test data when authenticated and not yet loaded (e.g. page refresh)
   if (requiresAuth && isAuthenticated && !authStore.testDataLoaded && !authStore.isLoadingTest) {
     await authStore.fetchTestData()
+  }
+
+  // Enforce English-only interface for IELTS, CEFR, and SAT
+  const currentExamType = (
+    (to.query.exam_type as string) ||
+    (to.params.type as string) ||
+    authStore.examType ||
+    localStorage.getItem('examType') ||
+    ''
+  ).toLowerCase()
+
+  if (['ielts', 'cerf', 'cefr', 'sat'].includes(currentExamType)) {
+    if (i18n.global.locale.value !== 'en') {
+      i18n.global.locale.value = 'en'
+      setSavedLocale('en')
+    }
   }
 
   const listeningStore = useListeningStore()
