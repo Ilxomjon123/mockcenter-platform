@@ -10,13 +10,41 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const isEnglishOnly = computed(() => {
-  const currentExamType = (
+  let currentExamType = (
     (route.query.exam_type as string) ||
     (route.params.type as string) ||
     authStore.examType ||
     localStorage.getItem('examType') ||
     ''
   ).toLowerCase()
+
+  if (!currentExamType) {
+    const rawToken = (route.query.token as string) || localStorage.getItem('token') || ''
+    if (rawToken) {
+      try {
+        const parts = rawToken.split('.')
+        const tokenPart = parts[1]
+        if (tokenPart) {
+          const payload = JSON.parse(atob(tokenPart.replace(/-/g, '+').replace(/_/g, '/')))
+          if (payload?.exam_type) {
+            currentExamType = String(payload.exam_type).toLowerCase()
+          }
+        }
+      } catch (e) {
+        // ignore decode errors
+      }
+    }
+  }
+
+  const path = (route.path || '').toLowerCase()
+  if (
+    path.includes('ielts') ||
+    path.includes('cefr') ||
+    path.includes('cerf') ||
+    path.includes('sat')
+  ) {
+    return true
+  }
 
   return ['ielts', 'cerf', 'cefr', 'sat'].includes(currentExamType)
 })

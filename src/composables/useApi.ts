@@ -1,20 +1,29 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ref } from 'vue'
 
-const API_URL = import.meta.env.VITE_API_URL
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname.includes('mockcenter.uz')) {
+      return 'https://admin.mockcenter.uz'
+    }
+  }
+  return import.meta.env.VITE_API_URL || 'https://admin.mockcenter.uz'
+}
 
 // Axios instance yaratish
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 })
 
-// Request interceptor - har bir so'rovga token qo'shish
+// Request interceptor - har bir so'rovga token va to'g'ri baseURL qo'shish
 axiosInstance.interceptors.request.use(
   (config) => {
+    config.baseURL = getApiBaseUrl()
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`

@@ -260,13 +260,35 @@ export const useAuthStore = defineStore('auth', () => {
       // Set the new token, exam type and name
       token.value = tokenValue
       localStorage.setItem('token', tokenValue)
-      if (examTypeValue) {
-        examType.value = examTypeValue
-        localStorage.setItem('examType', examTypeValue)
+
+      let resolvedExamType = examTypeValue || ''
+      let resolvedName = nameValue || ''
+
+      if (!resolvedExamType || !resolvedName) {
+        try {
+          const parts = tokenValue.split('.')
+          const tokenPart = parts[1]
+          if (tokenPart) {
+            const payload = JSON.parse(atob(tokenPart.replace(/-/g, '+').replace(/_/g, '/')))
+            if (!resolvedExamType && payload?.exam_type) {
+              resolvedExamType = String(payload.exam_type)
+            }
+            if (!resolvedName && payload?.name) {
+              resolvedName = String(payload.name)
+            }
+          }
+        } catch {
+          // ignore
+        }
       }
-      if (nameValue) {
-        takerName.value = nameValue
-        localStorage.setItem('takerName', nameValue)
+
+      if (resolvedExamType) {
+        examType.value = resolvedExamType
+        localStorage.setItem('examType', resolvedExamType)
+      }
+      if (resolvedName) {
+        takerName.value = resolvedName
+        localStorage.setItem('takerName', resolvedName)
       }
 
       // Fetch test data (also validates the token)
