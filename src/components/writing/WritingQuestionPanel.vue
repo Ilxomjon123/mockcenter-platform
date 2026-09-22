@@ -1,7 +1,7 @@
 <template>
   <div class="question-panel" :style="{ width: `${width}%` }">
     <div class="question-content">
-      <div v-if="writingStore.currentPart?.file" class="part-image-container">
+      <div v-if="writingStore.currentPart?.file && !hasImgInContent" class="part-image-container">
         <img :src="writingStore.currentPart.file" :alt="writingStore.currentPart.title" class="part-image" />
       </div>
       <div class="instructions" v-html="writingStore.currentPart?.content"></div>
@@ -10,6 +10,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useWritingStore } from '@/stores/writingStore'
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 defineProps<Props>()
 
 const writingStore = useWritingStore()
+const hasImgInContent = computed(() => /<img\s/i.test(writingStore.currentPart?.content || ''))
 </script>
 
 <style scoped>
@@ -53,20 +55,21 @@ const writingStore = useWritingStore()
 
 .instructions :deep(img),
 .part-image {
-  height: 500px;
-  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 480px;
   object-fit: contain;
   display: block;
-  margin: 16px 0;
+  margin: 16px auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 640px) {
   .instructions :deep(img),
   .part-image {
-    height: auto;
     max-height: 300px;
-    width: 100%;
-    margin: 12px 0;
+    margin: 12px auto;
   }
 }
 

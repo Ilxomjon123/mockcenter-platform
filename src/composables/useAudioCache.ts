@@ -125,7 +125,7 @@ const isUsableAudioBlob = async (blob: Blob, contentType: string): Promise<boole
 /**
  * The URL to download from. Audio URLs are absolute (the backend resolves
  * /storage paths against APP_URL), so they are fetched as given. Only in local
- * development, a /storage URL on a loopback backend (e.g. 127.0.0.1:8001) is
+ * development, a /storage URL on a loopback backend (e.g. 127.0.0.1:8000) is
  * routed through Vite's /storage proxy to avoid CORS.
  */
 const resolveFetchUrl = (url: string): string => {

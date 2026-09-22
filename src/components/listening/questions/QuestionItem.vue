@@ -1,7 +1,15 @@
 <template>
   <div class="question-item" :class="itemClass">
+    <!-- Group Task Instruction Card -->
+    <div v-if="hasGroupInstruction" class="group-instruction-card">
+      <div class="group-instruction-header">
+        <span class="group-instruction-badge">{{ groupInstructionBadge }}</span>
+      </div>
+      <div v-if="groupInstructionBody" class="group-instruction-body" v-html="groupInstructionBody"></div>
+    </div>
+
     <!-- Question title/header -->
-    <div v-if="question.title && cleanedTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
+    <div v-if="shouldRenderTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
       <span v-if="question.displayNumber || question.questionNumber" class="question-number">{{ question.displayNumber || question.questionNumber }}. </span>
       <span v-html="cleanedTitle"></span>
     </div>
@@ -38,6 +46,7 @@ import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import MultipleChoiceQuestion from './MultipleChoiceQuestion.vue'
 import MatchingQuestion from './MatchingQuestion.vue'
 import GapFillQuestion from './GapFillQuestion.vue'
+import { escapeHtml } from '@/utils/sanitize'
 
 const props = defineProps<{
   question: ProcessedQuestion
@@ -86,6 +95,34 @@ const hasOptions = computed(() => {
   return false
 })
 
+// MatchingQuestion (the options branch below) shows options_title above its own options
+const rendersMatchingQuestion = computed(
+  () => hasOptions.value && !isMultipleChoice.value && !isDropdown.value,
+)
+
+const hasGroupInstruction = computed(() => {
+  return !!props.question.options_title && !rendersMatchingQuestion.value
+})
+
+const groupInstructionBadge = computed(() => {
+  const text = (props.question.options_title || '').trim()
+  return text.split('\n')[0]?.trim() || ''
+})
+
+const groupInstructionBody = computed(() => {
+  const text = (props.question.options_title || '').trim()
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (lines.length <= 1) return ''
+  return lines.slice(1).map(escapeHtml).join('<br>')
+})
+
+const shouldRenderTitle = computed(() => {
+  if (isMultipleChoice.value && !cleanedTitle.value) {
+    return false
+  }
+  return !!(props.question.title && cleanedTitle.value)
+})
+
 const isGapFill = computed(() => {
   return props.question.type === QuestionType.GAP_FILLING && !hasOptions.value
 })
@@ -98,6 +135,34 @@ const itemClass = computed(() => ({
 </script>
 
 <style scoped>
+.group-instruction-card {
+  margin-bottom: 22px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.group-instruction-header {
+  margin-bottom: 6px;
+}
+
+.group-instruction-badge {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: #1e293b;
+  letter-spacing: 0.02em;
+}
+
+.group-instruction-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #334155;
+}
+
 .question-item {
   padding: 24px 32px;
   border-bottom: 1px solid #e5e5e5;

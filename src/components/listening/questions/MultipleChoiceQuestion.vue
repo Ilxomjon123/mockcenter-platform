@@ -1,6 +1,9 @@
 <template>
   <div :data-question-number="baseQuestionNumber">
-    <div v-if="displayContent" class="question-content" v-html="displayContent"></div>
+    <div v-if="displayContent || showContentNumber" class="question-content" :class="{ 'has-number': showContentNumber }">
+      <span v-if="showContentNumber" class="question-number">{{ questionNumberDisplay }}. </span>
+      <span v-if="displayContent" class="question-statement" v-html="displayContent"></span>
+    </div>
     <div class="options-container">
       <label
         v-for="(opt, idx) in optionsArray"
@@ -40,6 +43,26 @@ const props = defineProps<{
   question: ProcessedQuestion
 }>()
 
+const baseQuestionNumber = computed(() => props.question.questionNumber || props.question.id)
+const questionNumberDisplay = computed(() => props.question.displayNumber || props.question.questionNumber || baseQuestionNumber.value)
+
+const hasParentTitle = computed(() => {
+  const t = (props.question.title || '').trim()
+  if (!t) return false
+  if (/^(?:Question|Statement)\s+\d+[\.:]?$/i.test(t)) return false
+  const num = questionNumberDisplay.value
+  if (num !== undefined && num !== null && num !== '') {
+    const pattern = new RegExp(`^(?:(?:Question|Statement)\\s+${num}[.):\\-\\s\\u00a0]+|${num}[.):][\\s\\u00a0]+)`, 'i')
+    const stripped = t.replace(pattern, '').trim()
+    if (!stripped) return false
+  }
+  return true
+})
+
+const showContentNumber = computed(() => {
+  return !hasParentTitle.value && !!questionNumberDisplay.value
+})
+
 const displayContent = computed(() => {
   if (!props.question.content) return ''
   const c = props.question.content.trim()
@@ -52,7 +75,6 @@ const displayContent = computed(() => {
 
 const listeningStore = useListeningStore()
 
-const baseQuestionNumber = computed(() => props.question.questionNumber || props.question.id)
 const maxAnswers = computed(() => props.question.answers_count || 1)
 const isMultiple = computed(() => maxAnswers.value > 1)
 
@@ -130,10 +152,32 @@ const onToggle = (value: string) => {
 
 <style scoped>
 .question-content {
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.8;
-  margin-bottom: 12px;
+  font-size: 15px;
+  color: #1f2937;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.question-content.has-number {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.question-content .question-number {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1e293b;
+  flex-shrink: 0;
+}
+
+.question-statement {
+  flex: 1;
+}
+
+.question-content.has-number .question-statement :deep(p) {
+  margin: 0;
+  display: inline;
 }
 
 .options-container {

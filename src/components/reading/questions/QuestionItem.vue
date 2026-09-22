@@ -9,7 +9,7 @@
     </div>
 
     <!-- Question title/header -->
-    <div v-if="question.title && cleanedTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
+    <div v-if="shouldRenderTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
       <span v-if="question.displayNumber || question.questionNumber" class="question-number">{{ question.displayNumber || question.questionNumber }}. </span>
       <span v-html="cleanedTitle"></span>
     </div>
@@ -135,6 +135,27 @@ const groupInstructionBody = computed(() => {
   return lines.slice(1).map(escapeHtml).join('<br>')
 })
 
+// Same condition as MatchingQuestion's picker mode (any type routed to MatchingQuestion
+// above, incl. matching_information without children): it renders "N. prompt" itself.
+const isPickerMatching = computed(() => {
+  if (!hasOptions.value || isMultipleChoice.value || isHeadingStyle.value || isDropdown.value) return false
+  if (!props.question.questionNumber) return false
+  const html = props.question.processedContent || ''
+  return !/match-dropzone|gap-input|dropdown-select/.test(html)
+})
+
+const shouldRenderTitle = computed(() => {
+  // If it's a picker matching question (e.g. Paragraph B heading picker), MatchingQuestion renders its own header
+  if (isPickerMatching.value) {
+    return false
+  }
+  // If it's multiple choice / TFNG and cleanedTitle is empty, MultipleChoiceQuestion renders the statement with number
+  if (isMultipleChoice.value && !cleanedTitle.value) {
+    return false
+  }
+  return !!(props.question.title && cleanedTitle.value)
+})
+
 const itemClass = computed(() => ({
   'question-parent': props.isParent,
   'question-child': props.isChild,
@@ -143,29 +164,31 @@ const itemClass = computed(() => ({
 
 <style scoped>
 .group-instruction-card {
-  margin-bottom: 20px;
-  padding: 12px 16px;
+  margin-bottom: 22px;
+  padding: 14px 18px;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2563eb;
   border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .group-instruction-header {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .group-instruction-badge {
   display: inline-block;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 14.5px;
   color: #1e293b;
   letter-spacing: 0.02em;
 }
 
 .group-instruction-body {
   font-size: 14px;
-  line-height: 1.6;
-  color: #475569;
+  line-height: 1.65;
+  color: #334155;
 }
 
 .question-item {

@@ -1,11 +1,11 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     vue({
       script: {
@@ -23,7 +23,8 @@ export default defineConfig({
     allowedHosts: ['edfba627c681.ngrok-free.app'],
     proxy: {
       '/storage': {
-        target: 'http://127.0.0.1:8001',
+        // Dev only: serve backend /storage files through the local API the app talks to.
+        target: loadEnv(mode, process.cwd(), '').VITE_API_URL || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },
@@ -48,4 +49,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['vue', 'vue-router', 'pinia', 'axios'],
   },
-})
+}))
