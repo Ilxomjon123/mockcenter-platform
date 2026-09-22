@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { ListeningState } from '@/types/listening'
 import { QuestionType, type ExamTestRaw, type PartRaw, type QuestionRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
+import { countAnswerTokens, isStandaloneFillQuestion } from '@/utils/questionUtils'
 
 const STORAGE_KEY = 'ielts_listening_state'
 
@@ -82,28 +83,22 @@ export const useListeningStore = defineStore('listening', {
       const sortedParts = [...this.test.parts].sort((a, b) => a.order - b.order)
       let currentCounter = 1
 
-      // Pre-compiled regex for better performance
-      const gapRegex = /\[gap\]/g
-      const matchRegex = /\[match\]/g
-
-      const countGapsAndMatches = (text: string | null | undefined): number => {
-        if (!text) return 0
-        const gaps = text.match(gapRegex)?.length ?? 0
-        const matches = text.match(matchRegex)?.length ?? 0
-        return gaps + matches
-      }
-
       const processQuestion = (q: QuestionRaw): void => {
         const qType = q.type
         const hasChildren = Array.isArray(q.children) && q.children.length > 0
+
         if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
         } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += q.answers_count || 1
         } else if (qType === QuestionType.MATCHING_INFORMATION && !hasChildren) {
           currentCounter += 1
+        } else if (isStandaloneFillQuestion(q, false)) {
+          // Single-answer gap/matching question without a token: the processor
+          // appends one, so it takes exactly one number.
+          currentCounter += 1
         }
-        currentCounter += countGapsAndMatches(q.content)
+        currentCounter += countAnswerTokens(q.content)
 
         const children = q.children
         if (children && children.length > 0) {
@@ -117,7 +112,7 @@ export const useListeningStore = defineStore('listening', {
       for (let i = 0; i < sortedParts.length; i++) {
         const part = sortedParts[i]!
         const start = currentCounter
-        currentCounter += countGapsAndMatches(part.content)
+        currentCounter += countAnswerTokens(part.content)
 
         const questions = part.questions
         if (questions) {

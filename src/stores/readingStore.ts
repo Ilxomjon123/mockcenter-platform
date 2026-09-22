@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { ReadingState, ReadingTestRaw } from '@/types/reading'
 import { QuestionType, type ExamTestRaw } from '@/types/test'
 import { useLocalStorage } from '@/composables/useLocalStorage'
+import { countAnswerTokens, isStandaloneFillQuestion } from '@/utils/questionUtils'
 
 const STORAGE_KEY = 'ielts_reading_state'
 const storage = useLocalStorage<ReadingState>(STORAGE_KEY, undefined, 500)
@@ -58,31 +59,26 @@ export const useReadingStore = defineStore('reading', {
       const stats: Record<number, { start: number; end: number }> = {}
       let currentCounter = 1
 
-      // Pre-compiled regex for better performance
-      const gapRegex = /\[gap\]/g
-      const matchRegex = /\[match\]/g
-      const headingMatchRegex = /\[heading_match\]/g
-
-      const countGapsAndMatches = (text: string | null | undefined): number => {
-        if (!text) return 0
-        const gaps = text.match(gapRegex)?.length ?? 0
-        // `[match]` is not a substring of `[heading_match]`, so these counts don't overlap
-        const matches = text.match(matchRegex)?.length ?? 0
-        const headingMatches = text.match(headingMatchRegex)?.length ?? 0
-        return gaps + matches + headingMatches
-      }
+      // Numbering must match useReadingQuestionProcessor exactly (see questionUtils helpers).
+      let partHasTokens = false
 
       const processNode = (q: RawQuestion | RawChild): void => {
         const qType = q.type
         const hasChildren = 'children' in q && Array.isArray(q.children) && q.children.length > 0
+
         if (qType === QuestionType.TRUE_FALSE_NOT_GIVEN || qType === QuestionType.YES_NO_NOT_GIVEN) {
           currentCounter += 1
         } else if (qType === QuestionType.MULTIPLE_CHOICE) {
           currentCounter += (q as RawQuestion).answers_count || 1
         } else if (qType === QuestionType.MATCHING_INFORMATION && !hasChildren) {
           currentCounter += 1
+        } else if (isStandaloneFillQuestion(q, partHasTokens)) {
+          // Legacy single-answer question (no token here or in the passage)
+          currentCounter += 1
         }
-        currentCounter += countGapsAndMatches(q.content)
+        // Fill-type questions without tokens in a passage-token part take no number:
+        // their answer is the passage gap/dropzone (isPassageTokenQuestion).
+        currentCounter += countAnswerTokens(q.content)
 
         if ('children' in q && q.children) {
           const sortedChildren = [...q.children].sort((a, b) => a.order - b.order)
@@ -95,7 +91,9 @@ export const useReadingStore = defineStore('reading', {
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i]!
         const start = currentCounter
-        currentCounter += countGapsAndMatches(part.content)
+        const partGaps = countAnswerTokens(part.content)
+        partHasTokens = partGaps > 0
+        currentCounter += partGaps
 
         const questions = part.questions
         if (questions) {

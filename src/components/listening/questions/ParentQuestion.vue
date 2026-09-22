@@ -5,6 +5,12 @@
     :question="question"
   />
 
+  <!-- Matching Group parent renders as side-by-side matching with single options bank -->
+  <MatchingGroupQuestion
+    v-else-if="isMatching"
+    :question="question"
+  />
+
   <template v-else>
     <!-- Parent question header -->
     <div class="question-item question-parent">
@@ -36,6 +42,7 @@ import { computed } from 'vue'
 import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import QuestionItem from './QuestionItem.vue'
 import MatchingInformationQuestion from './MatchingInformationQuestion.vue'
+import MatchingGroupQuestion from './MatchingGroupQuestion.vue'
 
 const props = defineProps<{
   question: ProcessedQuestion
@@ -43,6 +50,14 @@ const props = defineProps<{
 
 const isMatchingInformation = computed(
   () => props.question.type === QuestionType.MATCHING_INFORMATION,
+)
+
+const isMatching = computed(
+  () =>
+    (props.question.type === QuestionType.MATCHING ||
+      props.question.type === ('matching' as unknown)) &&
+    Array.isArray(props.question.children) &&
+    props.question.children.length > 0,
 )
 </script>
 

@@ -31,7 +31,7 @@
       <div v-for="child in children" :key="child.id" class="mg-child">
         <div class="mg-statement">
           <span v-if="child.displayNumber" class="mg-num">{{ child.displayNumber }}</span>
-          <span class="mg-statement-text" v-html="child.title"></span>
+          <span class="mg-statement-text" v-html="cleanChildTitle(child.title, child.displayNumber || child.questionNumber)"></span>
         </div>
         <div class="mg-drop" v-html="child.processedContent"></div>
       </div>
@@ -101,6 +101,21 @@ const options = computed<MatchOption[]>(() => {
 
   return []
 })
+
+const cleanChildTitle = (title: string | null | undefined, num: string | number | undefined): string => {
+  if (!title) return ''
+  let t = title.trim()
+  if (num !== undefined && num !== null && num !== '') {
+    const pattern = new RegExp(`^(?:(?:Question|Statement)\\s+${num}[.):\\-\\s\\u00a0]+|${num}[.):][\\s\\u00a0]+)`, 'i')
+    while (pattern.test(t)) {
+      t = t.replace(pattern, '').trim()
+    }
+  }
+  if (/^(?:Question|Statement)\s+\d+[\.:]?$/i.test(t)) {
+    return ''
+  }
+  return t
+}
 </script>
 
 <style src="./styles/shared.css"></style>

@@ -1,9 +1,9 @@
 <template>
   <div class="question-item" :class="itemClass">
     <!-- Question title/header -->
-    <div v-if="question.title" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
+    <div v-if="question.title && cleanedTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
       <span v-if="question.displayNumber || question.questionNumber" class="question-number">{{ question.displayNumber || question.questionNumber }}. </span>
-      <span v-html="question.title"></span>
+      <span v-html="cleanedTitle"></span>
     </div>
 
     <!-- Multiple choice / test type -->
@@ -45,8 +45,33 @@ const props = defineProps<{
   isChild?: boolean
 }>()
 
+const cleanedTitle = computed(() => {
+  let title = (props.question.title || '').trim()
+  const num = props.question.displayNumber || props.question.questionNumber
+  if (num !== undefined && num !== null && num !== '') {
+    const pattern = new RegExp(`^(?:(?:Question|Statement)\\s+${num}[.):\\-\\s\\u00a0]+|${num}[.):][\\s\\u00a0]+)`, 'i')
+    while (pattern.test(title)) {
+      title = title.replace(pattern, '').trim()
+    }
+  }
+  // Strip redundant leading sub-number (e.g. "1. How does..." or "(1) How does...")
+  // (only "1. " / "(1) " style; keeps titles such as "24-hour service" or "10:30 start")
+  title = title.replace(/^\(?\d{1,2}[.)]\s+/, '').trim()
+
+  if (/^(?:Question|Statement)\s+\d+[\.:]?$/i.test(title)) {
+    return ''
+  }
+  return title
+})
+
+// TRUE/FALSE/NOT GIVEN (and YES/NO/NOT GIVEN) are single-choice questions too:
+// they take a number in partStats and need radio options (as in reading).
 const isMultipleChoice = computed(() => {
-  return props.question.type === QuestionType.MULTIPLE_CHOICE
+  return (
+    props.question.type === QuestionType.MULTIPLE_CHOICE ||
+    props.question.type === QuestionType.TRUE_FALSE_NOT_GIVEN ||
+    props.question.type === QuestionType.YES_NO_NOT_GIVEN
+  )
 })
 
 const isDropdown = computed(() => {
@@ -61,9 +86,14 @@ const hasOptions = computed(() => {
   return false
 })
 
+const isGapFill = computed(() => {
+  return props.question.type === QuestionType.GAP_FILLING && !hasOptions.value
+})
+
 const itemClass = computed(() => ({
   'question-parent': props.isParent,
   'question-child': props.isChild,
+  'question-gap-fill': isGapFill.value,
 }))
 </script>
 
@@ -72,6 +102,12 @@ const itemClass = computed(() => ({
   padding: 24px 32px;
   border-bottom: 1px solid #e5e5e5;
   background: white;
+}
+
+.question-item.question-gap-fill {
+  background: transparent;
+  border-bottom: none;
+  padding: 16px 32px;
 }
 
 .question-item.question-parent {

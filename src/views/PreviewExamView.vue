@@ -151,6 +151,7 @@ import type { SectionWithPartsRaw, ExamTestRaw } from '@/types/test'
 import { useReadingStore } from '@/stores/readingStore'
 import { useWritingStore } from '@/stores/writingStore'
 import { useListeningStore } from '@/stores/listeningStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useResizable } from '@/composables/useResizable'
 import { useGlobalReadingDragDrop } from '@/composables/useGlobalReadingDragDrop'
 import { useApi } from '@/composables/useApi'
@@ -171,6 +172,7 @@ const error = ref('')
 const readingStore = useReadingStore()
 const writingStore = useWritingStore()
 const listeningStore = useListeningStore()
+const authStore = useAuthStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 const { get } = useApi()
 
@@ -198,6 +200,10 @@ const fetchPreview = async (type: string) => {
     }
 
     const section: SectionWithPartsRaw = response.data
+    const rawSection = section as unknown as Record<string, unknown>
+    if (rawSection.exam_type) {
+      authStore.examType = String(rawSection.exam_type)
+    }
 
     // Build a minimal ExamTestRaw with just this section
     const testData: ExamTestRaw = {

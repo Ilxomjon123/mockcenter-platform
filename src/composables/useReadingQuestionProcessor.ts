@@ -2,7 +2,17 @@ import { computed, type Ref, nextTick, watch } from 'vue'
 import { useReadingStore } from '@/stores/readingStore'
 import { QuestionType, type ProcessedQuestion } from '@/types/test'
 import type { ReadingTestRaw } from '@/types/reading'
-import { processQuestionText, processDropdownText, restoreAnswersInContainer, autoResizeInput, autoResizeAllInputs } from '@/utils/questionUtils'
+import {
+  processQuestionText,
+  processDropdownText,
+  restoreAnswersInContainer,
+  autoResizeInput,
+  autoResizeAllInputs,
+  countAnswerTokens,
+  isStandaloneFillQuestion,
+  isPassageTokenQuestion,
+  isPassageOnlyPart,
+} from '@/utils/questionUtils'
 
 interface QuestionProcessorOptions {
   containerRef: Ref<HTMLElement | null>
@@ -28,6 +38,7 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
 
     const questions = [...part.questions].sort((a, b) => a.order - b.order)
     let globalGapCounter = stats[currentPart].start - 1
+    const partHasTokens = countAnswerTokens(part.content) > 0
 
     // Also account for gaps in passage content to keep globalGapCounter correct
     if (part.content) {
@@ -71,15 +82,22 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
         } else {
           processed.displayNumber = String(globalGapCounter)
         }
-      } else if (q.type === QuestionType.MATCHING) {
-        // Statement-style matching: the question number is the number the
-        // upcoming [match] dropzone in `content` will receive. Heading-style
-        // matching (no [match] in content) keeps its dropzones in the passage,
-        // so it gets no number here.
+      } else if (q.type === QuestionType.MATCHING || q.type === QuestionType.MATCH_HEADING) {
         if (typeof q.content === 'string' && q.content.includes('[match]')) {
+          // Statement-style matching: the question number is the number the
+          // upcoming [match] dropzone in `content` will receive.
           const num = globalGapCounter + 1
           processed.questionNumber = num
           processed.displayNumber = String(num)
+        } else if (isStandaloneFillQuestion(q, partHasTokens)) {
+          // Legacy/CEFR single-answer matching ("Text 7", "Paragraph I"): one number,
+          // answered with the letter pills / dropdown of MatchingQuestion.
+          globalGapCounter++
+          processed.questionNumber = globalGapCounter
+          processed.displayNumber = String(globalGapCounter)
+        } else if (isPassageTokenQuestion(q, partHasTokens)) {
+          // Heading-style: dropzones are in the passage, this question holds the options.
+          processed.usesPassageDropzones = true
         }
       } else if (q.type === QuestionType.MATCHING_INFORMATION) {
         const hasChildren = 'children' in q && Array.isArray(q.children) && q.children.length > 0
@@ -88,22 +106,31 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
           processed.questionNumber = globalGapCounter
           processed.displayNumber = String(globalGapCounter)
         }
+      } else if (isStandaloneFillQuestion(q, partHasTokens)) {
+        // Standalone gap / dropdown without a token: append one so it gets an input
+        // and exactly the one number partStats reserved for it.
+        const token = q.type === QuestionType.DROP_DOWN ? '[match]' : '[gap]'
+        const base = typeof q.content === 'string' ? q.content.trim() : ''
+        processed.content = base ? `${base} ${token}` : token
+      } else if (isPassageTokenQuestion(q, partHasTokens)) {
+        processed.usesPassageDropzones = true
       }
 
-      if (q.content) {
+      const content = processed.content
+      if (content) {
         if (q.type === QuestionType.DROP_DOWN) {
-          const { html, nextCounter } = processDropdownText(q.content, globalGapCounter, q.options)
+          const { html, nextCounter } = processDropdownText(content, globalGapCounter, q.options)
           processed.processedContent = html
           globalGapCounter = nextCounter
         } else {
-          const { html, nextCounter } = processQuestionText(q.content, globalGapCounter)
+          const { html, nextCounter } = processQuestionText(content, globalGapCounter)
           processed.processedContent = html
           globalGapCounter = nextCounter
         }
       }
 
       if ('children' in q && q.children && q.children.length > 0) {
-        processed.children = q.children.map(processAnyQuestion)
+        processed.children = [...q.children].sort((a, b) => a.order - b.order).map(processAnyQuestion)
       }
 
       return processed
@@ -120,13 +147,24 @@ export function useReadingQuestionProcessor(options: QuestionProcessorOptions) {
 
     if (!passage || !passage.content || !stats[currentPart]) return ''
 
-    // If there's highlighted HTML in store, use that
+    // If there's user-highlighted HTML in store, use that
     const highlight = readingStore.highlights[currentPart] || readingStore.highlights[String(currentPart)]
-    if (highlight && typeof highlight === 'string') {
+    if (highlight && typeof highlight === 'string' && highlight.includes('<mark')) {
       return highlight
     }
 
-    const { html } = processQuestionText(passage.content, stats[currentPart].start - 1)
+    let { html } = processQuestionText(passage.content, stats[currentPart].start - 1)
+
+    // CEFR gap-text parts (all answers are passage gaps): label the instruction
+    // card with the real question range instead of the generic "PART N" badge.
+    if (isPassageOnlyPart(passage)) {
+      const range = `Questions ${stats[currentPart].start}–${stats[currentPart].end}`
+      html = html.replace(
+        /(<div class=["']instruction-badge["']>)\s*PART\s*\d+\s*(<\/div>)/i,
+        `$1${range}$2`,
+      )
+    }
+
     return html
   })
 

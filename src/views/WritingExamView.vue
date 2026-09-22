@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useWritingStore } from '@/stores/writingStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useResizable } from '@/composables/useResizable'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
@@ -156,7 +157,15 @@ const currentAnswer = computed({
   set: (value: string): void => writingStore.updateAnswer(value),
 })
 
+const authStore = useAuthStore()
+const isCefr = computed(() => ['cerf', 'cefr'].includes((authStore.examType || '').toLowerCase()))
+
 const instructionText = computed(() => {
+  // CEFR Multilevel tasks carry their own word limits (1.1 ≈ 50, 1.2 ≈ 120–150, Task 2 ≈ 180–200);
+  // the IELTS 150/250-word lines below would contradict them.
+  if (isCefr.value) {
+    return ''
+  }
   if (writingStore.currentPage === 1) {
     return 'You should spend about 20 minutes on this task. Write at least 150 words.'
   } else if (writingStore.currentPage === 2) {

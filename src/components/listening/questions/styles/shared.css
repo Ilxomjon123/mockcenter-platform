@@ -43,23 +43,194 @@
 
 /* Gap input styles */
 .gap-input {
-  min-width: 80px;
+  min-width: 88px;
   width: auto;
   max-width: 100%;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  /* content-box + padding (no fixed height): this stylesheet is global, so the
+     rule also reaches reading gap inputs; autoResizeInput assumes content-box */
+  padding: 6px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
   margin: 0 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  background: #ffffff;
   outline: none;
-  transition: border-color 0.15s ease, width 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: content-box;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.gap-input::placeholder {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.gap-input:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
 }
 
 .gap-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #2563eb;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+}
+
+.gap-input.has-value {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.gap-input:focus,
+.gap-input.has-value:focus {
+  border-color: #0f172a;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12);
+  transform: none;
+}
+
+/* Notes Completion & Lecture Notes - Natural Exam Paper Flow (Matches Official Exam PDF) */
+.notes-completion,
+.notes-sheet-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin: 8px 0 20px 0;
+  font-size: 15px;
+  line-height: 2.1;
+  color: #1e293b;
+  width: 100%;
+  max-width: 920px;
+}
+
+.notes-completion h3,
+.notes-sheet-card h3 {
+  margin: 0 0 16px 0 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Part 6: Lecture Passage - One unified continuous text (bir butun matn) */
+.lecture-passage {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin: 8px 0 20px 0;
+  font-size: 15px;
+  line-height: 2.3;
+  color: #1e293b;
+  width: 100%;
+  max-width: 920px;
+}
+
+.lecture-passage h3,
+.sheet-title {
+  margin: 0 0 16px 0 !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.sheet-badge {
+  display: none !important;
+}
+
+.sheet-body {
+  margin-top: 0;
+}
+
+.lecture-prose,
+.lecture-passage p {
+  margin: 0 0 16px 0 !important;
+  font-size: 15px;
+  line-height: 2.3;
+  color: #1e293b;
+  text-align: left;
+}
+
+/* Fallback: if note-row is rendered inside lecture-passage, make it inline prose */
+.lecture-passage .note-row {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 15px;
+  line-height: 2.3;
+  color: #1e293b;
+}
+
+.lecture-passage .note-row::after {
+  content: ' ';
+  white-space: normal;
+}
+
+.lecture-passage .note-text {
+  display: inline !important;
+  font-size: 15px;
+  line-height: 2.3;
+  color: #1e293b;
+}
+
+/* Part 2 Note rows: clean compact text notes without bullet list items */
+.notes-completion .note-row {
+  display: block !important;
+  margin-bottom: 8px !important;
+  font-size: 15px;
+  line-height: 2.1;
+  color: #1e293b;
+}
+
+.notes-completion .note-row:last-child {
+  margin-bottom: 0 !important;
+}
+
+.notes-completion .note-text {
+  display: inline !important;
+  flex: none !important;
+  font-size: 15px;
+  line-height: 2.1;
+  color: #1e293b;
+}
+
+/* Remove bullets completely - Part 2 and 6 are plain running text/notes, not bullet lists */
+.note-bullet {
+  display: none !important;
+}
+
+.note-text strong {
+  color: #0f172a;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.sub-line {
+  display: block;
+  padding-left: 16px;
+  margin-top: 4px;
 }
 
 /* Draggable option styles */
@@ -126,32 +297,34 @@
 }
 
 .match-dropzone:hover {
-  border-color: #3b82f6;
-  background: #f0f9ff;
+  border-color: #64748b;
+  background: #f8fafc;
 }
 
 .match-dropzone.drag-over {
-  border-color: #3b82f6;
+  border-color: #0f172a;
   border-style: dashed;
-  background: #dbeafe;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: #f1f5f9;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
 }
 
 .match-dropzone.has-value {
   border-style: solid;
-  border-color: #d1d5db;
-  background: #ffffff;
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
   cursor: grab;
 }
 
 .match-dropzone.has-value:hover {
-  border-color: #3b82f6;
-  background: #f0f9ff;
+  border-color: #64748b;
+  background: #f1f5f9;
 }
 
 .match-dropzone.dragging-from {
   opacity: 0.5;
-  border-color: #3b82f6;
+  border-color: #64748b;
   border-style: dashed;
   cursor: grabbing;
 }

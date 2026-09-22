@@ -1,5 +1,6 @@
 import { type Ref } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
+import { findMatchOptions, OPTION_SCOPE_SELECTOR } from '@/utils/questionUtils'
 
 interface DragAndDropOptions {
   containerRef: Ref<HTMLElement | null>
@@ -12,20 +13,42 @@ export function useDragAndDrop(options: DragAndDropOptions) {
   // Drag state
   let draggedOption: HTMLElement | null = null
   let sourceDropzone: HTMLElement | null = null
+  // Option KEY being dragged (what is stored/scored) and the text shown in the box
   let draggedValue: string | null = null
+  let draggedDisplay: string | null = null
   let dragClone: HTMLElement | null = null
   let currentDropzone: HTMLElement | null = null
   let isDragging = false
 
-  // Helper to show option by key
-  const showOptionByKey = (key: string) => {
+  // Helper to show option by key (in the dropzone's own option bank when it has
+  // one), unless another filled dropzone still holds that key (reusable banks)
+  const showOptionByKey = (key: string, zone: HTMLElement) => {
     if (!containerRef.value) return
-    const option = containerRef.value.querySelector(
-      `.draggable-option[data-option-key="${key}"]`
-    ) as HTMLElement
-    if (option) {
-      option.classList.remove('used')
-    }
+    const scope: ParentNode = zone.closest(OPTION_SCOPE_SELECTOR) ?? containerRef.value
+    const stillUsed = Array.from(scope.querySelectorAll<HTMLElement>('.match-dropzone.has-value')).some(
+      (other) => other !== zone && other.dataset.storedKey === key,
+    )
+    if (stillUsed) return
+    findMatchOptions(containerRef.value, key, null, zone).forEach((option) =>
+      option.classList.remove('used'),
+    )
+  }
+
+  // Used options can't be dragged again, except in a shared group bank
+  // (data-reusable) where one letter may answer several questions.
+  const isDraggableOption = (option: HTMLElement): boolean =>
+    !option.classList.contains('used') || option.dataset.reusable === 'true'
+
+  // The stored key of a filled dropzone (never the display text, which can be
+  // "D) a zoo keeper" while the answer is "D").
+  const zoneKey = (dropzone: HTMLElement): string =>
+    dropzone.dataset.storedKey || dropzone.querySelector('.match-value')?.textContent || ''
+
+  const clearZone = (dropzone: HTMLElement) => {
+    const valueEl = dropzone.querySelector('.match-value')
+    if (valueEl) valueEl.textContent = ''
+    delete dropzone.dataset.storedKey
+    dropzone.classList.remove('has-value', 'dragging-from')
   }
 
   // Create custom drag image
@@ -55,32 +78,31 @@ export function useDragAndDrop(options: DragAndDropOptions) {
     const matchNumber = dropzone.dataset.match
     if (!matchNumber || !draggedValue) return
 
+    const key = draggedValue
+
     // If target dropzone already has a value, restore that option
-    const oldValue = dropzone.querySelector('.match-value')?.textContent
-    if (oldValue) {
-      showOptionByKey(oldValue)
+    if (dropzone.classList.contains('has-value')) {
+      const oldKey = zoneKey(dropzone)
+      if (oldKey) showOptionByKey(oldKey, dropzone)
     }
 
-    // Update the target dropzone display
+    // Update the target dropzone display; the key travels in data-stored-key
     const valueEl = dropzone.querySelector('.match-value')
     if (valueEl) {
-      valueEl.textContent = draggedValue
+      valueEl.textContent = draggedDisplay || key
+      dropzone.dataset.storedKey = key
       dropzone.classList.add('has-value')
     }
 
-    // Save to store
-    listeningStore.updateAnswer(parseInt(matchNumber, 10), draggedValue)
+    // Save the option KEY to store
+    listeningStore.updateAnswer(parseInt(matchNumber, 10), key)
 
     // Handle source: either an option or another dropzone
     if (draggedOption) {
       draggedOption.classList.add('used')
     } else if (sourceDropzone) {
-      const sourceValueEl = sourceDropzone.querySelector('.match-value')
       const sourceMatchNumber = sourceDropzone.dataset.match
-      if (sourceValueEl) {
-        sourceValueEl.textContent = ''
-      }
-      sourceDropzone.classList.remove('has-value', 'dragging-from')
+      clearZone(sourceDropzone)
 
       if (sourceMatchNumber) {
         delete listeningStore.answers[parseInt(sourceMatchNumber, 10)]
@@ -96,15 +118,16 @@ export function useDragAndDrop(options: DragAndDropOptions) {
 
     // Check if clicking on an option
     const option = target.closest('.draggable-option') as HTMLElement
-    if (option && !option.classList.contains('used')) {
+    if (option && isDraggableOption(option)) {
       e.preventDefault()
       isDragging = true
       draggedOption = option
       draggedValue = option.dataset.optionKey || ''
+      draggedDisplay = option.dataset.optionDisplay || draggedValue
       sourceDropzone = null
       option.classList.add('dragging')
 
-      dragClone = createDragImage(draggedValue)
+      dragClone = createDragImage(draggedDisplay)
       dragClone.style.left = `${e.clientX}px`
       dragClone.style.top = `${e.clientY}px`
       return
@@ -114,8 +137,8 @@ export function useDragAndDrop(options: DragAndDropOptions) {
     const dropzone = target.closest('.match-dropzone') as HTMLElement
     if (dropzone && dropzone.classList.contains('has-value')) {
       e.preventDefault()
-      const valueEl = dropzone.querySelector('.match-value')
-      draggedValue = valueEl?.textContent || ''
+      draggedValue = zoneKey(dropzone)
+      draggedDisplay = dropzone.querySelector('.match-value')?.textContent || draggedValue
       if (!draggedValue) return
 
       isDragging = true
@@ -123,7 +146,7 @@ export function useDragAndDrop(options: DragAndDropOptions) {
       draggedOption = null
       dropzone.classList.add('dragging-from')
 
-      dragClone = createDragImage(draggedValue)
+      dragClone = createDragImage(draggedDisplay)
       dragClone.style.left = `${e.clientX}px`
       dragClone.style.top = `${e.clientY}px`
     }
@@ -189,6 +212,7 @@ export function useDragAndDrop(options: DragAndDropOptions) {
     draggedOption = null
     sourceDropzone = null
     draggedValue = null
+    draggedDisplay = null
     currentDropzone = null
 
     // Clean up any remaining drag-over classes
@@ -206,14 +230,15 @@ export function useDragAndDrop(options: DragAndDropOptions) {
 
     // Check if touching an option
     const option = target.closest('.draggable-option') as HTMLElement
-    if (option && !option.classList.contains('used')) {
+    if (option && isDraggableOption(option)) {
       isDragging = true
       draggedOption = option
       draggedValue = option.dataset.optionKey || ''
+      draggedDisplay = option.dataset.optionDisplay || draggedValue
       sourceDropzone = null
       option.classList.add('touch-dragging')
 
-      dragClone = createDragImage(draggedValue)
+      dragClone = createDragImage(draggedDisplay)
       dragClone.style.left = `${touch.clientX}px`
       dragClone.style.top = `${touch.clientY}px`
       return
@@ -222,8 +247,8 @@ export function useDragAndDrop(options: DragAndDropOptions) {
     // Check if touching a dropzone with value
     const dropzone = target.closest('.match-dropzone') as HTMLElement
     if (dropzone && dropzone.classList.contains('has-value')) {
-      const valueEl = dropzone.querySelector('.match-value')
-      draggedValue = valueEl?.textContent || ''
+      draggedValue = zoneKey(dropzone)
+      draggedDisplay = dropzone.querySelector('.match-value')?.textContent || draggedValue
       if (!draggedValue) return
 
       isDragging = true
@@ -231,7 +256,7 @@ export function useDragAndDrop(options: DragAndDropOptions) {
       draggedOption = null
       dropzone.classList.add('dragging-from')
 
-      dragClone = createDragImage(draggedValue)
+      dragClone = createDragImage(draggedDisplay)
       dragClone.style.left = `${touch.clientX}px`
       dragClone.style.top = `${touch.clientY}px`
     }
@@ -293,6 +318,7 @@ export function useDragAndDrop(options: DragAndDropOptions) {
     draggedOption = null
     sourceDropzone = null
     draggedValue = null
+    draggedDisplay = null
     currentDropzone = null
   }
 
@@ -310,16 +336,16 @@ export function useDragAndDrop(options: DragAndDropOptions) {
 
     const matchNumber = dropzone.dataset.match
     const valueEl = dropzone.querySelector('.match-value')
-    const currentValue = valueEl?.textContent
+    const currentKey = zoneKey(dropzone)
 
     if (matchNumber && valueEl) {
       setTimeout(() => {
-        if (currentValue) {
-          showOptionByKey(currentValue)
+        if (currentKey) {
+          showOptionByKey(currentKey, dropzone)
         }
 
-        valueEl.textContent = ''
-        dropzone.classList.remove('has-value', 'remove-animation')
+        clearZone(dropzone)
+        dropzone.classList.remove('remove-animation')
 
         delete listeningStore.answers[parseInt(matchNumber, 10)]
         listeningStore.saveToStorage()

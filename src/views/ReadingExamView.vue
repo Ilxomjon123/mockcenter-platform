@@ -7,12 +7,12 @@
       <div class="reading-header">
         <div class="header-info">
           <span class="part-label">{{ $t('footer.part', { part: readingStore.currentPart }) }}</span>
-          <p class="instruction">{{ $t('reading.readAndAnswer', { range: getQuestionsRange }) }}</p>
+          <p class="instruction">{{ currentPartInstruction }}</p>
         </div>
       </div>
 
-      <!-- Mobile Tab Switcher -->
-      <div v-if="hasPassage" class="mobile-tabs">
+      <!-- Mobile Tab Switcher (only for multi-panel parts) -->
+      <div v-if="hasPassage && !isPassageOnly" class="mobile-tabs">
         <button
           class="mobile-tab"
           :class="{ active: activeTab === 'passage' }"
@@ -38,8 +38,18 @@
         </button>
       </div>
 
-      <!-- Panels container -->
-      <div class="panels-container" :class="{ 'no-passage': !hasPassage }">
+      <!-- Gap-text part (every answer is a gap in the passage, e.g. CEFR Part 1):
+           single full-width passage, no question panel -->
+      <div v-if="isPassageOnly" class="single-panel-container">
+        <ReadingPassagePanel
+          :width="100"
+          :passage="readingStore.currentPassage"
+          class="full-width-passage"
+        />
+      </div>
+
+      <!-- Passage + questions side by side -->
+      <div v-else class="panels-container" :class="{ 'no-passage': !hasPassage }">
         <ReadingPassagePanel
           v-if="hasPassage"
           :width="leftWidth"
@@ -76,9 +86,12 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useReadingStore } from '@/stores/readingStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useResizable } from '@/composables/useResizable'
 import { useGlobalReadingDragDrop } from '@/composables/useGlobalReadingDragDrop'
+import { isPassageOnlyPart } from '@/utils/questionUtils'
 import ExamHeader from '@/components/exam/ExamHeader.vue'
 import ExamFooter from '@/components/exam/ExamFooter.vue'
 import ReadingPassagePanel from '@/components/reading/ReadingPassagePanel.vue'
@@ -87,7 +100,9 @@ import ResizableDivider from '@/components/exam/ResizableDivider.vue'
 import ReadingCompletedModal from '@/components/reading/ReadingCompletedModal.vue'
 import { useHealthCheck } from '@/composables/useHealthCheck'
 
+const { t } = useI18n()
 const readingStore = useReadingStore()
+const authStore = useAuthStore()
 const { leftWidth, isDragging, startDrag } = useResizable()
 const { setupGlobalListeners, cleanupGlobalListeners } = useGlobalReadingDragDrop()
 const currentQuestion = ref(0)
@@ -211,6 +226,33 @@ const hasPassage = computed((): boolean => {
   return !!content && content.trim() !== ''
 })
 
+// Every answer of the current part is a gap/dropzone inside the passage and the
+// questions carry nothing to show → render the passage alone, full width.
+const isPassageOnly = computed((): boolean => isPassageOnlyPart(readingStore.currentPassage))
+
+const isCefr = computed(() => ['cerf', 'cefr'].includes((authStore.examType || '').toLowerCase()))
+
+const currentPartInstruction = computed((): string => {
+  const range = getQuestionsRange.value
+  const generic = t('reading.readAndAnswer', { range })
+  if (!isCefr.value) return generic
+
+  // CEFR Multilevel reading instructions (question ranges come from the data)
+  switch (readingStore.currentPart) {
+    case 1:
+      return 'Read the text. Fill in each gap with ONE word. You must use a word which is somewhere in the rest of the text.'
+    case 2:
+      return `Read the texts ${range} and the statements. Decide which text matches with the situation described in the statements. Each statement can be used ONCE only. There are extra statements which you do not need to use.`
+    case 3:
+      return `Read the text and the list of headings. Choose the correct heading for each paragraph (questions ${range}).`
+    case 4:
+    case 5:
+      return `Read the following text for questions ${range}.`
+    default:
+      return generic
+  }
+})
+
 const getQuestionsRange = computed((): string => {
   const part = readingStore.currentPart
   const stats = readingStore.partStats[part]
@@ -239,9 +281,8 @@ const handleQuestionChange = async (questionNumber: number): Promise<void> => {
 
   await nextTick()
 
-  // Find the input or dropzone with the matching data-gap attribute
-  const container = document.querySelector('.question-panel .questions-container')
-  if (!container) return
+  // Find the input or dropzone across the active main-content area
+  const container = document.querySelector('.main-content') || document
 
   // Try gap input first
   let element = container.querySelector<HTMLInputElement>(
@@ -255,11 +296,11 @@ const handleQuestionChange = async (questionNumber: number): Promise<void> => {
     ) as HTMLInputElement
   }
 
-  // If not found, try multiple choice option with matching question number
+  // If not found, try question container or matching row with matching question number
   if (!element) {
-    const mcQuestion = container.querySelector(`[data-question-number="${questionNumber}"]`)
-    if (mcQuestion) {
-      mcQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const qEl = container.querySelector(`[data-question-number="${questionNumber}"]`)
+    if (qEl) {
+      qEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
   }
@@ -401,6 +442,31 @@ const handleSubmit = (): void => {
   flex: 1;
   display: flex;
   overflow: hidden;
+}
+
+.single-panel-container {
+  flex: 1;
+  display: flex;
+  overflow-y: auto;
+  background: #ffffff;
+  justify-content: center;
+}
+
+.single-panel-container :deep(.passage-panel) {
+  width: 100% !important;
+  max-width: 960px;
+  margin: 0 auto;
+  border-right: none !important;
+}
+
+.single-panel-container :deep(.passage-content) {
+  padding: 36px 48px;
+}
+
+@media (max-width: 640px) {
+  .single-panel-container :deep(.passage-content) {
+    padding: 20px 16px;
+  }
 }
 
 .panels-container.no-passage :deep(.question-panel) {

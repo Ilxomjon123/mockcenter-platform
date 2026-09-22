@@ -1,9 +1,17 @@
 <template>
   <div class="question-item" :class="itemClass">
+    <!-- Group Task Instruction Card (authentic topshiriq / savol matni) -->
+    <div v-if="hasGroupInstruction" class="group-instruction-card">
+      <div class="group-instruction-header">
+        <span class="group-instruction-badge">{{ groupInstructionBadge }}</span>
+      </div>
+      <div v-if="groupInstructionBody" class="group-instruction-body" v-html="groupInstructionBody"></div>
+    </div>
+
     <!-- Question title/header -->
-    <div v-if="question.title" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
+    <div v-if="question.title && cleanedTitle" class="question-text" :class="{ 'has-number': question.displayNumber || question.questionNumber }">
       <span v-if="question.displayNumber || question.questionNumber" class="question-number">{{ question.displayNumber || question.questionNumber }}. </span>
-      <span v-html="question.title"></span>
+      <span v-html="cleanedTitle"></span>
     </div>
 
     <!-- Multiple choice / test type / true_false_not_given -->
@@ -12,15 +20,15 @@
       :question="question"
     />
 
-    <!-- Heading type (options only, dropzones are in passage) -->
+    <!-- Heading-style: options only, the dropzones are in the passage -->
     <HeadingQuestion
-      v-else-if="(isHeading || isMatchHeading) && hasOptions"
+      v-else-if="isHeadingStyle"
       :question="question"
     />
 
-    <!-- Matching/draggable type -->
+    <!-- Matching: statement dropzones in content, or a single-answer letter picker -->
     <MatchingQuestion
-      v-else-if="isMatching && hasOptions"
+      v-else-if="(isMatching || isMatchHeading) && hasOptions"
       :question="question"
     />
 
@@ -51,6 +59,7 @@ import MultipleChoiceQuestion from './MultipleChoiceQuestion.vue'
 import MatchingQuestion from './MatchingQuestion.vue'
 import HeadingQuestion from './HeadingQuestion.vue'
 import GapFillQuestion from './GapFillQuestion.vue'
+import { escapeHtml } from '@/utils/sanitize'
 
 const props = defineProps<{
   question: ProcessedQuestion
@@ -58,18 +67,32 @@ const props = defineProps<{
   isChild?: boolean
 }>()
 
+const cleanedTitle = computed(() => {
+  let title = (props.question.title || '').trim()
+  const num = props.question.displayNumber || props.question.questionNumber
+  if (num !== undefined && num !== null && num !== '') {
+    const pattern = new RegExp(`^(?:(?:Question|Statement)\\s+${num}[.):\\-\\s\\u00a0]+|${num}[.):][\\s\\u00a0]+)`, 'i')
+    while (pattern.test(title)) {
+      title = title.replace(pattern, '').trim()
+    }
+  }
+  if (/^(?:Question|Statement)\s+\d+[\.:]?$/i.test(title)) {
+    return ''
+  }
+  return title
+})
+
 const isMultipleChoice = computed(() => {
   return props.question.type === QuestionType.MULTIPLE_CHOICE ||
          props.question.type === QuestionType.TRUE_FALSE_NOT_GIVEN ||
          props.question.type === QuestionType.YES_NO_NOT_GIVEN
 })
 
-// Heading-style matching: has options but dropzones are in passage (no [match] in question content)
-const isHeading = computed(() => {
-  if (props.question.type !== QuestionType.MATCHING) return false
-  // If question content has [match], dropzones are in question, not heading style
-  const hasMatchInContent = props.question.content?.includes('[match]') || false
-  return !hasMatchInContent
+// Heading-style matching: options here, [match]/[heading_match] dropzones in the passage
+const isHeadingStyle = computed(() => {
+  const type = props.question.type
+  if (type !== QuestionType.MATCHING && type !== QuestionType.MATCH_HEADING) return false
+  return !!props.question.usesPassageDropzones && hasOptions.value
 })
 
 const isMatching = computed(() => {
@@ -94,6 +117,24 @@ const hasOptions = computed(() => {
   return false
 })
 
+// HeadingQuestion renders options_title itself
+const hasGroupInstruction = computed(() => {
+  return !!props.question.options_title && !isHeadingStyle.value
+})
+
+const groupInstructionBadge = computed(() => {
+  const text = (props.question.options_title || '').trim()
+  const firstLine = text.split('\n')[0]?.trim() || ''
+  return firstLine
+})
+
+const groupInstructionBody = computed(() => {
+  const text = (props.question.options_title || '').trim()
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (lines.length <= 1) return ''
+  return lines.slice(1).map(escapeHtml).join('<br>')
+})
+
 const itemClass = computed(() => ({
   'question-parent': props.isParent,
   'question-child': props.isChild,
@@ -101,6 +142,32 @@ const itemClass = computed(() => ({
 </script>
 
 <style scoped>
+.group-instruction-card {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.group-instruction-header {
+  margin-bottom: 4px;
+}
+
+.group-instruction-badge {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1e293b;
+  letter-spacing: 0.02em;
+}
+
+.group-instruction-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+}
+
 .question-item {
   padding: 24px 32px;
   border-bottom: 1px solid #e5e5e5;

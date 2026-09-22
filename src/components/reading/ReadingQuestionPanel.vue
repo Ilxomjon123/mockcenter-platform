@@ -2,7 +2,13 @@
   <div class="question-panel">
     <!-- Display all questions in current part -->
     <div ref="questionsContainerRef" class="questions-container" @mouseup="handleMouseUp">
-      <template v-for="question in processedQuestions" :key="question.id">
+      <!-- Heading matching with [heading_match] dropzones in the passage: one Headings panel -->
+      <template v-if="headingBankQuestion">
+        <HeadingQuestion :question="headingBankQuestion" />
+      </template>
+
+      <!-- Standard Question List for other parts (incl. standalone "Paragraph I" headings) -->
+      <template v-else v-for="question in visibleQuestions" :key="question.id">
         <!-- Question with children (parent type) -->
         <ParentQuestion
           v-if="question.children && question.children.length > 0"
@@ -80,10 +86,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { useReadingQuestionProcessor } from '@/composables/useReadingQuestionProcessor'
 import { useReadingStore } from '@/stores/readingStore'
-import { QuestionItem, ParentQuestion } from './questions'
+import { QuestionType } from '@/types/test'
+import { isBlankQuestion, normalizeMatchOptions } from '@/utils/questionUtils'
+import { QuestionItem, ParentQuestion, HeadingQuestion } from './questions'
 
 const readingStore = useReadingStore()
 
@@ -93,6 +101,22 @@ const questionsContainerRef = ref<HTMLElement | null>(null)
 // Question processor composable
 const { processedQuestions, restoreGapValues, setupInputListener } = useReadingQuestionProcessor({
   containerRef: questionsContainerRef,
+})
+
+// Passage-token metadata rows (no title/content/options) have nothing to show.
+const visibleQuestions = computed(() => processedQuestions.value.filter((q) => !isBlankQuestion(q)))
+
+// Every question is a match_heading whose answers are [heading_match] dropzones in
+// the passage → show a single headings bank. Without passage dropzones (legacy
+// "Paragraph I" questions) each question is answered on its own instead.
+const headingBankQuestion = computed(() => {
+  const questions = processedQuestions.value
+  if (questions.length === 0) return null
+  const allPassageHeadings = questions.every(
+    (q) => q.type === QuestionType.MATCH_HEADING && q.usesPassageDropzones,
+  )
+  if (!allPassageHeadings) return null
+  return questions.find((q) => normalizeMatchOptions(q.options).length > 0) ?? null
 })
 
 // Restore question highlights from store

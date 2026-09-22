@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, getCurrentInstance, onBeforeUnmount } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useAudioCache } from './useAudioCache'
 
@@ -102,8 +102,45 @@ export function useListeningAudio() {
 
     pendingAutoPlay = false
     visibleAudioRef.value.play().catch((err) => {
-      console.log('Autoplay blocked:', err)
+      console.log('Autoplay deferred until user interaction:', err)
+      armResumeOnGesture()
     })
+  }
+
+  // Autoplay after a page refresh is blocked until the user interacts with the
+  // page. Resume on the first gesture. Only one set of listeners is ever armed,
+  // they are all removed together after the first gesture, and on unmount.
+  // Not every event grants user activation on every platform (a touch pointerdown
+  // does not; its pointerup/touchend does), so listen to several and re-arm if
+  // play() is still rejected.
+  const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const
+  let gestureArmed = false
+
+  const disarmResumeOnGesture = () => {
+    if (!gestureArmed) return
+    gestureArmed = false
+    GESTURE_EVENTS.forEach((type) => window.removeEventListener(type, resumeOnGesture, true))
+  }
+
+  function resumeOnGesture() {
+    disarmResumeOnGesture()
+    const audio = visibleAudioRef.value
+    if (audio && audio.paused && isStarted.value && !isAllAudiosFinished) {
+      audio.play().catch((err) => {
+        console.warn('Playback request rejected:', err)
+        armResumeOnGesture()
+      })
+    }
+  }
+
+  function armResumeOnGesture() {
+    if (gestureArmed) return
+    gestureArmed = true
+    GESTURE_EVENTS.forEach((type) => window.addEventListener(type, resumeOnGesture, true))
+  }
+
+  if (getCurrentInstance()) {
+    onBeforeUnmount(disarmResumeOnGesture)
   }
 
   // Save audio time periodically
@@ -138,8 +175,15 @@ export function useListeningAudio() {
     }
   }
 
-  const onAudioPlay = () => {}
-  const onAudioPause = () => {}
+  const isPlaying = ref(false)
+
+  const onAudioPlay = () => {
+    isPlaying.value = true
+    disarmResumeOnGesture()
+  }
+  const onAudioPause = () => {
+    isPlaying.value = false
+  }
 
   // Watch for test data to initialize
   watch(
@@ -158,6 +202,7 @@ export function useListeningAudio() {
     visibleAudioRef,
     isAudioLoading,
     isStarted,
+    isPlaying,
     loadedCount,
     totalAudios,
     allAudiosFinished,

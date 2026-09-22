@@ -21,6 +21,12 @@ export default defineConfig({
   },
   server: {
     allowedHosts: ['edfba627c681.ngrok-free.app'],
+    proxy: {
+      '/storage': {
+        target: 'http://127.0.0.1:8001',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     target: 'esnext',

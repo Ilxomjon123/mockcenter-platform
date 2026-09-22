@@ -5,24 +5,37 @@ import { useReadingStore } from '@/stores/readingStore'
 const draggedOption = ref<HTMLElement | null>(null)
 const sourceDropzone = ref<HTMLElement | null>(null)
 const draggedValue = ref<string | null>(null)
+const draggedDisplay = ref<string | null>(null)
 // Kind of the value being dragged ('match' | 'heading'). Drops are only
 // allowed onto a dropzone of the same kind so the two families never mix.
 const draggedKind = ref<string>('match')
 const dragClone = ref<HTMLElement | null>(null)
 const currentDropzone = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
+const selectedOption = ref<HTMLElement | null>(null)
+let startX = 0
+let startY = 0
+// A click-to-place happens on mouseup; the browser then fires `click` on the same
+// dropzone, which would otherwise immediately clear the value just placed.
+let suppressClickZone: HTMLElement | null = null
+let suppressClickUntil = 0
 
 export function useGlobalReadingDragDrop() {
   const readingStore = useReadingStore()
 
   // Helper to show option by key within a kind family (search globally)
   const showOptionByKey = (key: string, kind: string) => {
-    const option = document.querySelector(
-      `.draggable-option[data-option-key="${key}"][data-kind="${kind}"]`
-    ) as HTMLElement
-    if (option) {
-      option.classList.remove('used')
-    }
+    const targetKey = key.trim().toUpperCase()
+    const options = document.querySelectorAll(
+      `.draggable-option[data-kind="${kind}"]`
+    )
+    options.forEach((opt) => {
+      const optEl = opt as HTMLElement
+      const k = (optEl.dataset.optionKey || '').trim().toUpperCase()
+      if (k === targetKey) {
+        optEl.classList.remove('used')
+      }
+    })
   }
 
   // Create custom drag image
@@ -33,21 +46,25 @@ export function useGlobalReadingDragDrop() {
     clone.style.position = 'fixed'
     clone.style.pointerEvents = 'none'
     clone.style.zIndex = '10000'
-    clone.style.transform = 'translate(-50%, -50%) rotate(3deg) scale(1.05)'
-    clone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)'
+    clone.style.transform = 'translate(-50%, -50%)'
+    clone.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'
     clone.style.opacity = '0.95'
     clone.style.padding = '6px 14px'
-    clone.style.borderRadius = '4px'
+    clone.style.borderRadius = '6px'
     clone.style.background = '#ffffff'
-    clone.style.border = '1px solid #3b82f6'
+    clone.style.border = '1.5px solid #94a3b8'
     clone.style.fontSize = '13px'
-    clone.style.color = '#374151'
+    clone.style.fontWeight = '600'
+    clone.style.color = '#1e293b'
     clone.style.whiteSpace = 'nowrap'
+    clone.style.maxWidth = '300px'
+    clone.style.overflow = 'hidden'
+    clone.style.textOverflow = 'ellipsis'
     document.body.appendChild(clone)
     return clone
   }
 
-  // Handle drop on a dropzone
+  // Handle drop or placement on a dropzone
   const handleDropOnZone = (dropzone: HTMLElement) => {
     const matchNumber = dropzone.dataset.match
     if (!matchNumber || !draggedValue.value) return
@@ -57,34 +74,48 @@ export function useGlobalReadingDragDrop() {
     if (zoneKind !== draggedKind.value) return
 
     // If target dropzone already has a value, restore that option
-    const oldValue = dropzone.querySelector('.match-value')?.textContent
-    if (oldValue) {
-      showOptionByKey(oldValue, zoneKind)
+    const oldKey = dropzone.dataset.storedKey || dropzone.querySelector('.match-value')?.textContent
+    if (oldKey) {
+      showOptionByKey(oldKey, zoneKind)
     }
+
+    const optKey = draggedValue.value
+    const optDisplay = draggedDisplay.value || optKey
 
     // Update the target dropzone display
     const valueEl = dropzone.querySelector('.match-value')
     if (valueEl) {
-      valueEl.textContent = draggedValue.value
+      valueEl.textContent = optDisplay
+      dropzone.dataset.storedKey = optKey
       dropzone.classList.add('has-value')
     }
 
-    // Save to store
-    readingStore.updateAnswer(parseInt(matchNumber, 10), draggedValue.value)
+    // Save key to store (e.g. 'A', 'B', etc.)
+    readingStore.updateAnswer(parseInt(matchNumber, 10), optKey)
 
     // Handle source: either an option or another dropzone
     if (draggedOption.value) {
       // Mark option as used within the same kind family
       const allOptions = document.querySelectorAll(
-        `.draggable-option[data-option-key="${draggedValue.value}"][data-kind="${zoneKind}"]`
+        `.draggable-option[data-kind="${zoneKind}"]`
       )
-      allOptions.forEach((opt) => opt.classList.add('used'))
+      allOptions.forEach((opt) => {
+        const optEl = opt as HTMLElement
+        if ((optEl.dataset.optionKey || '').trim().toUpperCase() === optKey.trim().toUpperCase()) {
+          optEl.classList.add('used')
+          optEl.classList.remove('selected-option')
+        }
+      })
+      if (selectedOption.value === draggedOption.value) {
+        selectedOption.value = null
+      }
     } else if (sourceDropzone.value) {
       const sourceValueEl = sourceDropzone.value.querySelector('.match-value')
       const sourceMatchNumber = sourceDropzone.value.dataset.match
       if (sourceValueEl) {
         sourceValueEl.textContent = ''
       }
+      delete sourceDropzone.value.dataset.storedKey
       sourceDropzone.value.classList.remove('has-value', 'dragging-from')
 
       if (sourceMatchNumber) {
@@ -97,20 +128,25 @@ export function useGlobalReadingDragDrop() {
   // ============ MOUSE EVENTS (Tauri-compatible) ============
 
   const handleMouseDown = (e: MouseEvent) => {
+    startX = e.clientX
+    startY = e.clientY
+
     const target = e.target as HTMLElement
 
     // Check if clicking on an option
     const option = target.closest('.draggable-option') as HTMLElement
     if (option && !option.classList.contains('used')) {
+      // Prevent text selection (and the highlight toolbar) while dragging
       e.preventDefault()
       isDragging.value = true
       draggedOption.value = option
       draggedValue.value = option.dataset.optionKey || ''
+      draggedDisplay.value = option.dataset.optionDisplay || draggedValue.value
       draggedKind.value = option.dataset.kind || 'match'
       sourceDropzone.value = null
       option.classList.add('dragging')
 
-      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value = createDragImage(draggedDisplay.value || draggedValue.value)
       dragClone.value.style.left = `${e.clientX}px`
       dragClone.value.style.top = `${e.clientY}px`
       return
@@ -119,18 +155,20 @@ export function useGlobalReadingDragDrop() {
     // Check if clicking on a dropzone with value
     const dropzone = target.closest('.match-dropzone') as HTMLElement
     if (dropzone && dropzone.classList.contains('has-value')) {
-      e.preventDefault()
+      const storedKey = dropzone.dataset.storedKey
       const valueEl = dropzone.querySelector('.match-value')
-      draggedValue.value = valueEl?.textContent || ''
+      draggedValue.value = storedKey || valueEl?.textContent || ''
+      draggedDisplay.value = valueEl?.textContent || draggedValue.value
       if (!draggedValue.value) return
 
+      e.preventDefault()
       isDragging.value = true
       draggedKind.value = dropzone.dataset.kind || 'match'
       sourceDropzone.value = dropzone
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
 
-      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value = createDragImage(draggedDisplay.value || draggedValue.value)
       dragClone.value.style.left = `${e.clientX}px`
       dragClone.value.style.top = `${e.clientY}px`
     }
@@ -165,8 +203,9 @@ export function useGlobalReadingDragDrop() {
     }
   }
 
-  const handleMouseUp = () => {
-    if (!isDragging.value) return
+  const handleMouseUp = (e: MouseEvent) => {
+    const moved = Math.hypot(e.clientX - startX, e.clientY - startY)
+    const isClick = moved < 6
 
     // Clean up dragging state
     if (draggedOption.value) {
@@ -182,8 +221,8 @@ export function useGlobalReadingDragDrop() {
       dragClone.value = null
     }
 
-    // Handle drop if we're over a valid dropzone
-    if (currentDropzone.value && currentDropzone.value !== sourceDropzone.value) {
+    // If dragged and dropped onto a dropzone
+    if (isDragging.value && !isClick && currentDropzone.value && currentDropzone.value !== sourceDropzone.value) {
       currentDropzone.value.classList.remove('drag-over')
       currentDropzone.value.classList.add('drop-animation')
       const dz = currentDropzone.value
@@ -192,11 +231,52 @@ export function useGlobalReadingDragDrop() {
       handleDropOnZone(currentDropzone.value)
     }
 
+    // Click-to-place handling
+    if (isClick) {
+      const target = e.target as HTMLElement
+      const clickedOption = target.closest('.draggable-option') as HTMLElement
+      const clickedDropzone = target.closest('.match-dropzone') as HTMLElement
+
+      if (clickedOption && !clickedOption.classList.contains('used')) {
+        if (selectedOption.value === clickedOption) {
+          clickedOption.classList.remove('selected-option')
+          selectedOption.value = null
+        } else {
+          document.querySelectorAll('.draggable-option.selected-option').forEach((el) => {
+            el.classList.remove('selected-option')
+          })
+          clickedOption.classList.add('selected-option')
+          selectedOption.value = clickedOption
+        }
+      } else if (clickedDropzone && selectedOption.value) {
+        // Place (or replace) the selected option into the clicked dropzone
+        const zoneKind = clickedDropzone.dataset.kind ?? 'match'
+        const optKind = selectedOption.value.dataset.kind ?? 'match'
+        if (zoneKind === optKind) {
+          draggedValue.value = selectedOption.value.dataset.optionKey || ''
+          draggedDisplay.value = selectedOption.value.dataset.optionDisplay || draggedValue.value
+          draggedKind.value = optKind
+          draggedOption.value = selectedOption.value
+          sourceDropzone.value = null
+
+          handleDropOnZone(clickedDropzone)
+          suppressClickZone = clickedDropzone
+          suppressClickUntil = Date.now() + 500
+        }
+      } else if (!clickedDropzone) {
+        document.querySelectorAll('.draggable-option.selected-option').forEach((el) => {
+          el.classList.remove('selected-option')
+        })
+        selectedOption.value = null
+      }
+    }
+
     // Reset state
     isDragging.value = false
     draggedOption.value = null
     sourceDropzone.value = null
     draggedValue.value = null
+    draggedDisplay.value = null
     currentDropzone.value = null
 
     // Clean up any remaining drag-over classes
@@ -218,11 +298,12 @@ export function useGlobalReadingDragDrop() {
       isDragging.value = true
       draggedOption.value = option
       draggedValue.value = option.dataset.optionKey || ''
+      draggedDisplay.value = option.dataset.optionDisplay || draggedValue.value
       draggedKind.value = option.dataset.kind || 'match'
       sourceDropzone.value = null
       option.classList.add('touch-dragging')
 
-      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value = createDragImage(draggedDisplay.value || draggedValue.value)
       dragClone.value.style.left = `${touch.clientX}px`
       dragClone.value.style.top = `${touch.clientY}px`
       return
@@ -232,7 +313,9 @@ export function useGlobalReadingDragDrop() {
     const dropzone = target.closest('.match-dropzone') as HTMLElement
     if (dropzone && dropzone.classList.contains('has-value')) {
       const valueEl = dropzone.querySelector('.match-value')
-      draggedValue.value = valueEl?.textContent || ''
+      // Always carry the stored option KEY; the box may show "A) heading text"
+      draggedValue.value = dropzone.dataset.storedKey || valueEl?.textContent || ''
+      draggedDisplay.value = valueEl?.textContent || draggedValue.value
       if (!draggedValue.value) return
 
       isDragging.value = true
@@ -241,7 +324,7 @@ export function useGlobalReadingDragDrop() {
       draggedOption.value = null
       dropzone.classList.add('dragging-from')
 
-      dragClone.value = createDragImage(draggedValue.value)
+      dragClone.value = createDragImage(draggedDisplay.value || draggedValue.value)
       dragClone.value.style.left = `${touch.clientX}px`
       dragClone.value.style.top = `${touch.clientY}px`
     }
@@ -304,6 +387,7 @@ export function useGlobalReadingDragDrop() {
     draggedOption.value = null
     sourceDropzone.value = null
     draggedValue.value = null
+    draggedDisplay.value = null
     currentDropzone.value = null
   }
 
@@ -311,9 +395,15 @@ export function useGlobalReadingDragDrop() {
   const handleDropzoneClick = (e: Event) => {
     // Don't trigger click if we just finished dragging
     if (isDragging.value) return
-
     const target = e.target as HTMLElement
     const dropzone = target.closest('.match-dropzone') as HTMLElement
+
+    // The click that follows a click-to-place must not clear the value
+    if (suppressClickZone) {
+      const suppress = dropzone === suppressClickZone && Date.now() < suppressClickUntil
+      suppressClickZone = null
+      if (suppress) return
+    }
 
     if (!dropzone || !dropzone.classList.contains('has-value')) return
 
@@ -324,16 +414,17 @@ export function useGlobalReadingDragDrop() {
 
     const matchNumber = dropzone.dataset.match
     const valueEl = dropzone.querySelector('.match-value')
-    const currentValue = valueEl?.textContent
+    const storedKey = dropzone.dataset.storedKey || valueEl?.textContent
     const zoneKind = dropzone.dataset.kind ?? 'match'
 
     if (matchNumber && valueEl) {
       setTimeout(() => {
-        if (currentValue) {
-          showOptionByKey(currentValue, zoneKind)
+        if (storedKey) {
+          showOptionByKey(storedKey, zoneKind)
         }
 
         valueEl.textContent = ''
+        delete dropzone.dataset.storedKey
         dropzone.classList.remove('has-value', 'remove-animation')
 
         delete readingStore.answers[parseInt(matchNumber, 10)]

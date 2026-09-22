@@ -34,6 +34,11 @@ export interface ProcessedQuestion extends Omit<QuestionRaw, 'children'> {
   displayNumber?: string
   processedContent?: string
   children?: ProcessedQuestion[]
+  /**
+   * Reading only: the answer(s) of this question live in dropzones/gaps inside
+   * the passage (part content), so the question just holds the options.
+   */
+  usesPassageDropzones?: boolean
 }
 
 export interface PartRaw {

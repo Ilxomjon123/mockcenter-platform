@@ -1,6 +1,6 @@
 <template>
   <div :data-question-number="baseQuestionNumber">
-    <div v-if="question.content" class="question-content" v-html="question.content"></div>
+    <div v-if="displayContent" class="question-content" v-html="displayContent"></div>
     <div class="options-container">
       <label
         v-for="(opt, idx) in optionsArray"
@@ -39,6 +39,16 @@ import { useListeningStore } from '@/stores/listeningStore'
 const props = defineProps<{
   question: ProcessedQuestion
 }>()
+
+const displayContent = computed(() => {
+  if (!props.question.content) return ''
+  const c = props.question.content.trim()
+  const t = (props.question.title || '').trim()
+  if (!c || c === t) return ''
+  const strip = (s: string) => s.replace(/<[^>]*>/g, '').replace(/^\(?\d{1,2}[.)]\s+/, '').trim().toLowerCase()
+  if (strip(c) === strip(t)) return ''
+  return c
+})
 
 const listeningStore = useListeningStore()
 

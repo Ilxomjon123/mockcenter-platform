@@ -35,19 +35,51 @@
       @timeupdate="onAudioTimeUpdate"
     ></audio>
 
-    <!-- Display all questions in current part -->
-    <div ref="questionsContainerRef" class="questions-container" @mouseup="handleMouseUp">
-      <template v-for="question in processedQuestions" :key="question.id">
-        <!-- Question with children -->
-        <ParentQuestion
-          v-if="question.children && question.children.length > 0"
-          :question="question"
-        />
+    <!-- Main content area -->
+    <div
+      ref="questionsContainerRef"
+      class="questions-container"
+      :class="{ 'has-part-media': !!partImageMatch }"
+      @mouseup="handleMouseUp"
+    >
+      <!-- Split layout: Image on the LEFT, instructions and questions on the RIGHT -->
+      <div v-if="partImageMatch" class="media-split-layout">
+        <!-- Left: Map / Diagram (standalone image without outer card) -->
+        <div class="media-split-left" v-html="partImageMatch"></div>
 
-        <!-- Regular question without children -->
-        <QuestionItem v-else :question="question" />
+        <!-- Right: Instructions and Questions -->
+        <div class="media-split-right">
+          <div v-if="partTextContent" class="compact-intro-text" v-html="partTextContent"></div>
+          <div class="questions-list-wrapper">
+            <template v-for="question in processedQuestions" :key="question.id">
+              <ParentQuestion
+                v-if="question.children && question.children.length > 0"
+                :question="question"
+              />
+              <QuestionItem v-else :question="question" />
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Standard layout (Parts without images) -->
+      <template v-else>
+        <div
+          v-if="currentPartContent"
+          class="part-intro-content"
+          v-html="currentPartContent"
+        ></div>
+
+        <template v-for="question in processedQuestions" :key="question.id">
+          <ParentQuestion
+            v-if="question.children && question.children.length > 0"
+            :question="question"
+          />
+          <QuestionItem v-else :question="question" />
+        </template>
       </template>
     </div>
+
 
     <!-- Highlight Toolbar -->
     <Teleport to="body">
@@ -115,12 +147,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watch, nextTick } from 'vue'
 import { useListeningStore } from '@/stores/listeningStore'
 import { useListeningAudio } from '@/composables/useListeningAudio'
 import { useDragAndDrop } from '@/composables/useDragAndDrop'
 import { useQuestionProcessor } from '@/composables/useQuestionProcessor'
 import { useTextHighlight } from '@/composables/useTextHighlight'
+import { sanitizeHtml } from '@/utils/sanitize'
 import AudioLoader from './AudioLoader.vue'
 import ListeningCompletedModal from './ListeningCompletedModal.vue'
 import TransferTimeModal from './TransferTimeModal.vue'
@@ -135,6 +168,32 @@ const questionsContainerRef = ref<HTMLElement | null>(null)
 const currentPartRange = computed(() => {
   const stats = listeningStore.partStats[listeningStore.currentPart]
   return stats ?? { start: 0, end: 0 }
+})
+
+const currentPartContent = computed(() => {
+  const part = listeningStore.test?.parts?.find(
+    (p) => p.order === listeningStore.currentPart
+  )
+  // Server HTML is sanitized: <audio>, scripts and event handlers are dropped,
+  // <img> is kept with a safe src (the backend makes /storage URLs absolute).
+  const content = sanitizeHtml(part?.content || '').replace(/<p>\s*<\/p>/gi, '')
+  return content.trim()
+})
+
+const partImageMatch = computed(() => {
+  const match = currentPartContent.value.match(/<img\b[^>]*>/i)
+  if (!match) return null
+  // Strip inline border, shadow and container styles so the image stands on its own ("o'zi tursin")
+  return match[0].replace(/\s*style="[^"]*"/gi, '')
+})
+
+const partTextContent = computed(() => {
+  if (!partImageMatch.value) return currentPartContent.value
+  return currentPartContent.value
+    .replace(/<div\b[^>]*>\s*<img\b[^>]*>\s*<\/div>/gi, '')
+    .replace(/<img\b[^>]*>/gi, '')
+    .replace(/<p>\s*<\/p>/gi, '')
+    .trim()
 })
 
 // Audio composable
@@ -176,7 +235,10 @@ const { processedQuestions, restoreGapValues, setupInputListener } = useQuestion
 })
 
 // Drag and drop composable
-const { setupEventListeners: setupDragDropListeners } = useDragAndDrop({
+const {
+  setupEventListeners: setupDragDropListeners,
+  cleanupEventListeners: cleanupDragDropListeners,
+} = useDragAndDrop({
   containerRef: questionsContainerRef,
 })
 
@@ -225,6 +287,11 @@ watch(
     nextTick(restoreQuestionHighlights)
   },
 )
+
+// Document-level drag listeners need the container ref, which is gone after unmount
+onBeforeUnmount(() => {
+  cleanupDragDropListeners()
+})
 
 // Cleanup on unmount
 onUnmounted(() => {
@@ -399,5 +466,121 @@ onUnmounted(() => {
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-top: 6px solid #1f2937;
+}
+
+.part-intro-content {
+  padding: 20px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.part-intro-content :deep(img) {
+  display: block;
+  margin: 16px auto;
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.part-intro-content :deep(audio),
+:deep(audio) {
+  display: none !important;
+}
+
+/* Side-by-side Media Split Layout (Part 4 Map / Images) */
+.media-split-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.15fr) minmax(380px, 1fr);
+  gap: 20px;
+  padding: 16px 24px;
+  max-width: 1560px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.media-split-left {
+  position: sticky;
+  top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.media-split-left :deep(img) {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  max-height: calc(100vh - 180px);
+  min-height: 220px;
+  height: auto;
+  object-fit: contain;
+  border: none !important;
+  border-radius: 4px;
+  box-shadow: none !important;
+  background: transparent !important;
+  outline: none !important;
+}
+
+.media-split-left :deep(div) {
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.media-split-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.media-split-right :deep(.matching-group-container) {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.media-split-right :deep(.question-item) {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.compact-intro-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #475569;
+  padding: 2px 4px 6px 4px;
+}
+
+.compact-intro-text :deep(p) {
+  margin: 0 0 6px 0;
+}
+
+.compact-intro-text :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+  .media-split-layout {
+    grid-template-columns: 1fr;
+  }
+  .media-split-left {
+    position: static;
+  }
+  .media-split-left :deep(img) {
+    max-height: 340px;
+  }
 }
 </style>

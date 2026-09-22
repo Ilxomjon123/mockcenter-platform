@@ -1,7 +1,7 @@
 <template>
   <header class="exam-header">
     <div class="header-left">
-      <div class="logo">IELTS</div>
+      <div class="logo">{{ logoText }}</div>
       <div class="test-info">
         <div class="test-id">{{ authStore.takerName || $t('header.taker') }} — {{ authStore.takerNumber }}</div>
         <div v-if="timer" class="timer-display" :class="{ 'timer-low': isTimerLow }">
@@ -94,13 +94,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import OptionsModal from './OptionsModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import { isTauri } from '@/composables/useTauri'
 import { useConnectionStatus } from '@/composables/useHealthCheck'
+
+const authStore = useAuthStore()
+
+const logoText = computed(() => {
+  const type = (authStore.examType || '').toLowerCase()
+  if (type === 'cerf' || type === 'cefr') return 'CEFR'
+  if (type === 'sat') return 'SAT'
+  return 'IELTS'
+})
 
 interface Props {
   timer?: string
@@ -112,7 +121,6 @@ withDefaults(defineProps<Props>(), {
   isTimerLow: false
 })
 
-const authStore = useAuthStore()
 const isOptionsOpen = ref(false)
 const isLogoutModalOpen = ref(false)
 const isFullscreen = ref(false)

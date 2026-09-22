@@ -349,27 +349,158 @@ watch(
   color: #1f2937;
 }
 
+/* Part instruction card styles - visible in full-width Part 1, hidden in split-panel parts 2-5 */
+.full-width-passage .passage-text :deep(.part-instruction-card) {
+  display: block !important;
+  margin-bottom: 22px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.full-width-passage .passage-text :deep(.instruction-badge) {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1e293b;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.full-width-passage .passage-text :deep(.instruction-text) {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+  margin: 0;
+}
+
+.passage-panel:not(.full-width-passage) .passage-text :deep(.part-instruction-card) {
+  display: none !important;
+}
+
+/* Article title & paragraphs */
+.passage-text :deep(.reading-article-title) {
+  font-weight: 700;
+  font-size: 17px;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.passage-text :deep(.reading-paragraph) {
+  margin-bottom: 16px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #334155;
+}
+
+/* Paragraph header with dropzone for Part 3 Heading Matching */
+.passage-text :deep(.paragraph-header-with-dropzone) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.passage-text :deep(.paragraph-badge) {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #1e293b;
+  flex-shrink: 0;
+}
+
+.passage-text :deep(.match-dropzone.heading-dropzone) {
+  display: inline-flex;
+  align-items: center;
+  min-width: 220px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  text-align: left;
+}
+
+.passage-text :deep(.match-dropzone.heading-dropzone:hover) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.passage-text :deep(.match-dropzone.heading-dropzone.drag-over) {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.passage-text :deep(.match-dropzone.heading-dropzone.has-value) {
+  border-style: solid;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.passage-text :deep(.match-dropzone.heading-dropzone .match-value) {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.passage-text :deep(.dropzone-hint) {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  margin-left: 6px;
+}
+
+.passage-text :deep(.match-dropzone.has-value .dropzone-hint) {
+  display: none;
+}
+
+.passage-text :deep(.reading-text-body) {
+  font-size: 15.5px;
+  line-height: 2.1;
+  color: #334155;
+}
+
 /* Gap input styles */
 .passage-text :deep(.gap-input) {
-  min-width: 80px;
+  min-width: 90px;
   width: auto;
   max-width: 100%;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
   margin: 0 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  background-color: #ffffff;
   outline: none;
-  transition:
-    border-color 0.15s ease,
-    width 0.1s ease;
+  transition: all 0.15s ease-in-out;
   box-sizing: content-box;
+  vertical-align: baseline;
 }
 
 .passage-text :deep(.gap-input:focus) {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background-color: #f8fafc;
 }
 
 /* Match dropzone styles */

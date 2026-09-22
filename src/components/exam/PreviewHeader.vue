@@ -1,7 +1,7 @@
 <template>
   <header class="exam-header">
     <div class="header-left">
-      <div class="logo">IELTS</div>
+      <div class="logo">{{ logoText }}</div>
       <div class="test-info">
         <div class="preview-badge">{{ $t('common.previewMode') }}</div>
         <div v-if="timer" class="timer-display">
@@ -48,8 +48,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
+
+const authStore = useAuthStore()
+
+const logoText = computed(() => {
+  const type = (authStore.examType || '').toLowerCase()
+  if (type === 'cerf' || type === 'cefr') return 'CEFR'
+  if (type === 'sat') return 'SAT'
+  return 'IELTS'
+})
 
 interface Props {
   timer?: string
