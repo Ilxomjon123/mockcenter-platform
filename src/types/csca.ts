@@ -15,6 +15,8 @@ export interface CscaQuestion {
   type?: 'single' | 'single_choice' | 'matching' | 'open' | 'essay'
   title: string
   title_ru?: string
+  /** "Manba: …" for items from official publications. */
+  source_label?: string | null
   options?: Record<string, string> | null
   options_ru?: Record<string, string> | null
   points?: number

@@ -454,6 +454,8 @@ const canGoNext = computed(() => currentIndex.value < questions.value.length - 1
           </div>
 
           <div class="csca-question" v-html="renderedTitle"></div>
+          <!-- Items from official publications name their source (the publisher requires it) -->
+          <p v-if="currentQuestion?.source_label" class="csca-question-source">{{ currentQuestion.source_label }}</p>
 
           <!-- 1. Essay Question -->
           <div v-if="currentQuestion.type === 'essay'" class="csca-essay-container">
@@ -1300,6 +1302,12 @@ const canGoNext = computed(() => currentIndex.value < questions.value.length - 1
   padding: var(--gap-xl);
   max-width: 480px;
   width: 100%;
+}
+
+.csca-question-source {
+  margin: -4px 0 12px;
+  font-size: 11px;
+  color: #9ca3af;
 }
 
 .csca-modal__title {
